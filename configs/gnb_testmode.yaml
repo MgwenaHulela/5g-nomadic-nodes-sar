@@ -1,0 +1,53 @@
+cu_cp:
+  amf:
+    addr: 127.0.0.5
+    port: 38412
+    bind_addr: 127.0.0.1
+    supported_tracking_areas:
+      - tac: 1
+        plmn_list:
+          - plmn: "99970"
+            tai_slice_support_list:
+              - sst: 1
+
+ru_dummy:
+  dl_processing_delay: 1
+  time_scaling: 1
+
+cell_cfg:
+  dl_arfcn: 632628
+  band: 78
+  channel_bandwidth_MHz: 20
+  common_scs: 30
+  plmn: "99970"
+  tac: 1
+  pdcch:
+    dedicated:
+      ss2_type: common
+      dci_format_0_1_and_1_1: false
+    common:
+      ss0_index: 0
+      coreset0_index: 12
+  prach:
+    prach_config_index: 1
+  pdsch:
+    mcs_table: qam64
+  pusch:
+    mcs_table: qam64
+
+test_mode:
+  test_ue:
+    rnti: 0x44
+    ri: 1
+    cqi: 15
+    nof_ues: 2
+    pusch_active: true
+    pdsch_active: true
+
+log:
+  filename: /tmp/gnb_test.log
+  all_level: warning
+
+pcap:
+  mac_enable: disable
+  ngap_enable: disable

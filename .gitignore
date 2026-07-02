@@ -1,0 +1,20 @@
+# ROS2 build artifacts (regenerable via colcon build)
+ros_ws/build/
+ros_ws/install/
+ros_ws/log/
+
+# Python
+__pycache__/
+*.pyc
+
+# OAI runtime-generated stats logs
+oai_configs/nrL1_stats.log
+oai_configs/nrL1_UE_stats-0.log
+oai_configs/nrMAC_stats.log
+oai_configs/nrRRC_stats.log
+
+# Config backups
+oai_configs/*.bak
+
+# Telnet history (optional — remove this line if you want it tracked)
+oai_configs/oaitelnet.history

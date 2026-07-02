@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="sar_world">
+
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 100 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>500 500</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>500 500</size></plane></geometry>
+          <material><ambient>0.4 0.6 0.4 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- UAV (nomadic gNB) at 30m altitude -->
+    <model name="sar_uav">
+      <static>true</static>
+      <pose>0 0 30 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>2.0</mass>
+          <inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><box><size>0.6 0.6 0.2</size></box></geometry>
+          <material><ambient>1 0 0 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.6 0.6 0.2</size></box></geometry>
+        </collision>
+      </link>
+      <plugin filename="gz-sim-pose-publisher-system"
+              name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <update_frequency>10</update_frequency>
+      </plugin>
+    </model>
+
+    <!-- Ground robot alpha — 15m from UAV -->
+    <model name="sar_ground_alpha">
+      <pose>15 0 0.1 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.05</ixx><iyy>0.05</iyy><izz>0.05</izz></inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><box><size>0.3 0.3 0.2</size></box></geometry>
+          <material><ambient>0 0 1 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.3 0.3 0.2</size></box></geometry>
+        </collision>
+      </link>
+      <plugin filename="gz-sim-pose-publisher-system"
+              name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <update_frequency>10</update_frequency>
+      </plugin>
+    </model>
+
+    <!-- Ground robot bravo — 30m from UAV -->
+    <model name="sar_ground_bravo">
+      <pose>30 0 0.1 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.05</ixx><iyy>0.05</iyy><izz>0.05</izz></inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><box><size>0.3 0.3 0.2</size></box></geometry>
+          <material><ambient>0 1 0 1</ambient></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.3 0.3 0.2</size></box></geometry>
+        </collision>
+      </link>
+      <plugin filename="gz-sim-pose-publisher-system"
+              name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <update_frequency>10</update_frequency>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>
