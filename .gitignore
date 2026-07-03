@@ -18,3 +18,7 @@ oai_configs/*.bak
 
 # Telnet history (optional — remove this line if you want it tracked)
 oai_configs/oaitelnet.history
+
+# PX4-Autopilot: ~3.5GB external clone, never commit. apply_x500_patch.sh
+# reproduces the one manual edit it needs after a fresh clone.
+worlds/PX4-Autopilot/
