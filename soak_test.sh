@@ -112,7 +112,7 @@ cp ~/sar_sim/oai_configs/*.conf "$RUN_DIR/" 2>/dev/null
 echo "== Starting collectors (run dir: $RUN_DIR) =="
 
 # 1. channel bridge (it writes its own CSV; we also keep stdout)
-python3 "$BRIDGE_SCRIPT" > "$RUN_DIR/bridge_stdout.log" 2>&1 &
+python3 -u "$BRIDGE_SCRIPT" > "$RUN_DIR/bridge_stdout.log" 2>&1 &
 PIDS+=($!)
 echo "  [1] channel_bridge.py (pid ${PIDS[-1]})"
 

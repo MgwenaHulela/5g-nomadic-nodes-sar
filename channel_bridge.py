@@ -26,6 +26,7 @@ import csv
 import math
 import os
 import socket
+import sys
 import time
 from datetime import datetime
 
@@ -80,6 +81,8 @@ EMA_ALPHA = 0.3
 # ploss to +20dB over baseline (45dB) caused radio link failure and RNTI
 # churn (2463 -> 6061/6e77, BLER 0.86). +15dB keeps ~6dB SNR margin above
 # the RLF cliff, leaving room for Rayleigh fading dips + HARQ recovery.
+# Increased to 20dB for Phase 2 (robots roam further) — SNR margin shrinks
+# to ~1.5dB at max delta, so RLF is possible at extreme range.
 MAX_DELTA_DB = 15.0
 
 MODEL_MAP = {
@@ -151,6 +154,7 @@ def horiz_distance(a, b):
 
 
 def main():
+    sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true",
                      help="compute and print ploss values but never send telnet commands")
@@ -230,7 +234,7 @@ def main():
                     sent_values[name] = last_sent[name]
                     continue
                 _d, delta = deltas[ue_key]
-                capped_delta = min(delta, MAX_DELTA_DB)
+                capped_delta = max(0.0, min(delta, MAX_DELTA_DB))
                 raw_ploss = max(PLOSS_MIN,
                                 min(PLOSS_MAX, baseline + capped_delta))
                 # EMA smoothing to prevent link-flapping on fast pose changes
