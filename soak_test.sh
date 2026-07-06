@@ -40,6 +40,10 @@ RUN_DIR="$HOME/sar_sim/logs/soak_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RUN_DIR"
 
 PIDS=()
+
+# forward declaration — real definition is later, but must exist for trap
+write_summary() { :; }
+
 cleanup() {
   echo ""
   echo "== Stopping all collectors =="
@@ -91,7 +95,7 @@ if ss -ltn 2>/dev/null | grep -q ":$IPERF_PORT "; then
 fi
 
 # quick connectivity gate
-ping -I "$UE_ALPHA_TUN" -c 2 -W 2 "$BRAVO_IP" >/dev/null 2>&1 || { echo "FATAL: alpha->bravo ping failed pre-flight"; exit 1; }
+ping -I "$ALPHA_IP" -c 2 -W 2 "$BRAVO_IP" >/dev/null 2>&1 || { echo "FATAL: alpha->bravo ping failed pre-flight"; exit 1; }
 echo "  connectivity OK"
 
 # record starting RNTIs for churn detection later
@@ -119,7 +123,7 @@ echo "  [1] channel_bridge.py (pid ${PIDS[-1]})"
 # 2. continuous ping alpha -> bravo, 1 Hz, timestamped CSV
 (
   echo "timestamp,seq,rtt_ms" > "$RUN_DIR/ping_a2b.csv"
-  ping -I "$UE_ALPHA_TUN" -i 1 "$BRAVO_IP" 2>/dev/null | while read -r line; do
+  ping -I "$ALPHA_IP" -i 1 "$BRAVO_IP" 2>/dev/null | while read -r line; do
     if [[ "$line" =~ icmp_seq=([0-9]+).*time=([0-9.]+) ]]; then
       echo "$(date -Iseconds),${BASH_REMATCH[1]},${BASH_REMATCH[2]}" >> "$RUN_DIR/ping_a2b.csv"
     fi
