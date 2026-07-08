@@ -1,0 +1,5 @@
+start: 2026-07-05T22:12:44+02:00
+duration_s: 2700
+alpha_ip: 10.45.0.26
+bravo_ip: 10.45.0.27
+iperf: 10s burst every 60s, alternating direction

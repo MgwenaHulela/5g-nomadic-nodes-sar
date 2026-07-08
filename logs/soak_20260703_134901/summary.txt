@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-03T13:56:49+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260703_134901
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 0a6e 1ade 4514 6878 86a4 b054 e4ce 
+RNTIs after:  0a6e 1ade 4514 6878 86a4 b054 e4ce 
+RNTI churn: NONE — links survived
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 0 sentinel samples out of 32
+bravo: 0 sentinel samples out of 32
+
+== SINR stats (dB) ==
+alpha: n=32 min=29.4 max=33.6 mean=32.0
+bravo: n=32 min=24.2 max=27.3 mean=26.0
+
+== Ping alpha->bravo ==
+replies=85 min=10.6ms max=4523.0ms mean=267.9ms
+approx loss: 96% (expected ~2700 @1Hz, got 85)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: bursts=1 min=10.25 max=10.25 mean=10.25 Mbps
+b2a: bursts=1 min=4.93 max=4.93 mean=4.93 Mbps
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

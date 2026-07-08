@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-06T15:30:48+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260706_152638
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 03fc 0873 1020 5554 690d d8fd e7f6 
+RNTIs after:  0034 004d 00b9 011e 015c 01ac 021b 027f 0297 02f9 032f 03a2 03fc 0447 0518 0562 063f 0662 0681 06e7 076a 07ba 0873 0913 0939 095c 0991 09d4 09d8 0a22 0a66 0a86 0a9b 0b15 0bb6 0bdd 0c49 0d1a 0d1f 0d2c 0da7 0dcd 0e5b 0e8e 0eae 0f65 100c 1020 106d 10c0 10eb 1126 112f 116f 11ad 11ee 12e3 138a 13df 140f 1443 1466 1472 1473 14a7 14c9 1551 15c5 16ab 16cd 16ec 16f7 175f 179b 17ae 18f4 1951 195d 19a3 1a0d 1a89 1a94 1aa1 1ad4 1b37 1b3e 1be7 1c89 1cd7 1cda 1d0a 1d32 1e73 1f18 2057 206a 2215 22a2 22c3 237f 23c4 2462 2494 24c4 25ee 2685 2686 269b 26b3 273e 2909 2a22 2a93 2b4e 2bbd 2bd3 2bfa 2c2a 2c4f 2d55 2dbc 2e0d 2e3a 2e5f 2e84 2e86 2ed7 2ee2 2f0b 2f1c 2f41 2f80 305d 306f 3089 309c 319d 31cc 31dc 322e 3271 3300 3337 339b 33e4 33f8 347f 34f2 3538 3570 35e8 3651 366b 36cc 3700 379d 37b4 3802 38a0 38e8 38ea 38f4 39ce 3a45 3a4a 3add 3b4d 3b67 3b7b 3b9f 3c64 3c85 3c9b 3ca5 3d11 3d70 3da5 3e4a 3e84 3ee7 401d 40c7 4196 41ac 4237 42cd 4305 435d 43e5 448e 44e4 4632 4688 468b 4750 47d6 47ea 4833 4855 48d6 4966 4a4b 4b00 4b77 4be2 4bee 4c0a 4c28 4c4d 4ef9 4f62 4fa2 5080 50d4 5117 534f 53b2 5429 5492 54ff 551e 5554 5685 5759 5806 5832 5851 5985 59c0 59ed 5a24 5a4f 5b2c 5b47 5c00 5c0f 5c42 5cd2 5cda 5cf5 5d06 5d1a 5d56 5d5a 5e17 5e80 5f6d 5f73 5f9d 5fd8 5fdd 60ba 6112 6119 618a 6195 6228 623b 626b 62cc 630c 6314 6489 64ee 6529 65aa 65ce 65ee 6681 671b 6762 676e 67d8 68b8 68ff 690d 6928 6981 6a84 6ac5 6ae0 6b79 6b95 6bdd 6c52 6c59 6c7b 6ce6 6d16 6e23 6e40 6e82 6ea4 6f72 6f80 7041 7081 70c8 719e 721d 7258 728c 72bd 7378 747d 7492 74ca 7546 756f 76b0 771f 777e 7790 7798 77ac 77d5 77fe 7974 7978 7998 7a7d 7ad0 7b6f 7bf4 7cac 7d0b 7d7f 7da6 7e60 7e6a 7ead 7ec3 7ed5 7f3f 7f54 7fee 7ff2 8155 8172 819b 8234 839e 839f 83ea 83eb 8484 84d9 85d8 85fa 8604 871b 8730 8738 8789 8819 8824 8853 88fb 8904 8951 8aa6 8aeb 8b10 8b50 8c43 8ca9 8d07 8d8c 8d94 8e26 8e7c 8ea4 8ed2 8ef6 8fd8 900c 9020 902c 90bb 90cc 90f1 9136 9137 913c 91e0 927a 9282 92e3 9331 93c0 943a 9446 946d 9490 94b4 94be 957a 95f9 963b 964c 9784 981c 9900 9926 9966 99b2 99e8 9a0d 9a20 9b7c 9b9f 9c49 9c94 9d15 9dd9 9de1 9eef 9f12 9f1c 9f62 9ff0 a213 a2ac a32e a430 a56e a588 a5f7 a63a a723 a7a8 a806 a8fd a919 a926 a977 aa28 ab83 ab87 ab9c aba1 aba6 ac30 ac8c acf2 aeb2 af06 af9f afc6 afde afe4 affc b032 b0e8 b0ef b104 b170 b1e4 b295 b33b b36d b385 b413 b41e b491 b4a8 b4dd b4ea b537 b5be b5c7 b646 b6a1 b6e7 b70f b762 b7f8 b81a b843 b92e b93c b9d3 ba02 bb08 bb0d bb3b bb6d bb8a bbcb bbfd bd00 bd13 bd15 bde7 bdfe bf3b bf3d bfaa c09a c0c4 c0ec c11a c1bd c1d2 c232 c270 c292 c2e1 c30c c381 c392 c3df c3e5 c445 c4e7 c662 c670 c68b c69d c73d c77e c7b6 c7c3 c81d c81e c88b c8a4 c8b6 c96c ca08 ca67 ca93 cad7 caf5 caf9 caff cb0f cb1b cb2c cb46 cbe8 ccc1 cd2d cd88 cdd8 cdfd ce07 cf02 cf4a cfc4 cfd1 d067 d071 d0b9 d0d8 d108 d116 d1ae d336 d4bd d51c d56f d5a1 d5a2 d5c1 d60b d68a d6e8 d77a d7da d7e1 d84e d8e3 d8fd d94b d961 d9fa da37 da8b da9f dab6 daf8 db6c dba1 dbd0 dbd1 dbf8 dc5e dc8d dcf1 ddd2 de57 de89 df1f df22 df3e df55 dfa6 dfc1 e01d e072 e0b4 e0c1 e144 e16c e19d e251 e27e e37c e38f e394 e3b6 e421 e463 e4ba e4e1 e52a e545 e5b2 e5de e5f7 e641 e64b e650 e6b4 e728 e746 e7d4 e7f6 e86c e950 e995 e997 ea54 ea6d eaca ead0 eb3d eb60 eb6a ec2e ec41 ecb9 ecce ed03 eda6 edeb ee01 ee13 ee37 eeb0 ef67 ef81 efd4 f038 f061 f063 f09f f0ef f12d f178 f207 f239 f2ee f3a4 f3e5 f418 f439 f47d f4ad f4bf f4e4 f501 f56d f5b9 f5ca f5d4 f651 f6bf f721 f767 f76d f87c f8cf f91f f944 fa1c fa63 fad7 fb22 fbee fc2f fc88 fcbf fd3e fd60 fe36 fe8a feac ffa8 ffba ffe2 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 1 sentinel samples out of 62
+bravo: 23 sentinel samples out of 61
+
+== SINR stats (dB) ==
+alpha: n=61 min=-69.6 max=36.0 mean=-23.7
+bravo: n=38 min=-66.8 max=28.9 mean=1.9
+
+== Ping alpha->bravo ==
+replies=90 min=0.0ms max=0.1ms mean=0.0ms
+approx loss: 96% (expected ~2700 @1Hz, got 90)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: no successful bursts
+b2a: no successful bursts
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

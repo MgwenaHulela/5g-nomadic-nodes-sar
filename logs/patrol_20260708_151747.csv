@@ -1,0 +1,4 @@
+timestamp,t_elapsed_s,x_m,ploss_dB,d_horiz_m,tcp_tp_mbps,tcp_retransmits,udp_tp_mbps,udp_jitter_ms,udp_lost_pct,rtt_min_ms,rtt_avg_ms,rtt_max_ms,alpha_ul_bits_per_sym,alpha_ul_code_rate,alpha_ul_nb_rbs,alpha_ul_nb_sym,alpha_dl_harq_ok,alpha_dl_harq_nok,alpha_dl_bler,bravo_ul_bits_per_sym,bravo_ul_code_rate,bravo_ul_nb_rbs,bravo_ul_nb_sym,bravo_dl_harq_ok,bravo_dl_harq_nok,bravo_dl_bler
+2026-07-08T13:18:44.996858+00:00,2.4,10,20.26,10.0,0.0,0,0.0,0.0,100.0,0.0,0.0,0.0,2.8,0.6,92.9,11.3,655480,95733,0.12743789045184256,3.5,0.4,13.7,12.8,130576,286,0.0021855083981598936
+2026-07-08T13:19:17.527837+00:00,90.3,25,29.85,25.0,0.0,0,0.0,0.0,100.0,0.0,0.0,0.0,2.9,0.6,93.2,11.3,167864,23208,0.12146206665550159,3.5,0.4,13.7,12.8,47667,104,0.002177053023801051
+2026-07-08T13:19:40.124347+00:00,112.9,40,27.74,40.0,0.0,0,0.0,0.0,100.0,30.472,30.472,30.472,2.9,0.6,93.4,11.3,128703,17406,0.11913023838367247,3.5,0.4,13.7,12.8,35803,78,0.002173852456731975

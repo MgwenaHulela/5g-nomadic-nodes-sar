@@ -1,0 +1,577 @@
+timestamp|line
+2026-07-06T15:56:46+02:00|UE 267d: dlsch_rounds 30/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 21.4+1.4 dB), BLER 0.02542 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:56:46+02:00|UE 267d: ulsch_rounds 149/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00010 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 22.2 (+2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:56:46+02:00|UE ed14: dlsch_rounds 27/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 21.6+1.6 dB), BLER 0.03138 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:56:46+02:00|UE ed14: ulsch_rounds 121/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00148 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 22.2 (+2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:56:56+02:00|UE 267d: dlsch_rounds 43/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 22.3+2.3 dB), BLER 0.00798 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:56:56+02:00|UE 267d: ulsch_rounds 236/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 21.8 (+1.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:56:56+02:00|UE ed14: dlsch_rounds 40/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 22.4+2.4 dB), BLER 0.00798 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:56:56+02:00|UE ed14: ulsch_rounds 198/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00001 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 21.4 (+1.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:06+02:00|UE 267d: dlsch_rounds 50/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.4+1.4 dB), BLER 0.15772 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:06+02:00|UE 267d: ulsch_rounds 288/21/16/14, ulsch_errors 1, ulsch_DTX 0, BLER 0.25539 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 21.6 (+1.6) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:06+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:06+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:16+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:16+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:16+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:16+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:26+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:26+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:26+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:26+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:36+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:36+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:36+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:36+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:46+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:46+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:46+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:46+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:56+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:57:56+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:57:56+02:00|UE ed14: dlsch_rounds 43/2/2/0, dlsch_errors 0, pucch0_DTX 1 (SNR 29.1+9.1 dB), BLER 0.10646 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T15:57:56+02:00|UE ed14: ulsch_rounds 210/4/3/2, ulsch_errors 2, ulsch_DTX 12, BLER 0.00000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 23 SNR 31.1 (+11.1) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:06+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:06+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:06+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:06+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:16+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:16+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:16+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:16+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:27+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:27+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:27+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:27+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:37+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:37+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:37+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:37+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:47+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:47+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:47+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:47+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:57+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:57+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:58:57+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:58:57+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:07+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:59:07+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:07+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:59:07+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:18+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:59:18+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:18+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:59:18+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:28+02:00|UE 267d: dlsch_rounds 55/2/1/1, dlsch_errors 1, pucch0_DTX 0 (SNR 21.2+1.2 dB), BLER 0.10348 MCS (0) 0 CCE fail 5, goodput 0.00 Mbps
+2026-07-06T15:59:28+02:00|UE 267d: ulsch_rounds 543/162/154/151, ulsch_errors 132, ulsch_DTX 10, BLER 0.65321 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 23.9 (+3.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:28+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:28+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.07 Mbps
+2026-07-06T15:59:38+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:38+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:38+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:38+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:48+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:48+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:48+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:48+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:59+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:59+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:59+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T15:59:59+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:09+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:09+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:09+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:09+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:19+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:19+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:19+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:19+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:30+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:30+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:30+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:30+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:40+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:40+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:40+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:40+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:50+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:50+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:50+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:00:50+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:01+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:01+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:01+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:01+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:11+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:11+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:11+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:11+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:21+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:21+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:21+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:21+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:32+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:32+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:32+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:32+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:42+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:42+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:42+02:00|UE 80c4: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:42+02:00|UE 80c4: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.4 (+2.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:53+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:53+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:53+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:01:53+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:03+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:03+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:03+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:03+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:13+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:13+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:13+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:13+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:24+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:24+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:24+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:24+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:34+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:34+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:34+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:34+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:45+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:45+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:45+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:45+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:55+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:55+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:55+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:02:55+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:06+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:06+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:06+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:06+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:17+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:17+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:17+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:17+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:27+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:27+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:27+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:27+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:38+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:38+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:38+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:38+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:48+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:48+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:48+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:48+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:59+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:59+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:59+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:03:59+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:10+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:10+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:10+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:10+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:20+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:20+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:20+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:20+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:31+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:31+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:31+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:31+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:41+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:41+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:41+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:41+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:52+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:52+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:52+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:04:52+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:03+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:03+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:03+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:03+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:13+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:13+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:13+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:13+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:24+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:24+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:24+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:24+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:36+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:36+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:36+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:36+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:47+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:47+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:47+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:47+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:58+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:58+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:58+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:05:58+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:10+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:10+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:10+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:10+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:20+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:20+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:20+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:20+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:31+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:31+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:31+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:31+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:42+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:42+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:42+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:42+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:53+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:53+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:53+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:06:53+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:04+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:04+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:04+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:04+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:14+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:14+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:14+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:14+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:25+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:25+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:25+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:25+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:36+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:36+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:36+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:36+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:47+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:47+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:47+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:47+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:58+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:58+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:58+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:07:58+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:08+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:08+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:08+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:08+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:19+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:19+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:19+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:19+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:30+02:00|UE 9576: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:30+02:00|UE 9576: ulsch_rounds 32/30/29/28, ulsch_errors 28, ulsch_DTX 11, BLER 0.45919 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.4 (+3.4) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:30+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:30+02:00|UE f16b: ulsch_rounds 9/9/8/7, ulsch_errors 6, ulsch_DTX 0, BLER 0.19000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 22.1 (+2.1) dB CCE fail 0, goodput 0.02 Mbps
+2026-07-06T16:08:41+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:41+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:41+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:41+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:52+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:52+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:52+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:08:52+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:03+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:03+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:03+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:03+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:14+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:14+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:25+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:25+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:25+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:25+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:36+02:00|UE f16b: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 26.0+6.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:36+02:00|UE f16b: ulsch_rounds 32/31/31/29, ulsch_errors 28, ulsch_DTX 11, BLER 0.52170 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 23.8 (+3.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:36+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:36+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:47+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:47+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:47+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:47+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:58+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:58+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:58+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:09:58+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:09+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:09+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:09+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:09+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:32+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:32+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:32+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:32+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:43+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:43+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:43+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:43+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:54+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:54+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:54+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:10:54+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:17+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:17+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:17+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:17+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:40+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:40+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:40+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:40+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:11:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:03+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:03+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:03+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:03+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:25+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:25+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:25+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:25+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:36+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:36+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:36+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:36+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:47+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:47+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:47+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:47+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:59+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:59+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:59+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:12:59+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:10+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:10+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:10+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:10+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:21+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:21+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:21+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:21+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:32+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:32+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:32+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:32+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:44+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:44+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:44+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:44+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:55+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:55+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:55+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:13:55+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:17+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:17+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:17+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:17+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:40+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:40+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:40+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:40+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:14:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:02+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:02+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:02+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:02+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:25+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:25+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:25+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:25+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:36+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:36+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:36+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:36+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:48+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:48+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:48+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:15:48+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:00+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:00+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:00+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:00+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:11+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:11+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:11+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:11+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:23+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:23+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:23+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:23+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:34+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:34+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:34+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:34+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:45+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:45+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:45+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:45+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:57+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:57+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:57+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:16:57+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:08+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:08+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:08+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:08+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:34+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:34+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:34+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:34+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:45+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:45+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:45+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:45+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:57+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:57+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:57+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:17:57+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:08+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:08+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:08+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:08+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:20+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:20+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:31+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:31+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:31+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:31+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:43+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:43+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:43+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:43+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:54+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:54+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:54+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:18:54+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:06+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:06+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:18+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:18+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:18+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:18+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:29+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:29+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:29+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:29+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:41+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:41+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:41+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:41+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:53+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:53+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:53+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:19:53+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:04+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:04+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:04+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:04+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:16+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:16+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:16+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:16+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:28+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:28+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:39+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:39+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:39+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:39+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:51+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:20:51+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:03+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:03+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:03+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:03+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:15+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:15+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:15+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:15+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:27+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:27+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:27+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:27+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:38+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:38+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:38+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:38+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:50+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:50+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:50+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:21:50+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:02+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:02+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:02+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:02+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:14+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:14+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:26+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:26+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:26+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:26+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:38+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:38+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:38+02:00|UE 0837: dlsch_rounds 1/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 25.0+5.0 dB), BLER 0.10000 MCS (0) 0 CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:22:38+02:00|UE 0837: ulsch_rounds 40/38/37/36, ulsch_errors 36, ulsch_DTX 11, BLER 0.50952 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 104 SNR 17.8 (-2.2) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:23:10+02:00|UE 4376: dlsch_rounds 29/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 21.5+1.5 dB), BLER 0.02824 MCS (0) 0 CCE fail 4, goodput 0.00 Mbps
+2026-07-06T16:23:10+02:00|UE 4376: ulsch_rounds 126/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00133 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 21.9 (+1.9) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:23:10+02:00|UE 73f5: dlsch_rounds 7/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 30.9+10.9 dB), BLER 0.09000 MCS (0) 0 CCE fail 2, goodput 0.00 Mbps
+2026-07-06T16:23:10+02:00|UE 73f5: ulsch_rounds 22/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.09000 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 22.0 (+2.0) dB CCE fail 0, goodput 0.01 Mbps
+2026-07-06T16:23:20+02:00|UE 4376: dlsch_rounds 35/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 21.4+1.4 dB), BLER 0.01501 MCS (0) 0 CCE fail 4, goodput 0.00 Mbps
+2026-07-06T16:23:20+02:00|UE 4376: ulsch_rounds 183/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00001 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 21.8 (+1.8) dB CCE fail 0, goodput 0.00 Mbps
+2026-07-06T16:23:20+02:00|UE 73f5: dlsch_rounds 29/0/0/0, dlsch_errors 0, pucch0_DTX 0 (SNR 22.1+2.1 dB), BLER 0.02542 MCS (0) 0 CCE fail 7, goodput 0.00 Mbps
+2026-07-06T16:23:20+02:00|UE 73f5: ulsch_rounds 134/0/0/0, ulsch_errors 0, ulsch_DTX 0, BLER 0.00042 MCS (0) 0 (Qm 2 deltaMCS 0 dB) NPRB 5 SNR 22.0 (+2.0) dB CCE fail 0, goodput 0.00 Mbps

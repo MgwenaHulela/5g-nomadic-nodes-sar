@@ -33,12 +33,12 @@ sudo ip link delete oaitun_ue1p2 2>/dev/null
 gate "TUNs cleared"
 
 echo "== 3. Gazebo sanity =="
-GZ_COUNT=$(pgrep -fc "gz sim" || echo 0)
-if [[ "$GZ_COUNT" -eq 0 ]]; then
+GZ_COUNT=$(pgrep -cf "gz sim" 2>/dev/null || true)
+if [[ "${GZ_COUNT:-0}" -eq 0 ]]; then
   echo "  WARNING: no Gazebo running. RAN will start fine, but the bridge will"
   echo "  have no poses. Start it with:"
-  echo "    gz sim -r -s ~/sar_sim/worlds/sar_world.sdf -v 1 &"
-elif [[ "$GZ_COUNT" -gt 1 ]]; then
+  echo "    gz sim -r -s ~/sar_sim/worlds/sar_open_field.sdf -v 1 &"
+elif [[ "${GZ_COUNT:-0}" -gt 1 ]]; then
   echo "  WARNING: $GZ_COUNT Gazebo instances running — this eats RAM and floods"
   echo "  pose topics. Strongly recommended before continuing:"
   echo "    pkill -9 -f 'gz sim'   # then start exactly ONE instance"
@@ -62,10 +62,11 @@ echo "== 5. Start UE alpha =="
 nohup ./cmake_targets/ran_build/build/nr-uesoftmodem \
   --telnetsrv --rfsim -O "$CONF_DIR/nrue_alpha.conf" $UE_ARGS \
   > /tmp/ue_alpha.log 2>&1 &
-# wait up to 40s for the PDU session (TUN appearing)
-for i in $(seq 1 20); do
+# wait up to 120s for PDU session (TUN appearing) — rfsim runs at ~2% realtime
+for i in $(seq 1 60); do
   sleep 2
   ip addr show oaitun_ue1 >/dev/null 2>&1 && break
+  [ $((i % 10)) -eq 0 ] && echo "  still waiting for alpha TUN ... (${i}s)"
 done
 ip addr show oaitun_ue1 >/dev/null 2>&1 || die "alpha TUN never appeared — check /tmp/ue_alpha.log (tail -30)"
 gate "alpha attached ($(ip -4 addr show oaitun_ue1 | grep -oP 'inet \K[\d.]+'))"
@@ -74,9 +75,10 @@ echo "== 6. Start UE bravo =="
 nohup ./cmake_targets/ran_build/build/nr-uesoftmodem \
   --telnetsrv --rfsim -O "$CONF_DIR/nrue_bravo.conf" $UE_ARGS \
   > /tmp/ue_bravo.log 2>&1 &
-for i in $(seq 1 20); do
+for i in $(seq 1 60); do
   sleep 2
   ip addr show oaitun_ue1p2 >/dev/null 2>&1 && break
+  [ $((i % 10)) -eq 0 ] && echo "  still waiting for bravo TUN ... (${i}s)"
 done
 ip addr show oaitun_ue1p2 >/dev/null 2>&1 || die "bravo TUN never appeared — check /tmp/ue_bravo.log (tail -30)"
 gate "bravo attached ($(ip -4 addr show oaitun_ue1p2 | grep -oP 'inet \K[\d.]+'))"

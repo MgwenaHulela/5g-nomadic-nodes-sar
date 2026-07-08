@@ -1,0 +1,6 @@
+start: 2026-07-07T18:50:16+02:00
+duration_s: 600
+alpha: 10.45.0.2 via oaitun_ue1 -> 10.0.0.200
+bravo: 10.45.0.3 via oaitun_ue1p2 -> 10.0.0.201
+mode: dual-UE simultaneous uplink (downlink via loopback)
+iperf: 10s burst every 60s per UE

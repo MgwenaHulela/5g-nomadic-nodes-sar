@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-03T15:14:27+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260703_150922
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 12a0 2159 3aee 5457 6075 629f ed50 
+RNTIs after:  000a 030c 03b5 03bd 0413 070a 0716 0760 09a0 0a8f 0b9c 0bb5 0c83 0da8 0e1a 0e7d 0efd 11f8 12a0 12ed 16b5 16be 16f0 17d1 1c84 1ce0 1f66 1f76 211a 2159 219e 2200 221e 2294 23cc 23fa 2454 2497 24f7 2545 26f9 273b 27f3 2804 2962 2b99 2c50 2c5e 2c64 2f97 2fbd 2fc3 3230 33aa 371d 3827 3a31 3a9f 3acf 3adb 3aee 3b6a 3c1e 3c49 3c80 3d0e 3d67 3dab 3e26 3e5b 3f8d 4014 402c 4056 40d0 4192 422c 4299 42fd 4380 43b2 44e5 45a3 4622 463b 4725 4831 4845 4afe 4d1c 4d7b 4d90 4dbf 4e55 4eb4 4f85 513c 528a 5457 54ba 54ff 568d 57c2 5815 5834 586d 58b9 5b13 5bd0 5c0b 5c1f 5cf0 5dba 5ded 5dfa 5e3b 5e5a 5fd4 6075 60d4 6149 624c 629f 62fd 6329 633d 63f3 6437 645f 6476 653d 65c7 66d1 6777 6a10 6b13 6c10 6d2c 6d8b 7044 70c0 71db 7209 72fa 7320 749d 76e2 772c 775f 7890 78b6 7a1b 7b22 7ba3 7baa 7c35 7d11 7dac 7f04 7f1b 7f7d 8055 8153 8160 8187 8248 840d 8448 8464 8630 864f 87c2 8939 8998 8db9 8edd 9001 9069 906d 9446 944b 95d9 977c 9786 985c 988a 9c64 9d0f 9dc8 9e8d 9f53 9f98 9fe7 a1e8 a1f8 a426 a54a a645 a649 a789 a8d8 a8e8 aa95 aac5 ab28 ab44 abf9 ad20 ad55 ad6b adca ae1b aff2 affa b04a b04e b09f b1be b35d b6dd b6f0 b777 b7ad b7fc b8b2 b996 b9d2 ba90 bb0d bc20 bc63 bdc1 be2a bf0e c016 c04e c0ae c0d5 c244 c2a9 c4a0 c522 c631 c888 cb58 cc04 cc17 cc62 ce25 cecd cf24 d093 d10b d16f d1c2 d35c d4d5 d56e d626 d6bc d724 d7ba d83d d893 d95e daaa dade db96 dc5c dce3 dd90 ddc8 ddff debb ded8 df25 e1c3 e1c8 e228 e42f e43f e45b e4da e504 e563 e586 e673 e6a0 e8a8 e992 ea52 ea97 eaa9 ebfa ecc8 ed50 ee1e eec9 ef18 ef3e ef84 eff0 f002 f03b f0d8 f119 f139 f289 f2da f2e3 f303 f36f f3e6 f456 f4a8 f58d f70c f72c f80c f993 f994 fc93 fcd4 fd24 fdcc fdd9 fe83 fe9a ff0b 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 0 sentinel samples out of 77
+bravo: 17 sentinel samples out of 77
+
+== SINR stats (dB) ==
+alpha: n=77 min=-69.9 max=35.9 mean=-11.1
+bravo: n=60 min=-7.8 max=33.3 mean=16.6
+
+== Ping alpha->bravo ==
+replies=34 min=19.2ms max=6251.0ms mean=869.0ms
+approx loss: 98% (expected ~2700 @1Hz, got 34)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: bursts=1 min=2.43 max=2.43 mean=2.43 Mbps
+b2a: no successful bursts
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

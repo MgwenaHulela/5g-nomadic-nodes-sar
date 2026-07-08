@@ -1,0 +1,5 @@
+SOAK TEST SUMMARY (dual-UE) — 2026-07-07T18:59:53+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_dual_20260707_184851
+planned duration: 600s
+
+== Link survival ==

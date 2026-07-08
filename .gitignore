@@ -1,24 +1,9 @@
-# ROS2 build artifacts (regenerable via colcon build)
-ros_ws/build/
-ros_ws/install/
-ros_ws/log/
-
-# Python
-__pycache__/
+/tmp/
+nrL1_UE_stats-*.log
+nrL1_stats.log
+nrMAC_stats.log
+nrRRC_stats.log
+oaitelnet.history
 *.pyc
-
-# OAI runtime-generated stats logs
-oai_configs/nrL1_stats.log
-oai_configs/nrL1_UE_stats-0.log
-oai_configs/nrMAC_stats.log
-oai_configs/nrRRC_stats.log
-
-# Config backups
-oai_configs/*.bak
-
-# Telnet history (optional — remove this line if you want it tracked)
-oai_configs/oaitelnet.history
-
-# PX4-Autopilot: ~3.5GB external clone, never commit. apply_x500_patch.sh
-# reproduces the one manual edit it needs after a fresh clone.
-worlds/PX4-Autopilot/
+__pycache__/
+worlds/PX4-Autopilot

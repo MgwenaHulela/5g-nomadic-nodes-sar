@@ -40,10 +40,6 @@ RUN_DIR="$HOME/sar_sim/logs/soak_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RUN_DIR"
 
 PIDS=()
-
-# forward declaration — real definition is later, but must exist for trap
-write_summary() { :; }
-
 cleanup() {
   echo ""
   echo "== Stopping all collectors =="
@@ -116,7 +112,7 @@ cp ~/sar_sim/oai_configs/*.conf "$RUN_DIR/" 2>/dev/null
 echo "== Starting collectors (run dir: $RUN_DIR) =="
 
 # 1. channel bridge (it writes its own CSV; we also keep stdout)
-python3 -u "$BRIDGE_SCRIPT" > "$RUN_DIR/bridge_stdout.log" 2>&1 &
+python3 "$BRIDGE_SCRIPT" > "$RUN_DIR/bridge_stdout.log" 2>&1 &
 PIDS+=($!)
 echo "  [1] channel_bridge.py (pid ${PIDS[-1]})"
 

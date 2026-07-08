@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-03T13:13:39+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260703_131037
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 3390 5795 625c 846e e265 f30a 
+RNTIs after:  00a2 019d 0268 02b6 0340 0351 03ca 0607 074b 075b 0858 086d 0932 0970 09e5 0a99 0b09 0be8 0c09 0c1a 0d95 0f1e 0fb4 0ffe 1073 1093 10ca 1128 11fb 12ed 1515 15bd 16e1 174c 17a5 1837 183d 1893 1897 1976 1bff 1c73 1d22 1ddd 1f36 2061 20f1 215a 2357 23f0 24cd 24f0 25a5 261c 2660 27c6 28b3 28f8 2b61 2bc1 2bd3 2bda 2da5 2f79 2fc0 3002 3097 30b0 3117 3134 3194 3230 32e1 3390 33d0 341f 3557 35e3 3603 3696 3711 3780 3857 3a57 3ad4 3ae0 3ae4 3b2f 3b4a 3bd1 3c30 3c3d 3cc9 3d1c 3d5b 3d86 3dd6 4072 40ec 413d 4299 4343 43b1 43d7 4490 457f 4750 4803 4822 487f 4bfb 4ca2 4d2d 4e60 4e66 4eab 4ee2 4f34 509f 50bb 527f 5288 52b4 5435 546a 552e 5543 55d8 56d2 5795 585e 5875 58b5 5b4d 5bd9 5ca2 5e75 5fa4 5fb4 6052 60d0 6194 625c 628a 62fa 641a 641f 6494 6525 65b0 675c 67cb 6972 6ac8 6b39 6b5d 6bc9 6bfa 6c46 6c52 6e37 6e6a 6e89 6f40 701a 702c 7218 7428 74fe 75a0 7714 773f 77d7 78c9 7914 7a41 7ac8 7b5c 7bdf 7c9c 7cb0 7cb2 7d00 7de5 7e22 7f75 7faf 806a 80e0 81f7 8394 8433 8447 846e 84b3 84d1 86ff 872f 886c 89c5 8a8b 8e28 8f31 9195 921f 9252 92b1 9428 9490 958b 9640 9689 96ee 9718 9719 9a20 9ae0 9bb9 9bc8 9cac 9d2e 9d82 9db6 9eb9 9ed7 9f15 9f91 9fbb a07a a168 a2d6 a319 a3d5 a57c a5ac a5d1 a6d7 a6fc a90a a98b aa10 aa19 ac6e ac75 ac89 ad27 ad50 ad75 ad9a ae2c af60 af75 b0c0 b14a b16b b294 b53b b53f b59a b5c3 b68b b71b b7c5 b7d4 b7d8 b7fc b8e4 b923 b96b ba52 ba99 bbd7 bc15 bec5 c050 c08d c1b2 c226 c25c c273 c2a1 c35a c371 c3b4 c468 c4bc c591 c598 c5c9 c615 c741 c883 c98b ca3f ca53 cb2c cde3 cf91 cfef d043 d139 d20f d234 d266 d33f d3ff d42d d619 d6f0 d75d d7d6 d9ea da5f dcd5 dce2 dd5c ddf9 de62 e0a1 e146 e265 e2f1 e313 e4f8 e596 e62a e657 e6df e6f0 e7b3 e869 ea41 eaf7 eb83 ed1e ee2f ee50 eec9 eed7 eedd ef17 efef eff4 f19a f25f f2c8 f30a f31a f5b8 f5c6 f5ed f788 f7f3 f8df fa73 faad fc18 fe11 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 1 sentinel samples out of 48
+bravo: 23 sentinel samples out of 48
+
+== SINR stats (dB) ==
+alpha: n=47 min=-69.9 max=31.6 mean=-16.4
+bravo: n=25 min=-8.3 max=26.3 mean=19.2
+
+== Ping alpha->bravo ==
+replies=6 min=69.3ms max=558.0ms mean=180.4ms
+approx loss: 99% (expected ~2700 @1Hz, got 6)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: no successful bursts
+b2a: no successful bursts
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

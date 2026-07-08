@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-03T14:57:01+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260703_145413
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 0800 13a9 2048 37c4 4771 ba61 e14e 
+RNTIs after:  010f 039a 0591 0800 08a6 1225 13a9 16a3 2048 30af 37c4 38a6 3b8c 4771 4ff5 5028 5088 54cb 5793 579d 5d62 5e89 66f8 6ee0 7609 8080 8543 86c8 92ba 949d 94a6 9a59 9e0f a575 a6fe aa6c af04 b25f ba61 bd90 c43e ca63 cf66 d492 d5fe ddda e14e e519 ec98 f36e f6ec faca fead ffed 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 1 sentinel samples out of 48
+bravo: 37 sentinel samples out of 47
+
+== SINR stats (dB) ==
+alpha: n=47 min=-69.9 max=33.3 mean=-26.9
+bravo: n=10 min=-26.4 max=26.3 mean=5.8
+
+== Ping alpha->bravo ==
+replies=10 min=45.9ms max=1895.0ms mean=514.0ms
+approx loss: 99% (expected ~2700 @1Hz, got 10)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: no successful bursts
+b2a: no successful bursts
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

@@ -1,0 +1,28 @@
+SOAK TEST SUMMARY — 2026-07-03T14:53:22+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260703_144919
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 00aa 165b 1d5a 2335 2571 2690 2901 3144 3705 4124 4350 4570 4874 5242 5391 5426 5b38 6477 691d 7157 7514 7ad0 866d 90ba 992b a121 a9f1 be64 cace ccc9 d29c d3fd 
+RNTIs after:  0030 003c 00aa 01f4 0201 023e 02a4 099b 0a25 0a72 0d4d 0fa8 104d 12d7 13ed 1500 165b 16e8 181d 1869 195b 1a2b 1b08 1d5a 1d8c 1e4a 1f1a 1fbb 20ac 214a 21c9 2335 2571 261d 2623 2690 272f 2731 2807 28a6 28c0 2901 2b68 2c3d 2d24 2d83 2f05 30e8 3144 33af 3409 360f 3680 3705 3864 38de 393d 3b3c 3be2 3e84 3f5f 3f6a 3f93 3f94 3fc9 408e 40bd 4124 4350 4570 4692 481c 4852 4874 4933 4985 4ad9 4c71 4de2 4dfe 4e46 4ecc 5227 5242 5391 5426 55e2 5613 56d3 5b12 5b38 5e3c 5e6c 5ede 5f61 6093 6404 6477 650f 65e8 691d 6b23 6da7 6dfa 6e7f 7085 7135 7157 723f 729b 73cf 7462 7514 77b3 7809 79ae 7a83 7ad0 7b62 7bc7 7cf4 7f11 837b 83ee 852f 858a 866d 8b11 8ba6 8be4 8cfc 9040 90ba 91b0 9490 94a5 9527 958d 95c4 992b 99f7 9a5b 9ce8 9d5a a121 a1df a239 a578 a5df a610 a981 a9f1 abca af20 af45 afc4 aff5 b241 b3b9 b420 b652 b81d bdf9 be64 c151 c380 c38d c3e9 c74f c7ea c964 c986 cace cb37 cb9e cbff cc67 ccc9 d0ad d0de d1d6 d230 d298 d29c d3fd d504 d5bb d637 d68c d68f d6c0 dcab dd72 dd97 dff7 e04f e220 e3d2 e445 e52e e89e e96b eb40 eb96 ec04 ecc8 ee33 ef82 f053 f132 f205 f22a f37e f3d3 f425 f447 f472 f77b f843 fa07 faa9 facf fb7f fbd1 fbfa fe10 ff6f ffe5 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+alpha: 0 sentinel samples out of 52
+bravo: 23 sentinel samples out of 51
+
+== SINR stats (dB) ==
+alpha: n=52 min=-67.9 max=32.7 mean=-5.6
+bravo: n=28 min=-68.2 max=29.9 mean=5.3
+
+== Ping alpha->bravo ==
+replies=11 min=87.9ms max=2439.0ms mean=733.7ms
+approx loss: 99% (expected ~2700 @1Hz, got 11)
+
+== iperf3 throughput (Mbps per 10s burst) ==
+a2b: no successful bursts
+b2a: no successful bursts
+failed bursts: 0   loopback-leak bursts (invalid, bypassed air): 0
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)

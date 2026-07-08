@@ -1,0 +1,17 @@
+SOAK TEST SUMMARY — 2026-07-05T21:53:32+02:00
+run dir: /home/innocentmsc/sar_sim/logs/soak_20260705_215330
+planned duration: 2700s
+
+== Link survival ==
+RNTIs before: 
+RNTIs after:  07c1 1682 261c 41b6 5335 d06e de39 
+RNTI churn: DETECTED — an RLF/re-attach happened during the run
+
+== Sync-loss sentinels (SINR <= -70 dB) during run ==
+
+== Ping alpha->bravo ==
+
+== iperf3 throughput (Mbps per 10s burst) ==
+
+Files: sinr_samples.csv, ping_a2b.csv, iperf_bursts.csv, gnb_stats.log,
+       bridge_stdout.log, + channel_bridge_log.csv (bridge's own, in ~/sar_sim/logs/)
