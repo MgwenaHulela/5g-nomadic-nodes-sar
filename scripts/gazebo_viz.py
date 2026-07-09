@@ -22,6 +22,7 @@ sys.path.insert(0, "/usr/lib/python3/dist-packages")
 
 from gz.transport13 import Node
 from gz.msgs10 import marker_pb2, stringmsg_pb2
+from gz.msgs10.empty_pb2 import Empty
 from gz.msgs10.pose_v_pb2 import Pose_V
 
 # ── Constants ─────────────────────────────────────────────────────────────────
@@ -40,12 +41,11 @@ _lock = threading.Lock()
 
 
 def _ensure_node():
-    global _node, _marker_pub, _string_pub
+    global _node, _string_pub
     with _lock:
         if _node is not None:
             return
         _node = Node()
-        _marker_pub = _node.advertise("/marker", marker_pb2.Marker())
         _string_pub = _node.advertise("/sar/metrics", stringmsg_pb2.StringMsg())
         # Start a keep-alive spin loop so the node processes messages
         def _spin():
@@ -57,11 +57,18 @@ def _ensure_node():
 
 
 def _publish_marker(m):
-    """Send a single Marker."""
+    """Send a single Marker.
+
+    /marker is a SERVICE offered by the GUI's MarkerManager plugin
+    (gz.msgs.Marker -> gz.msgs.Empty), not a topic — publishing to a
+    topic of that name renders nothing. The request fails fast and is
+    ignored while no GUI is attached; since we re-send every cycle, a
+    GUI picks the markers up within a second of connecting.
+    """
     _ensure_node()
     with _lock:
         try:
-            _marker_pub.publish(m)
+            _node.request("/marker", m, marker_pb2.Marker, Empty, 100)
         except Exception:
             pass
 
