@@ -12,6 +12,7 @@ Usage:
 
 import os
 import re
+import subprocess
 import threading
 import time
 import sys
@@ -149,51 +150,65 @@ def publish_metrics(text):
 
 
 def update_viz(ux, uy, uz,
-               ax, ay, az, a_ploss, a_tcp, a_pdr, a_rtt, a_bits, a_rsrp, a_sinr,
-               bx, by, bz, b_ploss, b_tcp, b_pdr, b_rtt, b_bits, b_rsrp, b_sinr,
+               ax, ay, az, a_ploss, a_d,
+               bx, by, bz, b_ploss, b_d,
                t_elapsed):
-    """Update all visualisation elements in one call."""
+    """Update all visualisation elements in one call.
+
+    Beam color encodes link health:
+      green  = C2 reachable, channel healthy
+      amber  = degraded (ploss >= 33dB or C2 RTT > 150ms)
+      red    = C2 (command/e-stop) link LOST
+      neutral cyan/orange = netns inactive, C2 not measurable
+    """
+    a_c2_rtt, a_c2_st = _c2_state["alpha"]
+    b_c2_rtt, b_c2_st = _c2_state["bravo"]
+    a_color = _health_color(a_ploss, a_c2_rtt, a_c2_st, COLOR_NEUTRAL_A)
+    b_color = _health_color(b_ploss, b_c2_rtt, b_c2_st, COLOR_NEUTRAL_B)
+
     # Beams
-    m1 = _beam(ux, uy, uz, ax, ay, az, (0.0, 0.8, 1.0))
+    m1 = _beam(ux, uy, uz, ax, ay, az, a_color)
     m1.id = ID_BEAM_ALPHA
     _publish_marker(m1)
 
-    m2 = _beam(ux, uy, uz, bx, by, bz, (1.0, 0.6, 0.0))
+    m2 = _beam(ux, uy, uz, bx, by, bz, b_color)
     m2.id = ID_BEAM_BRAVO
     _publish_marker(m2)
 
+    def _c2_str(rtt, st):
+        return {"ok": f"C2 {rtt:.0f}ms", "lost": "C2 LOST", "na": "C2 n/a"}[st]
+
     # Labels
-    la = f"Alpha  ploss={a_ploss}dB  TCP={a_tcp}M  PDR={a_pdr}%  RSRP={a_rsrp}dBm  SINR={a_sinr}dB"
-    m3 = _label_marker(ax, ay, az + 1.5, la, (0.0, 0.8, 1.0))
+    la = f"ALPHA  d={a_d:.0f}m  ploss={a_ploss:.1f}dB  {_c2_str(a_c2_rtt, a_c2_st)}"
+    m3 = _label_marker(ax, ay, az + 1.5, la, a_color)
     m3.id = ID_LABEL_ALPHA
     _publish_marker(m3)
 
-    lb = f"Bravo  ploss={b_ploss}dB  TCP={b_tcp}M  PDR={b_pdr}%  RSRP={b_rsrp}dBm  SINR={b_sinr}dB"
-    m4 = _label_marker(bx, by, bz + 1.5, lb, (1.0, 0.6, 0.0))
+    lb = f"BRAVO  d={b_d:.0f}m  ploss={b_ploss:.1f}dB  {_c2_str(b_c2_rtt, b_c2_st)}"
+    m4 = _label_marker(bx, by, bz + 1.5, lb, b_color)
     m4.id = ID_LABEL_BRAVO
     _publish_marker(m4)
 
-    m5 = _label_marker(ux, uy, uz + 2.0, f"UAV  t={t_elapsed:.0f}s", (1, 1, 1))
+    m5 = _label_marker(ux, uy, uz + 2.0, f"UAV gNB  t={t_elapsed:.0f}s", (1, 1, 1))
     m5.id = ID_LABEL_UAV
     _publish_marker(m5)
 
-    # Metrics string for TopicViewer
+    # Metrics string for the GUI TopicViewer panel
+    def _panel(side, x, y, z, d, ploss, c2_rtt, c2_st):
+        rsrp = round(TX_REF - (ploss - DL_UL_OFFSET), 1) if ploss > 0 else 0.0
+        return (
+            f"── {side} ──\n"
+            f"  Position: ({x:.1f}, {y:.1f})m   d_horiz: {d:.1f}m\n"
+            f"  Ploss(UL): {ploss:.1f}dB   RSRP(calc): {rsrp:.1f}dBm\n"
+            f"  C2 downlink: {_c2_str(c2_rtt, c2_st)}\n"
+        )
+
     text = (
-        f"=== SAR Patrol Metrics ===\n"
-        f"Time: {t_elapsed:.1f}s\n"
-        f"UAV: ({ux:.1f}, {uy:.1f}, {uz:.1f})m\n\n"
-        f"Alpha ──\n"
-        f"  Position: ({ax:.1f}, {ay:.1f}, {az:.1f})m\n"
-        f"  Ploss: {a_ploss:.1f}dB  TCP: {a_tcp:.1f}Mbps\n"
-        f"  PDR: {a_pdr:.1f}%  RTT: {a_rtt:.1f}ms\n"
-        f"  RSRP: {a_rsrp:.1f}dBm  SINR: {a_sinr:.1f}dB\n"
-        f"  Bits/sym: {a_bits}\n\n"
-        f"── Bravo ──\n"
-        f"  Position: ({bx:.1f}, {by:.1f}, {bz:.1f})m\n"
-        f"  Ploss: {b_ploss:.1f}dB  TCP: {b_tcp:.1f}Mbps\n"
-        f"  PDR: {b_pdr:.1f}%  RTT: {b_rtt:.1f}ms\n"
-        f"  RSRP: {b_rsrp:.1f}dBm  SINR: {b_sinr:.1f}dB\n"
-        f"  Bits/sym: {b_bits}\n"
+        f"=== SAR A2G Link Monitor ===\n"
+        f"Time: {t_elapsed:.1f}s   UAV: ({ux:.1f}, {uy:.1f}, {uz:.1f})m\n\n"
+        + _panel("ALPHA", ax, ay, az, a_d, a_ploss, a_c2_rtt, a_c2_st) + "\n"
+        + _panel("BRAVO", bx, by, bz, b_d, b_ploss, b_c2_rtt, b_c2_st)
+        + "\nBeams: green=healthy amber=degraded red=C2 lost\n"
     )
     publish_metrics(text)
 
@@ -203,6 +218,67 @@ _POSE_TOPIC = "/world/sar_open_field/pose/info"
 _TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
 _positions = {}
 _bridge_log = Path("/tmp/ch_bridge.log")
+
+# ── C2 (command/downlink) live probe ─────────────────────────────────────────
+# One small ping base->robot every ~2s per UE. Only meaningful when the
+# robot netns is active (otherwise the reply path is loopback, not air).
+UE_IPS = {"alpha": "10.45.0.2", "bravo": "10.45.0.3"}
+# side -> (rtt_ms, status) with status in {"ok", "lost", "na"}
+_c2_state = {"alpha": (0.0, "na"), "bravo": (0.0, "na")}
+
+# Beam colors by link health
+COLOR_HEALTHY = (0.15, 0.9, 0.25)   # green
+COLOR_DEGRADED = (1.0, 0.65, 0.0)   # amber
+COLOR_LOST = (1.0, 0.15, 0.15)      # red
+COLOR_NEUTRAL_A = (0.0, 0.8, 1.0)   # fallback when C2 not measurable
+COLOR_NEUTRAL_B = (1.0, 0.6, 0.0)
+
+PLOSS_DEGRADED_DB = 33.0   # ~110m: TCP falling, HARQ retransmissions rising
+C2_RTT_DEGRADED_MS = 150.0
+
+
+def _netns_active():
+    return Path("/var/run/netns/robot_alpha").exists()
+
+
+def _c2_probe_loop():
+    # Two consecutive misses before declaring LOST — a single dropped probe
+    # (e.g. coinciding with an iperf burst) shouldn't flash the beam red.
+    misses = {side: 0 for side in UE_IPS}
+    while True:
+        active = _netns_active()
+        for side, ip in UE_IPS.items():
+            if not active:
+                _c2_state[side] = (0.0, "na")
+                continue
+            rtt = None
+            try:
+                out = subprocess.run(
+                    ["ping", "-c", "1", "-W", "1", "-s", "64", ip],
+                    capture_output=True, text=True, timeout=3,
+                ).stdout
+                m = re.search(r'time=([\d.]+) ms', out)
+                rtt = float(m.group(1)) if m else None
+            except Exception:
+                pass
+            if rtt is not None:
+                misses[side] = 0
+                _c2_state[side] = (rtt, "ok")
+            else:
+                misses[side] += 1
+                if misses[side] >= 2:
+                    _c2_state[side] = (0.0, "lost")
+        time.sleep(2)
+
+
+def _health_color(ploss, c2_rtt, c2_status, neutral):
+    if c2_status == "na":
+        return neutral
+    if c2_status == "lost":
+        return COLOR_LOST
+    if ploss >= PLOSS_DEGRADED_DB or c2_rtt > C2_RTT_DEGRADED_MS:
+        return COLOR_DEGRADED
+    return COLOR_HEALTHY
 
 REFERENCE_HORIZ_DISTANCE_M = 50.0
 TX_REF = -11.0
@@ -239,6 +315,9 @@ def main():
         return
     print(f"[gazebo_viz] subscribed to {_POSE_TOPIC}")
 
+    threading.Thread(target=_c2_probe_loop, daemon=True).start()
+    print(f"[gazebo_viz] C2 probing {'ACTIVE' if _netns_active() else 'n/a (netns not set up)'}")
+
     clear_all()
     t0 = time.time()
 
@@ -263,37 +342,18 @@ def main():
         a_ploss, a_d = _find_latest_ploss("alpha")
         b_ploss, b_d = _find_latest_ploss("bravo")
 
-        # Build display values (floats; 0 means N/A)
-        a_tcp = 0.0
-        a_pdr = 0.0
-        a_rtt = 0.0
-        a_bits = 0.0
-        a_rsrp_c = 0.0
-        a_sinr = 0.0
-
-        b_tcp = 0.0
-        b_pdr = 0.0
-        b_rtt = 0.0
-        b_bits = 0.0
-        b_rsrp_c = 0.0
-        b_sinr = 0.0
-
-        if a_ploss > 0:
-            a_rsrp_c = round(TX_REF - (a_ploss - DL_UL_OFFSET), 1)
-        if b_ploss > 0:
-            b_rsrp_c = round(TX_REF - (b_ploss - DL_UL_OFFSET), 1)
-
         update_viz(
             ux, uy, uz,
-            ax, ay, az,
-            a_ploss, a_tcp, a_pdr, a_rtt, a_bits, a_rsrp_c, a_sinr,
-            bx, by, bz,
-            b_ploss, b_tcp, b_pdr, b_rtt, b_bits, b_rsrp_c, b_sinr,
+            ax, ay, az, a_ploss, a_d,
+            bx, by, bz, b_ploss, b_d,
             now,
         )
 
-        print(f"[gazebo_viz] α({ax:.1f},{ay:.1f}) ploss={a_ploss:.1f}dB  "
-              f"β({bx:.1f},{by:.1f}) ploss={b_ploss:.1f}dB  t={now:.0f}s", flush=True)
+        a_c2 = _c2_state["alpha"]
+        b_c2 = _c2_state["bravo"]
+        print(f"[gazebo_viz] α({ax:.1f},{ay:.1f}) ploss={a_ploss:.1f}dB C2={a_c2[1]}:{a_c2[0]:.0f}ms  "
+              f"β({bx:.1f},{by:.1f}) ploss={b_ploss:.1f}dB C2={b_c2[1]}:{b_c2[0]:.0f}ms  t={now:.0f}s",
+              flush=True)
 
 
 if __name__ == "__main__":
