@@ -16,6 +16,9 @@
 #
 set -uo pipefail
 
+# Clean stale Python bytecache
+find "$(cd "$(dirname "$0")" && pwd)/scripts" -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 OAI_DIR="$HOME/openairinterface5g"
 CONF_DIR="$SELF_DIR/oai_configs"
@@ -79,54 +82,81 @@ ok "Over-air ping OK"
 
 # ── 4. Gazebo ────────────────────────────────────────────────────────────────
 info "Starting Gazebo..."
-if pgrep -f "gz sim.*sar_open_field" >/dev/null 2>&1; then
-  ok "Gazebo already running"
-else
-  gz sim -r -s "$SELF_DIR/worlds/sar_open_field.sdf" -v 1 &>/tmp/gz_sim.log &
-  GZ_PID=$!
-  for i in $(seq 1 15); do
-    sleep 1
-    gz topic -l 2>/dev/null | grep -q "/clock" && break
-  done
-  if gz topic -l 2>/dev/null | grep -q "/clock"; then
-    ok "Gazebo started (PID $GZ_PID)"
-  else
-    die "Gazebo failed to start — check /tmp/gz_sim.log"
-  fi
+
+# Model resource paths must be exported on the gz sim SERVER process — the
+# server is what resolves model:// URIs when models are spawned later via
+# the EntityFactory service. Exporting them only in a spawn script (around
+# the gz service client call) does nothing.
+PX4_MODELS="$HOME/Desktop/Msc-Research/simulation/PX4-gazebo-models/models"
+TB3_MODELS="$HOME/turtlebot3_ws/src/turtlebot3_simulations/turtlebot3_gazebo/models"
+TB3_DESC="$HOME/turtlebot3_ws/src/turtlebot3/turtlebot3_description"
+[[ -d "$PX4_MODELS" ]] || die "PX4 models dir not found: $PX4_MODELS"
+[[ -d "$TB3_MODELS" ]] || die "TurtleBot3 models dir not found: $TB3_MODELS"
+export GZ_SIM_RESOURCE_PATH="${PX4_MODELS}:${TB3_MODELS}:${TB3_DESC}:${GZ_SIM_RESOURCE_PATH:-}"
+
+# Always kill any stray/stale gz sim instance first — a manually-started
+# instance (wrong flags, wrong world path, or just stale state) would
+# otherwise get silently reused, and the rest of this script would think
+# it owns a Gazebo it doesn't actually control. Exactly one instance,
+# always launched fresh by this script, matching restart_ran.sh's own
+# "exactly ONE Gazebo instance" requirement.
+if pgrep -f "gz sim" >/dev/null 2>&1; then
+  echo "  Killing existing Gazebo instance(s)..."
+  pkill -9 -f "gz sim" 2>/dev/null
+  sleep 2
 fi
 
-# ── 5. Spawn models ──────────────────────────────────────────────────────────
+gz sim -r -s "$SELF_DIR/worlds/sar_open_field.sdf" -v 1 &>/tmp/gz_sim.log &
+GZ_PID=$!
+for i in $(seq 1 15); do
+  sleep 1
+  gz topic -l 2>/dev/null | grep -q "/clock" && break
+done
+if gz topic -l 2>/dev/null | grep -q "/clock"; then
+  ok "Gazebo started (PID $GZ_PID)"
+else
+  die "Gazebo failed to start — check /tmp/gz_sim.log"
+fi
+
+# ── 5. Spawn real robot models (PX4 x500 UAV + TurtleBot3 Burger UGVs) ──────
 info "Spawning 3D models..."
 
+# The EntityFactory `name:` field overrides whatever <model name> is inside
+# the SDF file, so all three land on pose/info under the sar_* names the
+# channel bridge and viz expect (same pattern as worlds/spawn_ground_robot.sh).
+# Stock burger (no TrajectoryFollower) — auto_patrol.py moves robots via
+# set_pose, which would fight a baked-in waypoint follower.
+UAV_SDF="$SELF_DIR/worlds/x500_static_hold.sdf"
+BURGER_SDF="$TB3_MODELS/turtlebot3_burger/model.sdf"
+[[ -f "$UAV_SDF" ]] || die "missing $UAV_SDF"
+[[ -f "$BURGER_SDF" ]] || die "missing $BURGER_SDF"
+
 spawn_model() {
-  local name="$1" sdf="$2"
+  local name="$1" sdf_file="$2" x="$3" y="$4" z="$5"
+  if gz model --list 2>/dev/null | grep -q "$name"; then
+    echo "  $name already exists"
+    return 0
+  fi
   gz service -s /world/sar_open_field/create \
     --reqtype gz.msgs.EntityFactory \
     --reptype gz.msgs.Boolean \
     --timeout 5000 \
-    --req "sdf: \"$sdf\"" >/dev/null 2>&1
-  local rc=$?
-  if gz topic -l 2>/dev/null | grep -q "/model/$name/pose"; then
-    ok "  $name spawned"
-  else
-    echo "  WARNING: $name pose topic not found (might already exist)"
-  fi
-  return 0
+    --req "sdf_filename: \"$sdf_file\", name: \"$name\", pose: {position: {x: $x, y: $y, z: $z}}" \
+    >/dev/null 2>&1
+  echo "  $name spawned"
 }
 
-# Only spawn if not already present
-if ! gz topic -l 2>/dev/null | grep -q "/model/sar_uav/pose"; then
-  spawn_model sar_uav '<sdf version="1.9"><model name="sar_uav"><pose>0 0 40 0 0 0</pose><link name="link"><inertial><mass>1.0</mass></inertial><collision name="collision"><geometry><sphere><radius>0.3</radius></sphere></geometry></collision><visual name="visual"><geometry><sphere><radius>0.3</radius></sphere></geometry><material><ambient>1 0 0 1</ambient></material></visual></link><plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher"><publish_link_pose>true</publish_link_pose><publish_model_pose>true</publish_model_pose></plugin></model></sdf>'
-fi
+spawn_model sar_uav          "$UAV_SDF"    0 0 40
+sleep 1
+spawn_model sar_ground_alpha "$BURGER_SDF" 15 0 0.1
+sleep 1
+spawn_model sar_ground_bravo "$BURGER_SDF" 30 0 0.1
+sleep 1
 
-if ! gz topic -l 2>/dev/null | grep -q "/model/sar_ground_alpha/pose"; then
-  spawn_model sar_ground_alpha '<sdf version="1.9"><model name="sar_ground_alpha"><pose>50 0 0.1 0 0 0</pose><link name="link"><inertial><mass>2.0</mass></inertial><collision name="collision"><geometry><box><size>0.5 0.5 0.2</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.5 0.5 0.2</size></box></geometry><material><ambient>0 1 0 1</ambient></material></visual></link><plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher"><publish_link_pose>true</publish_link_pose><publish_model_pose>true</publish_model_pose></plugin></model></sdf>'
-fi
-
-if ! gz topic -l 2>/dev/null | grep -q "/model/sar_ground_bravo/pose"; then
-  spawn_model sar_ground_bravo '<sdf version="1.9"><model name="sar_ground_bravo"><pose>-50 0 0.1 0 0 0</pose><link name="link"><inertial><mass>2.0</mass></inertial><collision name="collision"><geometry><box><size>0.5 0.5 0.2</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.5 0.5 0.2</size></box></geometry><material><ambient>0 0 1 1</ambient></material></visual></link><plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher"><publish_link_pose>true</publish_link_pose><publish_model_pose>true</publish_model_pose></plugin></model></sdf>'
-fi
-
+for m in sar_uav sar_ground_alpha sar_ground_bravo; do
+  gz model --list 2>/dev/null | grep -q "$m" || \
+    die "$m failed to spawn — check /tmp/gz_sim.log"
+done
 ok "All models spawned"
 
 # ── 6. Start channel bridge (background) ─────────────────────────────────────
@@ -134,7 +164,7 @@ info "Starting channel bridge..."
 pkill -f channel_bridge.py 2>/dev/null
 sleep 1
 mkdir -p "$SELF_DIR/logs"
-setsid python3 "$SELF_DIR/channel_bridge.py" &>/tmp/ch_bridge.log & disown
+nohup python3 -u "$SELF_DIR/channel_bridge.py" &>/tmp/ch_bridge.log &
 sleep 4
 if pgrep -f channel_bridge.py >/dev/null 2>&1; then
   ok "Channel bridge running (logs: /tmp/ch_bridge.log)"
@@ -142,11 +172,23 @@ else
   die "Channel bridge failed to start"
 fi
 
+# ── 7. Start Gazebo visualisation (background) ──────────────────────────────
+info "Starting Gazebo visualisation..."
+pkill -f gazebo_viz.py 2>/dev/null
+sleep 1
+nohup python3 -u "$SELF_DIR/scripts/gazebo_viz.py" &>/tmp/gz_viz.log &
+sleep 2
+if pgrep -f "gazebo_viz.py" >/dev/null 2>&1; then
+  ok "Visualisation running (logs: /tmp/gz_viz.log)"
+else
+  echo "  WARNING: gazebo_viz.py failed to start"
+fi
+
 # Quick bridge sanity check
 tail -3 /tmp/ch_bridge.log | grep -q "ploss" || \
   echo "  NOTE: bridge may still be waiting for first pose update"
 
-# ── 7. Summary ────────────────────────────────────────────────────────────────
+# ── 8. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo "══════════════════════════════════════════════════════════════"
 echo "  FULL STACK IS UP"
@@ -168,4 +210,5 @@ echo "      --req 'name: \"sar_ground_alpha\" position: {x: 150, y: 0, z: 0.1}'"
 echo ""
 echo "  Channel bridge log:  tail -f /tmp/ch_bridge.log"
 echo "  Gazebo log:          tail -f /tmp/gz_sim.log"
+echo "  Viz log:             tail -f /tmp/gz_viz.log"
 echo "══════════════════════════════════════════════════════════════"

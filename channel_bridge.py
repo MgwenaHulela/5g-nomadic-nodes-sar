@@ -31,7 +31,7 @@ from datetime import datetime
 from collections import defaultdict
 
 from gz.transport13 import Node as GzNode
-from gz.msgs10.pose_pb2 import Pose
+from gz.msgs10.pose_v_pb2 import Pose_V
 
 # ── Path loss model ──────────────────────────────────────────────────────────
 FREQ_GHZ = 3.31968
@@ -84,12 +84,6 @@ def distance_to_offset(d_3d):
 
 
 # ── Runtime config ───────────────────────────────────────────────────────────
-ROBOT_POSE_TOPICS = {
-    "sar_uav":          "/model/sar_uav/pose",
-    "sar_ground_alpha": "/model/sar_ground_alpha/pose",
-    "sar_ground_bravo": "/model/sar_ground_bravo/pose",
-}
-
 REFERENCE_HORIZ_DISTANCE_M = 50.0
 EMA_ALPHA = 0.3
 
@@ -152,27 +146,32 @@ class TelnetLink:
             return False
 
 
-# ── Pose subscribers ─────────────────────────────────────────────────────────
+# ── Pose data ────────────────────────────────────────────────────────────────
+POSE_TOPIC = "/world/sar_open_field/pose/info"
+
+# {model_name: (x, y, z)}
 positions = {}
 prev_positions = {}  # {name: (x, y, z, timestamp)} — previous for speed calc
 prev_types = {}      # track last channel type sent to avoid redundant type changes
 
+# Models spawned via EntityFactory with an explicit name: override, so
+# pose/info reports them under exactly these names (nested x500_base /
+# turtlebot3_burger entities are merged into the wrapper and don't appear).
+TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
 
-def make_pose_callback(model_name):
-    def cb(msg):
-        # PosePublisher emits both the model pose (name == model_name) and
-        # each link's pose (name == "<model_name>::<link>", relative, ~zero)
-        # on the same topic — ignore anything but the model-level message.
-        if msg.name != model_name:
-            return
-        now = time.time()
-        pos = (msg.position.x, msg.position.y, msg.position.z)
-        if model_name in positions:
-            prev_positions[model_name] = (*positions[model_name], now)
+
+def pose_cb(msg):
+    now = time.time()
+    for p in msg.pose:
+        name = p.name
+        if name not in TARGET_MODELS:
+            continue
+        pos = (p.position.x, p.position.y, p.position.z)
+        if name in positions:
+            prev_positions[name] = (*positions[name], now)
         else:
-            prev_positions[model_name] = (0.0, 0.0, 0.0, now)
-        positions[model_name] = pos
-    return cb
+            prev_positions[name] = (0.0, 0.0, 0.0, now)
+        positions[name] = pos
 
 
 def horiz_distance(a, b):
@@ -204,12 +203,11 @@ def main():
     args = ap.parse_args()
 
     gz = GzNode()
-    for model_name, topic in ROBOT_POSE_TOPICS.items():
-        ok = gz.subscribe(Pose, topic, make_pose_callback(model_name))
-        if not ok:
-            print(f"ERROR: failed to subscribe to {topic}")
-            return
-        print(f"Subscribed to {topic}")
+    ok = gz.subscribe(Pose_V, POSE_TOPIC, pose_cb)
+    if not ok:
+        print(f"ERROR: failed to subscribe to {POSE_TOPIC}")
+        return
+    print(f"Subscribed to {POSE_TOPIC}")
 
     links = {name: TelnetLink(port) for name, (port, _idx, _base) in MODEL_MAP.items()}
     if not args.dry_run:
@@ -303,7 +301,13 @@ def main():
                 if data is None:
                     continue
 
-                capped_delta = max(0.0, min(data["delta"], MAX_DELTA_DB))
+                # Negative deltas (robot closer than the 50m reference) are
+                # allowed: signal is genuinely stronger near the UAV's nadir,
+                # floored by PLOSS_MIN. Clamping them to 0 (Jul 3 precaution,
+                # alongside the justified MAX_DELTA_DB cap for the 45dB RLF
+                # cliff) froze ploss at baseline for ALL distances < 50m —
+                # a dead zone that erased channel variation from the ML data.
+                capped_delta = min(data["delta"], MAX_DELTA_DB)
                 raw_ploss = max(PLOSS_MIN, min(PLOSS_MAX, baseline + capped_delta))
                 smoothed[name] = (EMA_ALPHA * raw_ploss
                                    + (1.0 - EMA_ALPHA) * smoothed[name])

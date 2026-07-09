@@ -9,13 +9,17 @@ Modes:
   linear (default)    — single alpha robot, out-and-back sweep
   random              — single alpha robot, 2m random walk
   both                — alpha + bravo, independent 2m random walks
+  free                — alpha + bravo roam continuously (smooth headings,
+                        no teleport steps); rows tagged with the position
+                        at the midpoint of each measurement window
 
 Usage:
   python3 scripts/auto_patrol.py                         # linear 10→200m, 180s
   python3 scripts/auto_patrol.py --random                 # random walk, 2m steps
   python3 scripts/auto_patrol.py --both                   # both robots, random
-  python3 scripts/auto_patrol.py --duration 300           # 5 min
-  python3 scripts/auto_patrol.py --step 2                 # 2m per waypoint
+  python3 scripts/auto_patrol.py --free --speed=1.5       # continuous roam
+  python3 scripts/auto_patrol.py --duration=300           # 5 min
+  python3 scripts/auto_patrol.py --step=2                 # 2m per waypoint
 
 Requires: start_full_stack.sh already running.
 """
@@ -28,6 +32,7 @@ import random
 import re
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +62,11 @@ BRAVO_UE_LOG = "/tmp/ue_bravo.log"
 
 IPERF_DURATION = 2
 IPERF_INTERVAL = 0
+
+# Simulated sensor/video uplink feed rate (~1080p camera stream). Offered
+# over the air UE->network; at close range it should arrive nearly intact,
+# at range the loss%/jitter columns become the video-QoS degradation signal.
+VIDEO_BITRATE_MBPS = 8
 
 # Random walk bounds (stay within this radius from origin)
 MIN_RADIUS = 2
@@ -89,11 +99,14 @@ def read_bridge_ploss_side(side):
 
 
 def run_iperf_tcp(tun, test_ip):
+    # -O 1: run 1 extra warm-up second and exclude it from the stats, so
+    # the reported rate is post-slow-start steady state rather than the
+    # ramp (a bare 2s test under-reports a ~20Mbps link as ~5-6Mbps).
     try:
         out = subprocess.run(
             ["iperf3", "-c", test_ip, "--bind-dev", tun,
-             "-t", str(IPERF_DURATION), "-J"],
-            capture_output=True, text=True, timeout=IPERF_DURATION + 10,
+             "-t", str(IPERF_DURATION), "-O", "1", "-J"],
+            capture_output=True, text=True, timeout=IPERF_DURATION + 11,
         ).stdout
         data = json.loads(out)
         mbps = data["end"]["sum_received"]["bits_per_second"] / 1e6
@@ -104,18 +117,28 @@ def run_iperf_tcp(tun, test_ip):
 
 
 def run_iperf_udp(tun, test_ip):
+    """Fixed-bitrate UDP UPLINK stream (UE -> network), modelling the
+    robot's live video/sensor feed. The old --reverse (downlink) version
+    never crossed the air interface — both tunnel IPs are local to this
+    host, so reverse traffic short-circuited via loopback and logged the
+    offered load (~100Mbps) regardless of geometry.
+
+    Returns (delivered_mbps, jitter_ms, lost_pct) as measured server-side,
+    i.e. after the radio link.
+    """
     try:
         out = subprocess.run(
             ["iperf3", "-u", "-c", test_ip, "--bind-dev", tun,
-             "-b", "100M", "--reverse", "-t", str(IPERF_DURATION), "-J"],
+             "-b", f"{VIDEO_BITRATE_MBPS}M", "-t", str(IPERF_DURATION), "-J"],
             capture_output=True, text=True, timeout=IPERF_DURATION + 10,
         ).stdout
         data = json.loads(out)
         end = data["end"]
-        mbps = end["sum_received"]["bits_per_second"] / 1e6
-        jitter = end["sum_received"]["jitter_ms"]
-        lost_pct = end["sum_received"]["lost_percent"]
-        return round(mbps, 2), round(jitter, 3), round(lost_pct, 2)
+        s = end.get("sum") or end.get("sum_received") or {}
+        jitter = s["jitter_ms"]
+        lost_pct = s["lost_percent"]
+        delivered = s["bits_per_second"] / 1e6 * (1.0 - lost_pct / 100.0)
+        return round(delivered, 2), round(jitter, 3), round(lost_pct, 2)
     except Exception:
         return 0.0, 0.0, 100.0
 
@@ -335,10 +358,124 @@ def random_walk_both(step_m=2, duration_s=180):
     print(f"\nSaved: {PATROL_LOG}")
 
 
+def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
+    """Both robots roam continuously and independently — smooth headings,
+    not teleport steps — while metrics are sampled in parallel. Each CSV
+    row is tagged with the robot's position at the midpoint of its
+    measurement window (an iperf+ping cycle spans ~8-10s of travel, so a
+    single instantaneous position would misrepresent the sample).
+
+    Fine-grained ploss-vs-position at every 0.5s tick is already captured
+    by channel_bridge_log.csv; this CSV adds the expensive link metrics.
+    """
+    # [x, y, heading]; mutated only by the mover thread
+    state = {
+        "a": [10.0, 0.0, random.random() * 2 * math.pi],
+        "b": [25.0, 0.0, random.random() * 2 * math.pi],
+    }
+    running = threading.Event()
+    running.set()
+
+    def mover():
+        while running.is_set():
+            for key, model in (("a", ALPHA_MODEL), ("b", BRAVO_MODEL)):
+                x, y, hdg = state[key]
+                hdg += random.gauss(0.0, 0.25)
+                nx = x + speed_ms * tick_s * math.cos(hdg)
+                ny = y + speed_ms * tick_s * math.sin(hdg)
+                r = math.hypot(nx, ny)
+                if not (MIN_RADIUS <= r <= MAX_RADIUS):
+                    # out of bounds: hold position, turn toward the annulus
+                    hdg = math.atan2(-y, -x) if r > MAX_RADIUS else math.atan2(y, x)
+                    nx, ny = x, y
+                state[key] = [nx, ny, hdg]
+                gz_set_pose(model, nx, ny, GROUND_Z)
+            time.sleep(tick_s)
+
+    gz_set_pose(ALPHA_MODEL, *state["a"][:2], GROUND_Z)
+    gz_set_pose(BRAVO_MODEL, *state["b"][:2], GROUND_Z)
+    time.sleep(2)
+    threading.Thread(target=mover, daemon=True).start()
+
+    t0 = time.time()
+    seen_a, seen_b = 0, 0
+    prev_a, prev_b = {}, {}
+
+    with open(PATROL_LOG, "w", newline="") as f:
+        w = csv.writer(f)
+        # Same schema as random_walk_both so downstream tooling is unaffected
+        w.writerow([
+            "timestamp", "t_elapsed_s",
+            "uav_x_m", "uav_y_m", "uav_z_m",
+            "ax_m", "ay_m", "a_d_horiz_m", "a_d_slant_m", "a_ploss_dB",
+            "a_tcp_tp_mbps", "a_tcp_retransmits",
+            "a_udp_tp_mbps", "a_udp_jitter_ms", "a_udp_lost_pct",
+            "a_rtt_min_ms", "a_rtt_avg_ms", "a_rtt_max_ms", "a_ping_loss_pct",
+            "a_pbch_rsrp", "a_ss_rsrp_dBm", "a_ss_sinr_dB",
+            "a_ul_bits_per_sym", "a_ul_code_rate",
+            "a_ul_nb_rbs", "a_ul_nb_sym",
+            "a_dl_harq_ok", "a_dl_harq_nok", "a_dl_bler", "a_rsrp_computed_dBm",
+            "bx_m", "by_m", "b_d_horiz_m", "b_d_slant_m", "b_ploss_dB",
+            "b_tcp_tp_mbps", "b_tcp_retransmits",
+            "b_udp_tp_mbps", "b_udp_jitter_ms", "b_udp_lost_pct",
+            "b_rtt_min_ms", "b_rtt_avg_ms", "b_rtt_max_ms", "b_ping_loss_pct",
+            "b_pbch_rsrp", "b_ss_rsrp_dBm", "b_ss_sinr_dB",
+            "b_ul_bits_per_sym", "b_ul_code_rate",
+            "b_ul_nb_rbs", "b_ul_nb_sym",
+            "b_dl_harq_ok", "b_dl_harq_nok", "b_dl_bler", "b_rsrp_computed_dBm",
+        ])
+
+        try:
+            while time.time() - t0 < duration_s:
+                a_start = state["a"][:2]
+                b_start = state["b"][:2]
+
+                vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a)
+                vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b)
+
+                # Midpoint of the measurement window = best single-point tag
+                ax = (a_start[0] + state["a"][0]) / 2
+                ay = (a_start[1] + state["a"][1]) / 2
+                bx = (b_start[0] + state["b"][0]) / 2
+                by = (b_start[1] + state["b"][1]) / 2
+
+                t_elapsed = time.time() - t0
+                ploss_a, _ = read_bridge_ploss_side("alpha")
+                ploss_b, _ = read_bridge_ploss_side("bravo")
+                d_a = math.hypot(ax - UAV_X, ay - UAV_Y)
+                d_b = math.hypot(bx - UAV_X, by - UAV_Y)
+                dz = abs(UAV_Z - GROUND_Z)
+                a_slant = math.hypot(d_a, dz)
+                b_slant = math.hypot(d_b, dz)
+                a_rsrp_c = round(TX_REF - (ploss_a - DL_UL_OFFSET), 1)
+                b_rsrp_c = round(TX_REF - (ploss_b - DL_UL_OFFSET), 1)
+
+                row = [datetime.now(timezone.utc).isoformat(),
+                       round(t_elapsed, 1),
+                       UAV_X, UAV_Y, UAV_Z,
+                       round(ax, 1), round(ay, 1), round(d_a, 1), round(a_slant, 1), round(ploss_a, 2)]
+                row += vals_a + [a_rsrp_c]
+                row += [round(bx, 1), round(by, 1), round(d_b, 1), round(b_slant, 1), round(ploss_b, 2)]
+                row += vals_b + [b_rsrp_c]
+
+                w.writerow(row)
+                f.flush()
+
+                print(f"  α({ax:.0f},{ay:.0f}) d={d_a:.0f}m ploss={ploss_a:.1f}dB"
+                      f"  TCP={vals_a[0]:.1f}M  PingPDR={100-vals_a[8]:.0f}%  RTT={vals_a[6]:.1f}ms")
+                print(f"  β({bx:.0f},{by:.0f}) d={d_b:.0f}m ploss={ploss_b:.1f}dB"
+                      f"  TCP={vals_b[0]:.1f}M  PingPDR={100-vals_b[8]:.0f}%  RTT={vals_b[6]:.1f}ms")
+        finally:
+            running.clear()
+
+    print(f"\nSaved: {PATROL_LOG}")
+
+
 if __name__ == "__main__":
     mode = "linear"
     duration = 180
     step = 15
+    speed = 1.0
 
     for arg in sys.argv[1:]:
         if arg == "--circle":
@@ -347,18 +484,26 @@ if __name__ == "__main__":
             mode = "random"
         elif arg == "--both":
             mode = "both"
+        elif arg == "--free":
+            mode = "free"
         elif arg.startswith("--duration="):
             duration = int(arg.split("=")[1])
         elif arg.startswith("--step="):
             step = float(arg.split("=")[1])
+        elif arg.startswith("--speed="):
+            speed = float(arg.split("=")[1])
 
     print(f"Patrol mode={mode}, duration={duration}s")
     if mode in ("random", "both"):
         print(f"  random walk, step={step}m, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
+    elif mode == "free":
+        print(f"  free roam, speed={speed}m/s, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
     print(f"Logging to: {PATROL_LOG}")
     print()
 
     if mode in ("random", "both"):
         random_walk_both(step_m=step, duration_s=duration)
+    elif mode == "free":
+        free_roam_both(speed_ms=speed, duration_s=duration)
     else:
         linear_sweep(step=step, duration_s=duration)

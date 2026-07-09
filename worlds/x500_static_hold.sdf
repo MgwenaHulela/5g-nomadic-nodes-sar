@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  x500_static_hold.sdf — temporary stopgap copy of PX4-Autopilot's real
+  x500 model, with <static>true</static> added so it holds its spawn
+  pose (0,0,40) without gravity or a keep-alive script fighting physics.
+
+  Not a substitute for real PX4 offboard flight. The original PX4 model
+  at Tools/simulation/gz/models/x500/model.sdf is untouched — swap back
+  to that (non-static) file plus PX4 SITL when attempting real flight
+  again, ideally once RPC/CPU contention with the RAN stack is resolved.
+-->
+<sdf version='1.9'>
+  <model name='x500'>
+    <static>true</static>
+    <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+      <publish_model_pose>true</publish_model_pose>
+      <publish_link_pose>false</publish_link_pose>
+      <publish_collision_pose>false</publish_collision_pose>
+      <publish_visual_pose>false</publish_visual_pose>
+      <publish_nested_model_pose>false</publish_nested_model_pose>
+      <update_frequency>10</update_frequency>
+    </plugin>
+    <include merge='true'>
+      <uri>model://x500_base</uri>
+    </include>
+  </model>
+</sdf>
