@@ -34,16 +34,30 @@ Concretely, this repo implements:
 
 ## Current status
 
-The 45-minute soak test (`logs/soak_20260702_005642/`) is the latest validated run:
+**See [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md) for the full,
+current system description** — components, traffic paths, metrics dictionary,
+verification playbook, and operational limits.
 
-- **0 RNTI churn** — both UEs held their RRC connection for the full run
-- **0 sync-loss sentinel events** (SINR never approached the -70 dB RLF threshold)
-- **SINR**: alpha 21.0–25.8 dB (mean 22.8), bravo 24.4–29.6 dB (mean 26.5), flat over time
-- **iperf3**: 22/22 bursts both directions, a2b ~12.0 Mbps, b2a ~6.5 Mbps, 0 failed bursts
-- **Ping**: 0% loss, mean RTT 61.4 ms across the run window
+As of 2026-07-09 the full stack is one command (`./start_full_stack.sh`) and the
+whole loop is closed and verified against the gNB's own MAC counters:
 
-This confirms a key architectural decision (see below): switching all channel models
-to **AWGN** resolved earlier RLF instability caused by Rayleigh1's slow-fade dwell.
+- **Real robot models** — PX4 x500 UAV (static hold at 40 m) + 2× TurtleBot3
+  burger, spawned into `sar_open_field` with the names the bridge expects.
+- **Continuous channel coupling** — robot distance maps monotonically to path
+  loss over the whole 10–190 m range (10 m→~13 dB … 190 m→~42 dB alpha UL),
+  including sub-baseline values inside the 50 m reference (dead-zone fixed).
+- **Honest traffic in both directions** — per-robot network namespaces force
+  uplink *and* downlink over the air. Uplink ~20–24 Mbps TCP close range,
+  degrading to link loss at ~160 m (recovers on return); C2/e-stop downlink
+  probes run 30–70 ms RTT and visibly degrade when the uplink saturates.
+- **ML data collection** — `scripts/auto_patrol.py --free` roams both robots
+  continuously and logs geometry + channel + TCP/UDP-video/ping/C2 + modem
+  metrics per sample.
+
+Earlier milestone: the 45-minute soak test (`logs/soak_20260702_005642/`)
+validated link stability (0 RNTI churn, 22/22 iperf bursts, 0% ping loss)
+after switching the channel models to **AWGN** — Rayleigh1's slow-fade dwell
+had been causing RLF instability.
 
 ---
 
@@ -51,8 +65,10 @@ to **AWGN** resolved earlier RLF instability caused by Rayleigh1's slow-fade dwe
 
 ```
 sar_sim/
-├── channel_bridge.py        # Gazebo pose -> A2G path loss -> channelmod modify (telnet)
-├── restart_ran.sh            # Strict-order RAN restart after RLF (gNB -> alpha -> bravo)
+├── start_full_stack.sh        # ONE-COMMAND bring-up: core -> RAN -> Gazebo -> models
+│                              #   -> bridge -> viz -> robot netns (every step gated)
+├── channel_bridge.py          # Gazebo pose -> A2G path loss -> channelmod modify (telnet)
+├── restart_ran.sh             # Strict-order RAN restart after RLF (gNB -> alpha -> bravo)
 ├── soak_test.sh               # Runs stack under sustained ping + iperf3 load, logs metrics
 ├── verify_stack.sh            # Health check: confirms gNB + UE processes are up
 │
@@ -81,6 +97,12 @@ sar_sim/
 │   └── src/sar_integration/    # SAR robot integration node (sar_node.py)
 │
 ├── scripts/
+│   ├── auto_patrol.py          # ML data collection: moves robots, logs full metrics
+│   │                           #   (--free = continuous roam; adds C2 downlink probes)
+│   ├── setup_robot_netns.sh    # Per-robot netns: forces DL/C2 traffic over the air
+│   ├── setup_over_air_test.sh  # Over-air routing + iperf3 servers
+│   ├── gazebo_viz.py           # Beams + metric labels drawn into the Gazebo scene
+│   ├── metrics_collector.py    # UE-log parser used by auto_patrol
 │   ├── exp1_distance.sh        # Distance-sweep experiment
 │   ├── exp2_altitude.sh        # Altitude-sweep experiment
 │   ├── exp3_search_pattern.sh  # Search-pattern trajectory experiment
@@ -88,7 +110,13 @@ sar_sim/
 │   └── set_channel_loss.sh     # Manual channelmod override for testing
 │
 ├── worlds/
-│   └── sar_world.sdf           # Gazebo world definition
+│   ├── sar_open_field.sdf      # Current world: 500m open field + reference markers
+│   └── x500_static_hold.sdf    # Real x500 geometry, static (UAV holds 40m w/o PX4 SITL)
+│
+├── docs/
+│   ├── SYSTEM_ARCHITECTURE.md  # THE current full-system description (start here)
+│   ├── A2G_CHANNEL.md          # Channel model details
+│   └── RUN_BRIDGE.md           # Bridge usage in isolation
 │
 └── OAI_SAR_STACK_REPORT.md     # Standing technical notes on the OAI setup
 ```
@@ -139,40 +167,55 @@ UE identities:
   `rfsimulator = ({ serveraddr = "server"; });` — the non-array form silently fails.
 - **UE config requires `dnn = "internet"`** for the PDU session to establish.
 - **A2G path-loss model**: log-distance with FSPL + Al-Hourani LoS/NLoS sigmoid
-  (3.31968 GHz, A=9.61, B=0.16), EMA-smoothed (α=0.3), capped at +15 dB per model to
-  avoid unrealistic single-step jumps.
+  (3.31968 GHz, A=9.61, B=0.16), EMA-smoothed (α=0.3). Negative deltas (robot
+  closer than the 50 m reference) are allowed and floored at 10 dB; the high side
+  is capped by `MAX_DELTA_DB` below the documented ~45 dB RLF cliff.
+- **Per-robot network namespaces** (`scripts/setup_robot_netns.sh`): the UE TUNs
+  are moved into `robot_alpha`/`robot_bravo` after attach so the UE IPs stop
+  being host-local — otherwise base→robot traffic (C2, e-stop, ACKs, any
+  `--reverse` test) is delivered via loopback and never crosses the radio.
+  Uplink tests run via `sudo ip netns exec robot_<x> ...`; downlink is a plain
+  ping/iperf to `10.45.0.2/.3` from the root namespace.
 
 ---
 
-## Running a soak test
+## Running
 
 ```bash
-# 1. Bring up the core + RAN in strict order
 cd ~/sar_sim
-./restart_ran.sh
+./start_full_stack.sh          # brings up EVERYTHING, gated at every step
 
-# 2. Bring up the Gazebo world + robot models (headless)
-gzserver worlds/sar_world.sdf &
+# Collect ML training data (both robots roam freely, full metrics per sample):
+python3 scripts/auto_patrol.py --free --speed=1.5 --duration=600
 
-# 3. Start the channel bridge (subscribes to Gazebo pose, drives channelmod)
-python3 channel_bridge.py
-
-# 4. Run the soak test (ping + iperf3 both directions, configurable duration)
-./soak_test.sh --duration 2700
-
-# Results land in logs/soak_<timestamp>/
+# Results: logs/patrol_<timestamp>.csv (+ continuous logs/channel_bridge_log.csv)
 ```
 
-Health check at any point:
+Health checks at any point:
 
 ```bash
-./verify_stack.sh   # expects 2 gNB + 4 UE processes running
+./verify_stack.sh                            # gNB + UE processes up
+scripts/setup_robot_netns.sh status          # robot namespaces active
+sudo ip netns exec robot_alpha ping 10.45.0.1   # uplink over air
+ping 10.45.0.2                               # downlink/C2 over air
 ```
+
+Legacy soak test (pre-dates the netns move — its in-root-ns test commands
+need updating before reuse): `./soak_test.sh --duration 2700`.
 
 ---
 
 ## Known issues / open items
 
+- `soak_test*.sh` still use root-namespace test commands (`-I oaitun_ue1`) that
+  stopped working when the robot netns moved the TUNs — port them to
+  `ip netns exec` before the next soak.
+- Patrol CSVs recorded **before 2026-07-09** have two data-quality caveats:
+  UDP columns are loopback artifacts (~100 Mbps constants — the `--reverse`
+  test never crossed the air), and ploss is frozen at baseline for d<50 m
+  (negative-delta clamp). Filter or regenerate before training on them.
+- `/tmp/gnb.log` + UE logs grow to multi-GB during long runs; truncate on RAN
+  restart or lower verbosity before soaks.
 - `ping_a2b.csv` needs a per-run reset (or a documented time-windowing step baked
   into the summary generator) so future analyses don't need to manually filter it.
 - RSRP in the latest soak test was essentially flat throughout the run — worth
