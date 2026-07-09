@@ -57,6 +57,28 @@ ALPHA_TUN = "oaitun_ue1"
 BRAVO_TUN = "oaitun_ue1p2"
 ALPHA_IP = "10.0.0.200"
 BRAVO_IP = "10.0.0.201"
+
+# Per-robot network namespaces (setup_robot_netns.sh). When active, the UE
+# TUNs live inside these namespaces, so uplink tests must run there — and
+# the UE IPs are reachable from the root ns ONLY over the air, which is
+# what makes the C2/downlink metric honest.
+NS_ALPHA = "robot_alpha"
+NS_BRAVO = "robot_bravo"
+ALPHA_UE_IP = "10.45.0.2"
+BRAVO_UE_IP = "10.45.0.3"
+NETNS_MODE = Path("/var/run/netns/robot_alpha").exists()
+SUDO_PASS = "Makhubela1"  # same convention as restart_ran.sh / start_full_stack.sh
+
+
+def ns_run(ns, cmd, timeout):
+    """Run cmd inside a robot namespace (or directly if netns not set up)."""
+    if NETNS_MODE:
+        return subprocess.run(
+            ["sudo", "-S", "-p", "", "ip", "netns", "exec", ns] + cmd,
+            capture_output=True, text=True, timeout=timeout,
+            input=SUDO_PASS + "\n",
+        )
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 ALPHA_UE_LOG = "/tmp/ue_alpha.log"
 BRAVO_UE_LOG = "/tmp/ue_bravo.log"
 
@@ -98,15 +120,15 @@ def read_bridge_ploss_side(side):
     return 0.0, 0.0
 
 
-def run_iperf_tcp(tun, test_ip):
+def run_iperf_tcp(tun, test_ip, ns=NS_ALPHA):
     # -O 1: run 1 extra warm-up second and exclude it from the stats, so
     # the reported rate is post-slow-start steady state rather than the
     # ramp (a bare 2s test under-reports a ~20Mbps link as ~5-6Mbps).
     try:
-        out = subprocess.run(
+        out = ns_run(ns,
             ["iperf3", "-c", test_ip, "--bind-dev", tun,
              "-t", str(IPERF_DURATION), "-O", "1", "-J"],
-            capture_output=True, text=True, timeout=IPERF_DURATION + 11,
+            timeout=IPERF_DURATION + 11,
         ).stdout
         data = json.loads(out)
         mbps = data["end"]["sum_received"]["bits_per_second"] / 1e6
@@ -116,7 +138,7 @@ def run_iperf_tcp(tun, test_ip):
         return 0.0, 0
 
 
-def run_iperf_udp(tun, test_ip):
+def run_iperf_udp(tun, test_ip, ns=NS_ALPHA):
     """Fixed-bitrate UDP UPLINK stream (UE -> network), modelling the
     robot's live video/sensor feed. The old --reverse (downlink) version
     never crossed the air interface — both tunnel IPs are local to this
@@ -127,10 +149,10 @@ def run_iperf_udp(tun, test_ip):
     i.e. after the radio link.
     """
     try:
-        out = subprocess.run(
+        out = ns_run(ns,
             ["iperf3", "-u", "-c", test_ip, "--bind-dev", tun,
              "-b", f"{VIDEO_BITRATE_MBPS}M", "-t", str(IPERF_DURATION), "-J"],
-            capture_output=True, text=True, timeout=IPERF_DURATION + 10,
+            timeout=IPERF_DURATION + 10,
         ).stdout
         data = json.loads(out)
         end = data["end"]
@@ -143,11 +165,11 @@ def run_iperf_udp(tun, test_ip):
         return 0.0, 0.0, 100.0
 
 
-def run_ping(tun, test_ip):
+def run_ping(tun, test_ip, ns=NS_ALPHA):
     try:
-        out = subprocess.run(
+        out = ns_run(ns,
             ["ping", "-c", "2", "-I", tun, "-W", "2", test_ip],
-            capture_output=True, text=True, timeout=5,
+            timeout=8,
         ).stdout
         n_sent = 2
         m_loss = re.search(r'(\d+) packets transmitted, (\d+) (?:received|packets received)', out)
@@ -159,6 +181,29 @@ def run_ping(tun, test_ip):
         return 0.0, 0.0, 0.0, loss_pct
     except Exception:
         return 0.0, 0.0, 0.0, 100.0
+
+
+def run_c2(ue_ip):
+    """Command-and-control downlink probe: small packets base -> robot,
+    like waypoint updates or an e-stop. Sent from the root namespace to
+    the robot's UE IP, so (with netns active) the round trip genuinely
+    crosses the air in both directions. Returns (rtt_avg_ms, loss_pct).
+    """
+    if not NETNS_MODE:
+        return 0.0, 100.0  # without netns the DL path is loopback — no honest measurement
+    try:
+        out = subprocess.run(
+            ["ping", "-c", "5", "-i", "0.2", "-W", "1", "-s", "64", ue_ip],
+            capture_output=True, text=True, timeout=8,
+        ).stdout
+        m_loss = re.search(r'(\d+) packets transmitted, (\d+) (?:received|packets received)', out)
+        n_recv = int(m_loss.group(2)) if m_loss else 0
+        loss_pct = round((5 - n_recv) / 5 * 100, 1)
+        m_rtt = re.search(r'rtt min/avg/max/mdev = [\d.]+/([\d.]+)/', out)
+        rtt_avg = float(m_rtt.group(1)) if m_rtt else 0.0
+        return rtt_avg, loss_pct
+    except Exception:
+        return 0.0, 100.0
 
 
 def random_step(x, y, step_m, min_r, max_r):
@@ -173,16 +218,16 @@ def random_step(x, y, step_m, min_r, max_r):
     return x, y
 
 
-def test_one_ue(tun, test_ip, ue_log, seen, prev):
+def test_one_ue(tun, test_ip, ue_log, seen, prev, ns=NS_ALPHA):
     """Run TCP+UDP+ping for one UE, return (row_values, new_seen, new_prev)."""
     lines, seen = tail_file(ue_log, seen)
     tmp = parse_ue_metrics(lines, prev)
     if tmp.get("ul_bits_per_sym", 0) > 0:
         prev = tmp
 
-    tcp_tp, retrans = run_iperf_tcp(tun, test_ip)
-    udp_tp, jitter_ms, udp_lost = run_iperf_udp(tun, test_ip)
-    rtt_min, rtt_avg, rtt_max, ping_lost = run_ping(tun, test_ip)
+    tcp_tp, retrans = run_iperf_tcp(tun, test_ip, ns)
+    udp_tp, jitter_ms, udp_lost = run_iperf_udp(tun, test_ip, ns)
+    rtt_min, rtt_avg, rtt_max, ping_lost = run_ping(tun, test_ip, ns)
 
     lines, seen = tail_file(ue_log, seen)
     tmp = parse_ue_metrics(lines, prev)
@@ -245,7 +290,7 @@ def linear_sweep(start=10, end=200, step=15, duration_s=180):
             if tmp.get("ul_bits_per_sym", 0) > 0:
                 prev_b = tmp
 
-            vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a)
+            vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
 
             a_rsrp_c = round(TX_REF - (ploss_a - DL_UL_OFFSET), 1)
 
@@ -309,6 +354,7 @@ def random_walk_both(step_m=2, duration_s=180):
             "b_ul_bits_per_sym", "b_ul_code_rate",
             "b_ul_nb_rbs", "b_ul_nb_sym",
             "b_dl_harq_ok", "b_dl_harq_nok", "b_dl_bler", "b_rsrp_computed_dBm",
+            "a_c2_rtt_ms", "a_c2_loss_pct", "b_c2_rtt_ms", "b_c2_loss_pct",
         ])
 
         while time.time() - t0 < duration_s:
@@ -323,8 +369,10 @@ def random_walk_both(step_m=2, duration_s=180):
             ploss_a, d_a = read_bridge_ploss_side("alpha")
             ploss_b, d_b = read_bridge_ploss_side("bravo")
 
-            vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a)
-            vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b)
+            vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
+            vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b, NS_BRAVO)
+            a_c2_rtt, a_c2_loss = run_c2(ALPHA_UE_IP)
+            b_c2_rtt, b_c2_loss = run_c2(BRAVO_UE_IP)
 
             dz = abs(UAV_Z - GROUND_Z)
             a_slant = math.hypot(d_a, dz)
@@ -339,6 +387,7 @@ def random_walk_both(step_m=2, duration_s=180):
             row += vals_a + [a_rsrp_c]
             row += [round(bx, 1), round(by, 1), round(d_b, 1), round(b_slant, 1), round(ploss_b, 2)]
             row += vals_b + [b_rsrp_c]
+            row += [a_c2_rtt, a_c2_loss, b_c2_rtt, b_c2_loss]
 
             w.writerow(row)
             f.flush()
@@ -423,6 +472,7 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
             "b_ul_bits_per_sym", "b_ul_code_rate",
             "b_ul_nb_rbs", "b_ul_nb_sym",
             "b_dl_harq_ok", "b_dl_harq_nok", "b_dl_bler", "b_rsrp_computed_dBm",
+            "a_c2_rtt_ms", "a_c2_loss_pct", "b_c2_rtt_ms", "b_c2_loss_pct",
         ])
 
         try:
@@ -430,8 +480,10 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
                 a_start = state["a"][:2]
                 b_start = state["b"][:2]
 
-                vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a)
-                vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b)
+                vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
+                vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b, NS_BRAVO)
+                a_c2_rtt, a_c2_loss = run_c2(ALPHA_UE_IP)
+                b_c2_rtt, b_c2_loss = run_c2(BRAVO_UE_IP)
 
                 # Midpoint of the measurement window = best single-point tag
                 ax = (a_start[0] + state["a"][0]) / 2
@@ -457,14 +509,17 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
                 row += vals_a + [a_rsrp_c]
                 row += [round(bx, 1), round(by, 1), round(d_b, 1), round(b_slant, 1), round(ploss_b, 2)]
                 row += vals_b + [b_rsrp_c]
+                row += [a_c2_rtt, a_c2_loss, b_c2_rtt, b_c2_loss]
 
                 w.writerow(row)
                 f.flush()
 
                 print(f"  α({ax:.0f},{ay:.0f}) d={d_a:.0f}m ploss={ploss_a:.1f}dB"
-                      f"  TCP={vals_a[0]:.1f}M  PingPDR={100-vals_a[8]:.0f}%  RTT={vals_a[6]:.1f}ms")
+                      f"  TCP={vals_a[0]:.1f}M  PingPDR={100-vals_a[8]:.0f}%  RTT={vals_a[6]:.1f}ms"
+                      f"  C2={a_c2_rtt:.1f}ms/{a_c2_loss:.0f}%loss")
                 print(f"  β({bx:.0f},{by:.0f}) d={d_b:.0f}m ploss={ploss_b:.1f}dB"
-                      f"  TCP={vals_b[0]:.1f}M  PingPDR={100-vals_b[8]:.0f}%  RTT={vals_b[6]:.1f}ms")
+                      f"  TCP={vals_b[0]:.1f}M  PingPDR={100-vals_b[8]:.0f}%  RTT={vals_b[6]:.1f}ms"
+                      f"  C2={b_c2_rtt:.1f}ms/{b_c2_loss:.0f}%loss")
         finally:
             running.clear()
 

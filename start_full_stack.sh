@@ -188,19 +188,32 @@ fi
 tail -3 /tmp/ch_bridge.log | grep -q "ploss" || \
   echo "  NOTE: bridge may still be waiting for first pose update"
 
-# ── 8. Summary ────────────────────────────────────────────────────────────────
+# ── 8. Per-robot network namespaces (downlink over-air) ─────────────────────
+# Moves each UE TUN into its own netns so the UE IPs stop being local to
+# this host. Without this, base->robot traffic (C2 commands, e-stop, ACKs,
+# any -R/--reverse test) short-circuits via loopback and never crosses the
+# radio. Must run AFTER the UEs attach and AFTER the root-ns connectivity
+# checks above (which need the TUNs still in the root namespace).
+info "Isolating robot networks (C2/downlink over-air)..."
+NS_OUT=$(echo "Makhubela1" | sudo -S bash "$SELF_DIR/scripts/setup_robot_netns.sh" setup 2>/dev/null)
+echo "$NS_OUT" | sed 's/^/  /'
+[[ $(echo "$NS_OUT" | grep -c "downlink OK") -eq 2 ]] || \
+  die "robot netns setup failed — downlink not verified"
+ok "Robot namespaces active (uplink + downlink both over air)"
+
+# ── 9. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo "══════════════════════════════════════════════════════════════"
 echo "  FULL STACK IS UP"
 echo "══════════════════════════════════════════════════════════════"
 echo ""
-echo "  Test connectivity:"
-echo "    ping -I oaitun_ue1 10.0.0.200"
-echo "    ping -I oaitun_ue1p2 10.0.0.201"
+echo "  Test connectivity (robots live in netns now):"
+echo "    uplink:   sudo ip netns exec robot_alpha ping 10.45.0.1"
+echo "    downlink: ping 10.45.0.2        # base -> robot, over air (C2 path)"
 echo ""
 echo "  Run throughput test:"
-echo "    iperf3 -c 10.0.0.200 --bind-dev oaitun_ue1 -t 10"
-echo "    iperf3 -c 10.0.0.201 --bind-dev oaitun_ue1p2 -t 10"
+echo "    UL: sudo ip netns exec robot_alpha iperf3 -c 10.0.0.200 -t 10"
+echo "    UL: sudo ip netns exec robot_bravo iperf3 -c 10.0.0.201 -t 10"
 echo ""
 echo "  Dynamic A2G (move ground alpha to 150m):"
 echo "    gz service -s /world/sar_open_field/set_pose \\"
