@@ -97,7 +97,11 @@ IPERF_INTERVAL = 0
 # at range the loss%/jitter columns become the video-QoS degradation signal.
 VIDEO_BITRATE_MBPS = 8
 
-# Random walk bounds (stay within this radius from origin)
+# Roam bounds (radius from origin). Overridable via --min-radius= /
+# --max-radius=. Coverage edges measured 2026-07-10: alpha (baseline
+# 20dB) dies ~135m, bravo (baseline 25dB) ~130m — and RLF is sticky:
+# walking back does NOT quickly restore the link, and the UE may never
+# re-attach without a RAN restart.
 MIN_RADIUS = 2
 MAX_RADIUS = 150
 
@@ -622,12 +626,19 @@ if __name__ == "__main__":
             step = float(arg.split("=")[1])
         elif arg.startswith("--speed="):
             speed = float(arg.split("=")[1])
+        elif arg.startswith("--max-radius="):
+            # <=110m: survivable long runs (bravo stays under ~39dB).
+            # 150m: deliberately crosses the coverage edge — labeled
+            # outage data, but expect a UE death + RAN restart per run.
+            MAX_RADIUS = float(arg.split("=")[1])
+        elif arg.startswith("--min-radius="):
+            MIN_RADIUS = float(arg.split("=")[1])
         else:
             # fail loudly: silently ignoring e.g. "-duration=300" (one
             # dash) ran the 180s default and wasted a session
             sys.exit(f"ERROR: unrecognized argument '{arg}' — valid: "
-                     f"--free --random --both --circle "
-                     f"--duration=N --step=N --speed=N")
+                     f"--free --random --both --circle --duration=N "
+                     f"--step=N --speed=N --max-radius=N --min-radius=N")
 
     print(f"Patrol mode={mode}, duration={duration}s")
     if mode in ("random", "both"):

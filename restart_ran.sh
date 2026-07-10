@@ -33,7 +33,9 @@ sudo ip link delete oaitun_ue1p2 2>/dev/null
 gate "TUNs cleared"
 
 echo "== 3. Gazebo sanity =="
-GZ_COUNT=$(pgrep -cf "gz sim" 2>/dev/null || true)
+# count only SERVER instances — the GUI (gz sim -g) attached via
+# view_gui.sh is a legitimate second "gz sim" process
+GZ_COUNT=$(pgrep -af "gz sim" 2>/dev/null | grep -cv -- " -g" || true)
 if [[ "${GZ_COUNT:-0}" -eq 0 ]]; then
   echo "  WARNING: no Gazebo running. RAN will start fine, but the bridge will"
   echo "  have no poses. Start it with:"
