@@ -211,16 +211,19 @@
       <static>true</static>
     </include>
 
+    <!-- z=0: the burger's base_footprint origin is its ground-contact
+         point, and static models never settle under gravity — any
+         positive z leaves them visibly hovering. -->
     <include>
       <name>sar_ground_alpha</name>
-      <pose>15 0 0.1 0 0 0</pose>
+      <pose>15 0 0 0 0 0</pose>
       <uri>model://turtlebot3_burger</uri>
       <static>true</static>
     </include>
 
     <include>
       <name>sar_ground_bravo</name>
-      <pose>30 0 0.1 0 0 0</pose>
+      <pose>30 0 0 0 0 0</pose>
       <uri>model://turtlebot3_burger</uri>
       <static>true</static>
     </include>

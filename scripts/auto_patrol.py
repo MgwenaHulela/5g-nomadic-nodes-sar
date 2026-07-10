@@ -43,11 +43,16 @@ PATROL_LOG = LOG_DIR / f"patrol_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 sys.path.insert(0, str(Path.home() / "sar_sim" / "scripts"))
 from metrics_collector import tail_file, parse_ue_metrics
 
+sys.path.insert(0, "/usr/lib/python3/dist-packages")
+from gz.transport13 import Node as GzNode
+from gz.msgs10.pose_pb2 import Pose
+from gz.msgs10.boolean_pb2 import Boolean
+
 WORLD = "sar_open_field"
 UAV_X = 0.0
 UAV_Y = 0.0
 UAV_Z = 40.0
-GROUND_Z = 0.1
+GROUND_Z = 0.0  # burger base_footprint is its ground-contact point — 0.1 floats it
 TX_REF = -11.0       # calibrated: RSRP_observed + ploss_DL at close range
 DL_UL_OFFSET = 5.0   # DL baseline is 5 dB below UL baseline (from bridge config)
 
@@ -95,14 +100,26 @@ MIN_RADIUS = 2
 MAX_RADIUS = 150
 
 
+# In-process gz-transport node for set_pose: a `gz service` subprocess
+# costs 100-200ms per call, which capped pose updates at ~2Hz and made
+# robot motion look like discrete point-to-point jumps in the GUI.
+# Direct requests are ~1ms, allowing a smooth 10Hz motion tick.
+_gz_node = None
+
+
 def gz_set_pose(model, x, y, z):
-    req = f'name: "{model}" position: {{x: {x:.1f}, y: {y:.1f}, z: {z:.1f}}}'
-    subprocess.run(
-        ["gz", "service", "-s", f"/world/{WORLD}/set_pose",
-         "--reqtype", "gz.msgs.Pose", "--reptype", "gz.msgs.Boolean",
-         "--timeout", "2000", "--req", req],
-        capture_output=True, text=True, timeout=5,
-    )
+    global _gz_node
+    if _gz_node is None:
+        _gz_node = GzNode()
+    req = Pose()
+    req.name = model
+    req.position.x = x
+    req.position.y = y
+    req.position.z = z
+    try:
+        _gz_node.request(f"/world/{WORLD}/set_pose", req, Pose, Boolean, 500)
+    except Exception:
+        pass
 
 
 def read_bridge_ploss_side(side):
@@ -273,7 +290,7 @@ def linear_sweep(start=10, end=200, step=15, duration_s=180):
         ])
 
         while time.time() - t0 < duration_s:
-            gz_set_pose(ALPHA_MODEL, x, 0, 0.1)
+            gz_set_pose(ALPHA_MODEL, x, 0, GROUND_Z)
             time.sleep(2)
 
             now = time.time()
@@ -329,8 +346,8 @@ def random_walk_both(step_m=2, duration_s=180):
     prev_a, prev_b = {}, {}
     ax, ay = 10.0, 0.0
     bx, by = 25.0, 0.0
-    gz_set_pose(ALPHA_MODEL, ax, ay, 0.1)
-    gz_set_pose(BRAVO_MODEL, bx, by, 0.1)
+    gz_set_pose(ALPHA_MODEL, ax, ay, GROUND_Z)
+    gz_set_pose(BRAVO_MODEL, bx, by, GROUND_Z)
     time.sleep(2)
 
     with open(PATROL_LOG, "w", newline="") as f:
@@ -360,8 +377,8 @@ def random_walk_both(step_m=2, duration_s=180):
         while time.time() - t0 < duration_s:
             ax, ay = random_step(ax, ay, step_m, MIN_RADIUS, MAX_RADIUS)
             bx, by = random_step(bx, by, step_m, MIN_RADIUS, MAX_RADIUS)
-            gz_set_pose(ALPHA_MODEL, ax, ay, 0.1)
-            gz_set_pose(BRAVO_MODEL, bx, by, 0.1)
+            gz_set_pose(ALPHA_MODEL, ax, ay, GROUND_Z)
+            gz_set_pose(BRAVO_MODEL, bx, by, GROUND_Z)
             time.sleep(2)
 
             now = time.time()
@@ -407,7 +424,7 @@ def random_walk_both(step_m=2, duration_s=180):
     print(f"\nSaved: {PATROL_LOG}")
 
 
-def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
+def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
     """Both robots roam continuously and independently — smooth headings,
     not teleport steps — while metrics are sampled in parallel. Each CSV
     row is tagged with the robot's position at the midpoint of its
@@ -429,7 +446,9 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.5):
         while running.is_set():
             for key, model in (("a", ALPHA_MODEL), ("b", BRAVO_MODEL)):
                 x, y, hdg = state[key]
-                hdg += random.gauss(0.0, 0.25)
+                # heading noise scaled by tick so path curvature is the
+                # same regardless of update rate
+                hdg += random.gauss(0.0, 0.5 * tick_s)
                 nx = x + speed_ms * tick_s * math.cos(hdg)
                 ny = y + speed_ms * tick_s * math.sin(hdg)
                 r = math.hypot(nx, ny)
