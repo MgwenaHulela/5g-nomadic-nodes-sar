@@ -29,9 +29,8 @@ from gz.msgs10.pose_v_pb2 import Pose_V
 NS = "sar_patrol"
 ID_BEAM_ALPHA = 100
 ID_BEAM_BRAVO = 101
-ID_LABEL_ALPHA = 200
-ID_LABEL_BRAVO = 201
-ID_LABEL_UAV = 202
+ID_ORB_ALPHA = 200
+ID_ORB_BRAVO = 201
 
 # ── Lazy-initialised globals ──────────────────────────────────────────────────
 _node = None
@@ -105,22 +104,27 @@ def _beam(x1, y1, z1, x2, y2, z2, color):
     return m
 
 
-def _label_marker(x, y, z, text, color, scale=0.5):
+def _orb(x, y, z, color, radius=0.6):
+    """Health-status sphere (TEXT markers are rejected by the render
+    engine, so status is conveyed by color instead)."""
     m = marker_pb2.Marker()
     m.action = marker_pb2.Marker.ADD_MODIFY
     m.ns = NS
-    m.type = marker_pb2.Marker.TEXT
+    m.type = marker_pb2.Marker.SPHERE
     m.pose.position.x = x
     m.pose.position.y = y
     m.pose.position.z = z
-    m.scale.x = scale
-    m.scale.y = scale
-    m.scale.z = scale
-    m.text = text
+    m.scale.x = radius
+    m.scale.y = radius
+    m.scale.z = radius
     m.material.ambient.r = color[0]
     m.material.ambient.g = color[1]
     m.material.ambient.b = color[2]
-    m.material.ambient.a = 1.0
+    m.material.ambient.a = 0.9
+    m.material.diffuse.r = color[0]
+    m.material.diffuse.g = color[1]
+    m.material.diffuse.b = color[2]
+    m.material.diffuse.a = 0.9
     return m
 
 
@@ -146,12 +150,6 @@ def update_beam(id_, x1, y1, z1, x2, y2, z2, color):
     _publish_marker(m)
 
 
-def update_label(id_, x, y, z, text, color=(1, 1, 1), scale=0.5):
-    m = _label_marker(x, y, z, text, color, scale)
-    m.id = id_
-    _publish_marker(m)
-
-
 def publish_metrics(text):
     _publish_string(text)
 
@@ -173,7 +171,10 @@ def update_viz(ux, uy, uz,
     a_color = _health_color(a_ploss, a_c2_rtt, a_c2_st, COLOR_NEUTRAL_A)
     b_color = _health_color(b_ploss, b_c2_rtt, b_c2_st, COLOR_NEUTRAL_B)
 
-    # Beams
+    # Beams (color = link health). NOTE: no in-scene text labels — the
+    # render engines behind the GUI reject Marker type TEXT ("Invalid
+    # Marker type 7" spam in OgreMarker.cc), so numeric readouts live in
+    # the TopicEcho "Metrics" panel (/sar/metrics) instead.
     m1 = _beam(ux, uy, uz, ax, ay, az, a_color)
     m1.id = ID_BEAM_ALPHA
     _publish_marker(m1)
@@ -182,23 +183,18 @@ def update_viz(ux, uy, uz,
     m2.id = ID_BEAM_BRAVO
     _publish_marker(m2)
 
-    def _c2_str(rtt, st):
-        return {"ok": f"C2 {rtt:.0f}ms", "lost": "C2 LOST", "na": "C2 n/a"}[st]
-
-    # Labels
-    la = f"ALPHA  d={a_d:.0f}m  ploss={a_ploss:.1f}dB  {_c2_str(a_c2_rtt, a_c2_st)}"
-    m3 = _label_marker(ax, ay, az + 1.5, la, a_color)
-    m3.id = ID_LABEL_ALPHA
+    # Health orb floating above each robot — visible from any zoom level
+    # where the tiny burger itself isn't.
+    m3 = _orb(ax, ay, az + 1.2, a_color)
+    m3.id = ID_ORB_ALPHA
     _publish_marker(m3)
 
-    lb = f"BRAVO  d={b_d:.0f}m  ploss={b_ploss:.1f}dB  {_c2_str(b_c2_rtt, b_c2_st)}"
-    m4 = _label_marker(bx, by, bz + 1.5, lb, b_color)
-    m4.id = ID_LABEL_BRAVO
+    m4 = _orb(bx, by, bz + 1.2, b_color)
+    m4.id = ID_ORB_BRAVO
     _publish_marker(m4)
 
-    m5 = _label_marker(ux, uy, uz + 2.0, f"UAV gNB  t={t_elapsed:.0f}s", (1, 1, 1))
-    m5.id = ID_LABEL_UAV
-    _publish_marker(m5)
+    def _c2_str(rtt, st):
+        return {"ok": f"C2 {rtt:.0f}ms", "lost": "C2 LOST", "na": "C2 n/a"}[st]
 
     # Metrics string for the GUI TopicViewer panel
     def _panel(side, x, y, z, d, ploss, c2_rtt, c2_st):
