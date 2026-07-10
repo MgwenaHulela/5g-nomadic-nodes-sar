@@ -566,6 +566,12 @@ if __name__ == "__main__":
             step = float(arg.split("=")[1])
         elif arg.startswith("--speed="):
             speed = float(arg.split("=")[1])
+        else:
+            # fail loudly: silently ignoring e.g. "-duration=300" (one
+            # dash) ran the 180s default and wasted a session
+            sys.exit(f"ERROR: unrecognized argument '{arg}' — valid: "
+                     f"--free --random --both --circle "
+                     f"--duration=N --step=N --speed=N")
 
     print(f"Patrol mode={mode}, duration={duration}s")
     if mode in ("random", "both"):
