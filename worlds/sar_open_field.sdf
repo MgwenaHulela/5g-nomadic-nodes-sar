@@ -199,11 +199,13 @@
          ./start_full_stack.sh, which exports the path; without it these
          includes (and the models' mesh URIs) fail to resolve.
 
-         All three are static: the UAV holds 40m without PX4 SITL, and
-         the ground robots move only via set_pose teleports
-         (auto_patrol.py), which work on static models. Non-static
-         burgers creep ~0.5m/min unattended — an overnight session
-         walked alpha 780m out of coverage and crashed its UE.       -->
+         The UAV is static (holds 40m without PX4 SITL). Ground robots
+         are DYNAMIC sar_burger models (repo-local wrapper adding a
+         gz-sim DiffDrive controller) so auto_patrol.py drives them via
+         /model/<name>/cmd_vel with real wheel kinematics. Idle physics
+         creep (~0.5m/min) is a known cost of dynamic burgers — don't
+         leave the stack unattended for hours outside a patrol; an
+         overnight session once walked alpha 780m out of coverage.   -->
     <include>
       <name>sar_uav</name>
       <pose>0 0 40 0 0 0</pose>
@@ -211,21 +213,16 @@
       <static>true</static>
     </include>
 
-    <!-- z=0: the burger's base_footprint origin is its ground-contact
-         point, and static models never settle under gravity — any
-         positive z leaves them visibly hovering. -->
     <include>
       <name>sar_ground_alpha</name>
       <pose>15 0 0 0 0 0</pose>
-      <uri>model://turtlebot3_burger</uri>
-      <static>true</static>
+      <uri>model://sar_burger</uri>
     </include>
 
     <include>
       <name>sar_ground_bravo</name>
       <pose>30 0 0 0 0 0</pose>
-      <uri>model://turtlebot3_burger</uri>
-      <static>true</static>
+      <uri>model://sar_burger</uri>
     </include>
 
   </world>

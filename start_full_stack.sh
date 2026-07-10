@@ -92,7 +92,7 @@ TB3_MODELS="$HOME/turtlebot3_ws/src/turtlebot3_simulations/turtlebot3_gazebo/mod
 TB3_DESC="$HOME/turtlebot3_ws/src/turtlebot3/turtlebot3_description"
 [[ -d "$PX4_MODELS" ]] || die "PX4 models dir not found: $PX4_MODELS"
 [[ -d "$TB3_MODELS" ]] || die "TurtleBot3 models dir not found: $TB3_MODELS"
-export GZ_SIM_RESOURCE_PATH="${PX4_MODELS}:${TB3_MODELS}:${TB3_DESC}:${GZ_SIM_RESOURCE_PATH:-}"
+export GZ_SIM_RESOURCE_PATH="${SELF_DIR}/models:${PX4_MODELS}:${TB3_MODELS}:${TB3_DESC}:${GZ_SIM_RESOURCE_PATH:-}"
 
 # Always kill any stray/stale gz sim instance first — a manually-started
 # instance (wrong flags, wrong world path, or just stale state) would

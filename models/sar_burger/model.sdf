@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  sar_burger — stock turtlebot3_burger + Gazebo Harmonic DiffDrive.
+
+  The stock model's gazebo_ros_* plugins are Gazebo-Classic-only and fail
+  to load on Harmonic, leaving the robot without any drive controller —
+  which is why motion used to be set_pose teleports (wheels never spun).
+  This wrapper merges the stock model and adds gz-sim's own DiffDrive.
+
+  cmd_vel topic: left unset, so it defaults to /model/<name>/cmd_vel with
+  <name> being whatever the world's <include><name> renames this model to
+  (sar_ground_alpha -> /model/sar_ground_alpha/cmd_vel, etc.).
+
+  Requires model://turtlebot3_burger and model://turtlebot3_common on
+  GZ_SIM_RESOURCE_PATH (the TB3 workspace dirs).
+-->
+<sdf version="1.9">
+  <model name="sar_burger">
+    <include merge="true">
+      <uri>model://turtlebot3_burger</uri>
+    </include>
+
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>wheel_left_joint</left_joint>
+      <right_joint>wheel_right_joint</right_joint>
+      <wheel_separation>0.160</wheel_separation>
+      <wheel_radius>0.033</wheel_radius>
+      <odom_publish_frequency>10</odom_publish_frequency>
+      <max_linear_acceleration>5</max_linear_acceleration>
+      <max_angular_acceleration>10</max_angular_acceleration>
+    </plugin>
+  </model>
+</sdf>

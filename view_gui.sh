@@ -15,7 +15,7 @@ SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 PX4_MODELS="$HOME/Desktop/Msc-Research/simulation/PX4-gazebo-models/models"
 TB3_MODELS="$HOME/turtlebot3_ws/src/turtlebot3_simulations/turtlebot3_gazebo/models"
 TB3_DESC="$HOME/turtlebot3_ws/src/turtlebot3/turtlebot3_description"
-export GZ_SIM_RESOURCE_PATH="${PX4_MODELS}:${TB3_MODELS}:${TB3_DESC}:${GZ_SIM_RESOURCE_PATH:-}"
+export GZ_SIM_RESOURCE_PATH="${SELF_DIR}/models:${PX4_MODELS}:${TB3_MODELS}:${TB3_DESC}:${GZ_SIM_RESOURCE_PATH:-}"
 
 pgrep -f "gz sim -r -s" >/dev/null 2>&1 || \
   echo "WARNING: no gz sim server detected — run ./start_full_stack.sh first"

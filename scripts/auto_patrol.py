@@ -47,6 +47,8 @@ sys.path.insert(0, "/usr/lib/python3/dist-packages")
 from gz.transport13 import Node as GzNode
 from gz.msgs10.pose_pb2 import Pose
 from gz.msgs10.boolean_pb2 import Boolean
+from gz.msgs10.twist_pb2 import Twist
+from gz.msgs10.pose_v_pb2 import Pose_V
 
 WORLD = "sar_open_field"
 UAV_X = 0.0
@@ -425,45 +427,88 @@ def random_walk_both(step_m=2, duration_s=180):
 
 
 def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
-    """Both robots roam continuously and independently — smooth headings,
-    not teleport steps — while metrics are sampled in parallel. Each CSV
-    row is tagged with the robot's position at the midpoint of its
-    measurement window (an iperf+ping cycle spans ~8-10s of travel, so a
-    single instantaneous position would misrepresent the sample).
+    """Both robots DRIVE continuously and independently — DiffDrive
+    cmd_vel with pose feedback and heading-error steering, so wheels
+    genuinely spin and motion is kinematic, not teleportation. Metrics
+    are sampled in parallel; each CSV row is tagged with the robot's
+    position at the midpoint of its measurement window (an iperf+ping
+    cycle spans ~8-10s of travel).
 
     Fine-grained ploss-vs-position at every 0.5s tick is already captured
     by channel_bridge_log.csv; this CSV adds the expensive link metrics.
     """
-    # [x, y, heading]; mutated only by the mover thread
-    state = {
-        "a": [10.0, 0.0, random.random() * 2 * math.pi],
-        "b": [25.0, 0.0, random.random() * 2 * math.pi],
+    global _gz_node
+    if _gz_node is None:
+        _gz_node = GzNode()
+
+    # live pose feedback (position + yaw) from the world's pose topic
+    fb_lock = threading.Lock()
+    feedback = {}  # model -> (x, y, yaw)
+
+    def pose_cb(msg):
+        for p in msg.pose:
+            if p.name in (ALPHA_MODEL, BRAVO_MODEL):
+                q = p.orientation
+                yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+                with fb_lock:
+                    feedback[p.name] = (p.position.x, p.position.y, yaw)
+
+    _gz_node.subscribe(Pose_V, f"/world/{WORLD}/pose/info", pose_cb)
+
+    pubs = {
+        ALPHA_MODEL: _gz_node.advertise(f"/model/{ALPHA_MODEL}/cmd_vel", Twist()),
+        BRAVO_MODEL: _gz_node.advertise(f"/model/{BRAVO_MODEL}/cmd_vel", Twist()),
     }
+
+    def current_pos(model, default):
+        with fb_lock:
+            fb = feedback.get(model)
+        return (fb[0], fb[1]) if fb else default
+
+    # one-time placement at start positions (teleport is fine for setup)
+    gz_set_pose(ALPHA_MODEL, 10.0, 0.0, GROUND_Z)
+    gz_set_pose(BRAVO_MODEL, 25.0, 0.0, GROUND_Z)
+    time.sleep(2)
+
     running = threading.Event()
     running.set()
+    # wander heading target per robot; the driver steers toward it
+    targets = {
+        ALPHA_MODEL: random.random() * 2 * math.pi,
+        BRAVO_MODEL: random.random() * 2 * math.pi,
+    }
 
-    def mover():
+    def driver():
         while running.is_set():
-            for key, model in (("a", ALPHA_MODEL), ("b", BRAVO_MODEL)):
-                x, y, hdg = state[key]
-                # heading noise scaled by tick so path curvature is the
-                # same regardless of update rate
-                hdg += random.gauss(0.0, 0.5 * tick_s)
-                nx = x + speed_ms * tick_s * math.cos(hdg)
-                ny = y + speed_ms * tick_s * math.sin(hdg)
-                r = math.hypot(nx, ny)
-                if not (MIN_RADIUS <= r <= MAX_RADIUS):
-                    # out of bounds: hold position, turn toward the annulus
-                    hdg = math.atan2(-y, -x) if r > MAX_RADIUS else math.atan2(y, x)
-                    nx, ny = x, y
-                state[key] = [nx, ny, hdg]
-                gz_set_pose(model, nx, ny, GROUND_Z)
+            for model in (ALPHA_MODEL, BRAVO_MODEL):
+                with fb_lock:
+                    fb = feedback.get(model)
+                if fb is None:
+                    continue
+                x, y, yaw = fb
+                # wander: drift the target heading; steer back inside the
+                # allowed annulus near its edges
+                tgt = targets[model] + random.gauss(0.0, 0.5 * tick_s)
+                r = math.hypot(x, y)
+                if r > MAX_RADIUS - 5:
+                    tgt = math.atan2(-y, -x)
+                elif r < MIN_RADIUS + 1:
+                    tgt = math.atan2(y, x)
+                targets[model] = tgt
+
+                err = math.atan2(math.sin(tgt - yaw), math.cos(tgt - yaw))
+                tw = Twist()
+                tw.angular.z = max(-1.5, min(1.5, 2.0 * err))
+                # slow down through sharp turns, never fully stop
+                tw.linear.x = speed_ms * max(0.15, math.cos(err))
+                try:
+                    pubs[model].publish(tw)
+                except Exception:
+                    pass
             time.sleep(tick_s)
 
-    gz_set_pose(ALPHA_MODEL, *state["a"][:2], GROUND_Z)
-    gz_set_pose(BRAVO_MODEL, *state["b"][:2], GROUND_Z)
-    time.sleep(2)
-    threading.Thread(target=mover, daemon=True).start()
+    threading.Thread(target=driver, daemon=True).start()
 
     t0 = time.time()
     seen_a, seen_b = 0, 0
@@ -496,19 +541,22 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
 
         try:
             while time.time() - t0 < duration_s:
-                a_start = state["a"][:2]
-                b_start = state["b"][:2]
+                a_start = current_pos(ALPHA_MODEL, (10.0, 0.0))
+                b_start = current_pos(BRAVO_MODEL, (25.0, 0.0))
 
                 vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
                 vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b, NS_BRAVO)
                 a_c2_rtt, a_c2_loss = run_c2(ALPHA_UE_IP)
                 b_c2_rtt, b_c2_loss = run_c2(BRAVO_UE_IP)
 
+                a_end = current_pos(ALPHA_MODEL, a_start)
+                b_end = current_pos(BRAVO_MODEL, b_start)
+
                 # Midpoint of the measurement window = best single-point tag
-                ax = (a_start[0] + state["a"][0]) / 2
-                ay = (a_start[1] + state["a"][1]) / 2
-                bx = (b_start[0] + state["b"][0]) / 2
-                by = (b_start[1] + state["b"][1]) / 2
+                ax = (a_start[0] + a_end[0]) / 2
+                ay = (a_start[1] + a_end[1]) / 2
+                bx = (b_start[0] + b_end[0]) / 2
+                by = (b_start[1] + b_end[1]) / 2
 
                 t_elapsed = time.time() - t0
                 ploss_a, _ = read_bridge_ploss_side("alpha")
@@ -541,6 +589,14 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
                       f"  C2={b_c2_rtt:.1f}ms/{b_c2_loss:.0f}%loss")
         finally:
             running.clear()
+            # DiffDrive latches the last command — stop the wheels
+            time.sleep(tick_s * 2)
+            stop = Twist()
+            for model in (ALPHA_MODEL, BRAVO_MODEL):
+                try:
+                    pubs[model].publish(stop)
+                except Exception:
+                    pass
 
     print(f"\nSaved: {PATROL_LOG}")
 
