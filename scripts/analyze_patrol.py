@@ -118,6 +118,10 @@ def tidy(df):
     t = pd.concat(out, ignore_index=True)
     # outage flag: total ping loss OR total C2 loss with no traffic
     t["outage"] = (t["pingloss"] >= 100) | ((t["c2loss"] >= 100) & (t["tcp"] == 0))
+    # suspect flag: tcp==0 on a demonstrably live link = failed MEASUREMENT
+    # (iperf server-busy cascade, pre-2026-07-10-fix runs), not channel
+    # truth — excluded from throughput statistics but counted in the report
+    t["suspect"] = (t["tcp"] == 0) & (t["pingloss"] == 0) & ~t["outage"]
     # radio metrics are stale during outages — invalidate
     t.loc[t["outage"], ["rsrp", "sinr"]] = np.nan
     # rtt/c2rtt of 0 means "no measurement", not zero latency
@@ -233,10 +237,11 @@ def report(t, outdir):
     edges = [0, 25, 50, 75, 100, 125, 200]
     for side in ("a", "b"):
         s = t[t["side"] == side]
-        ok = s[~s["outage"]]
+        ok = s[~s["outage"] & ~s["suspect"]]
         say(f"\n── {NAMES[side]} ──")
         say(f"  distance range: {s['d'].min():.0f}–{s['d'].max():.0f} m")
-        say(f"  outage samples: {int(s['outage'].sum())}/{len(s)}")
+        say(f"  outage samples: {int(s['outage'].sum())}/{len(s)}, "
+            f"suspect (failed measurement, excluded): {int(s['suspect'].sum())}")
         if len(ok):
             say(f"  TCP: mean {ok['tcp'].mean():.1f} Mbps, "
                 f"min {ok['tcp'].min():.1f} (at {ok.loc[ok['tcp'].idxmin(),'d']:.0f} m)")
@@ -259,7 +264,7 @@ def report(t, outdir):
             say(f"  ploss vs model: mean residual {resid.mean():+.1f} dB, "
                 f"MAE {resid.abs().mean():.1f} dB (EMA lag explains most)")
     say("\n── binned means (TCP Mbps / C2 RTT ms) ──")
-    tb = binned(t[~t["outage"]], "tcp", edges).round(1)
+    tb = binned(t[~t["outage"] & ~t["suspect"]], "tcp", edges).round(1)
     cb = binned(t, "c2rtt", edges).round(0)
     for iv in tb.index:
         a_t = tb.loc[iv].get("a", np.nan)
