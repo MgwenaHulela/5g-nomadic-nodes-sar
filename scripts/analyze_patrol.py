@@ -166,8 +166,12 @@ def fig_throughput(t, outdir):
         (axes[0], "tcp", "TCP goodput (bulk sensor upload)", "Mbps"),
         (axes[1], "udp", "UDP video feed delivered (8 Mbps offered)", "Mbps"),
     ):
+        # hide failed-measurement rows (zero on a live link): they are
+        # instrumentation artifacts, not channel behavior
+        bad_zero = (t[col] == 0) & (t["pingloss"] == 0) & ~t["outage"]
+        tt = t[~bad_zero]
         for side in ("a", "b"):
-            s = t[t["side"] == side].sort_values("d")
+            s = tt[tt["side"] == side].sort_values("d")
             ax.scatter(s["d"], s[col], s=20, color=COLORS[side], alpha=0.85,
                        label=NAMES[side])
             out = s[s["outage"]]
