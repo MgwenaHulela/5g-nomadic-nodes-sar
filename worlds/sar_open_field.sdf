@@ -186,34 +186,43 @@
     </model>
 
     <!-- ── Robots ──────────────────────────────────────────────────────
-         Included at world load (plain, non-merge includes) rather than
-         spawned at runtime: Harmonic's SceneBroadcaster fails to add
+         Included at world load (plain, non-merge includes), NOT spawned
+         at runtime: Harmonic's SceneBroadcaster fails to add
          merge-included EntityFactory spawns to the scene graph, so a GUI
          attached to the server never receives their visuals (physics and
-         pose/info work — only rendering silently breaks). Load-time
-         includes go through the normal path and render correctly.
+         pose/info work — only rendering silently breaks; verified
+         2026-07-09 with a diag box that rendered vs robots that never
+         did). Load-time includes render correctly.
 
          Requires GZ_SIM_RESOURCE_PATH to contain the PX4 and TurtleBot3
-         model dirs at server launch — start_full_stack.sh exports it.
-         The names below are what channel_bridge.py / gazebo_viz.py /
-         auto_patrol.py key on.                                      -->
+         model dirs at server launch. DO NOT start gz sim by hand — use
+         ./start_full_stack.sh, which exports the path; without it these
+         includes (and the models' mesh URIs) fail to resolve.
+
+         All three are static: the UAV holds 40m without PX4 SITL, and
+         the ground robots move only via set_pose teleports
+         (auto_patrol.py), which work on static models. Non-static
+         burgers creep ~0.5m/min unattended — an overnight session
+         walked alpha 780m out of coverage and crashed its UE.       -->
     <include>
       <name>sar_uav</name>
       <pose>0 0 40 0 0 0</pose>
       <uri>model://x500_base</uri>
-      <static>true</static>  <!-- holds 40m without PX4 SITL (stopgap) -->
+      <static>true</static>
     </include>
 
     <include>
       <name>sar_ground_alpha</name>
       <pose>15 0 0.1 0 0 0</pose>
       <uri>model://turtlebot3_burger</uri>
+      <static>true</static>
     </include>
 
     <include>
       <name>sar_ground_bravo</name>
       <pose>30 0 0.1 0 0 0</pose>
       <uri>model://turtlebot3_burger</uri>
+      <static>true</static>
     </include>
 
   </world>
