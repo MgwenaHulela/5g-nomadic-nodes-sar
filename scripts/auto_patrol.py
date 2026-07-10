@@ -143,17 +143,34 @@ def read_bridge_ploss_side(side):
     return 0.0, 0.0
 
 
+def _iperf_json(ns, args, timeout):
+    """Run iperf3, retrying once on failure. A test killed by our
+    subprocess timeout leaves the iperf3 SERVER stuck mid-test, and the
+    next connection is rejected instantly ('server busy') — in the
+    2026-07-10 90-min run this cascaded into 19% of samples logging
+    tcp=0 on a perfectly live link. One retry after a settle beat
+    absorbs it."""
+    for attempt in (0, 1):
+        try:
+            out = ns_run(ns, args, timeout=timeout).stdout
+            data = json.loads(out)
+            if "error" not in data:
+                return data
+        except Exception:
+            pass
+        time.sleep(2.5)
+    return None
+
+
 def run_iperf_tcp(tun, test_ip, ns=NS_ALPHA):
     # -O 1: run 1 extra warm-up second and exclude it from the stats, so
     # the reported rate is post-slow-start steady state rather than the
     # ramp (a bare 2s test under-reports a ~20Mbps link as ~5-6Mbps).
+    data = _iperf_json(ns,
+        ["iperf3", "-c", test_ip, "--bind-dev", tun,
+         "-t", str(IPERF_DURATION), "-O", "1", "-J"],
+        timeout=IPERF_DURATION + 11)
     try:
-        out = ns_run(ns,
-            ["iperf3", "-c", test_ip, "--bind-dev", tun,
-             "-t", str(IPERF_DURATION), "-O", "1", "-J"],
-            timeout=IPERF_DURATION + 11,
-        ).stdout
-        data = json.loads(out)
         mbps = data["end"]["sum_received"]["bits_per_second"] / 1e6
         retrans = data["end"]["sum_sent"]["retransmits"]
         return round(mbps, 2), retrans
@@ -171,13 +188,11 @@ def run_iperf_udp(tun, test_ip, ns=NS_ALPHA):
     Returns (delivered_mbps, jitter_ms, lost_pct) as measured server-side,
     i.e. after the radio link.
     """
+    data = _iperf_json(ns,
+        ["iperf3", "-u", "-c", test_ip, "--bind-dev", tun,
+         "-b", f"{VIDEO_BITRATE_MBPS}M", "-t", str(IPERF_DURATION), "-J"],
+        timeout=IPERF_DURATION + 10)
     try:
-        out = ns_run(ns,
-            ["iperf3", "-u", "-c", test_ip, "--bind-dev", tun,
-             "-b", f"{VIDEO_BITRATE_MBPS}M", "-t", str(IPERF_DURATION), "-J"],
-            timeout=IPERF_DURATION + 10,
-        ).stdout
-        data = json.loads(out)
         end = data["end"]
         s = end.get("sum") or end.get("sum_received") or {}
         jitter = s["jitter_ms"]
@@ -549,7 +564,9 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
                 b_start = current_pos(BRAVO_MODEL, (25.0, 0.0))
 
                 vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
+                time.sleep(2)  # let the iperf servers + gNB queues idle between robots
                 vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b, NS_BRAVO)
+                time.sleep(2)  # C2 probes should measure the channel, not draining test queues
                 a_c2_rtt, a_c2_loss = run_c2(ALPHA_UE_IP)
                 b_c2_rtt, b_c2_loss = run_c2(BRAVO_UE_IP)
 
