@@ -188,6 +188,13 @@ fi
 tail -3 /tmp/ch_bridge.log | grep -q "ploss" || \
   echo "  NOTE: bridge may still be waiting for first pose update"
 
+# ── 7b. Log janitor ──────────────────────────────────────────────────────────
+# OAI writes ~5GB/h of PHY spam; an unattended overnight run once grew
+# /tmp logs to 270GB, filled the disk and crashed the bridge + patrol.
+pkill -f "log_janito[r].sh" 2>/dev/null
+setsid nohup bash "$SELF_DIR/scripts/log_janitor.sh" &>/tmp/log_janitor.log < /dev/null &
+ok "Log janitor running (5GB cap per OAI log)"
+
 # ── 8. Per-robot network namespaces (downlink over-air) ─────────────────────
 # Moves each UE TUN into its own netns so the UE IPs stop being local to
 # this host. Without this, base->robot traffic (C2 commands, e-stop, ACKs,
