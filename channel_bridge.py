@@ -24,6 +24,7 @@ import argparse
 import csv
 import math
 import os
+import re
 import socket
 import sys
 import time
@@ -151,6 +152,27 @@ class TelnetLink:
             self.sock = None
             return False
 
+    def query(self, cmd, wait=1.5):
+        """Send a command and collect the multi-line reply."""
+        if self.sock is None and not self.connect():
+            return ""
+        try:
+            self.sock.sendall((cmd + "\n").encode())
+            time.sleep(wait)
+            out = b""
+            try:
+                while True:
+                    chunk = self.sock.recv(4096)
+                    if not chunk:
+                        break
+                    out += chunk
+            except socket.timeout:
+                pass
+            return out.decode(errors="replace")
+        except OSError:
+            self.sock = None
+            return ""
+
 
 # ── Pose data ────────────────────────────────────────────────────────────────
 POSE_TOPIC = "/world/sar_open_field/pose/info"
@@ -208,17 +230,86 @@ def main():
     ap.add_argument("--ref-distance", type=float, default=REFERENCE_HORIZ_DISTANCE_M)
     args = ap.parse_args()
 
+    # ONE TelnetLink PER PORT, shared by all models on that port. OAI's
+    # telnet server accepts a single client: a second socket to the same
+    # port completes the TCP handshake (listen backlog) but is never
+    # accepted, and every write to it is silently discarded. With one
+    # link per model, bravo's gNB-side UL commands (second socket to
+    # 9091) vanished without any error — its uplink channel was never
+    # modulated in any campaign before 2026-07-11.
+    port_links = {}
+    for name, (port, _idx, _base) in MODEL_MAP.items():
+        if port not in port_links:
+            port_links[port] = TelnetLink(port)
+    links = {name: port_links[port] for name, (port, _i, _b) in MODEL_MAP.items()}
+
+    if not args.dry_run:
+        for port, link in port_links.items():
+            # Probe until LIVE, not merely connected: a connection sitting
+            # in the server's accept backlog (e.g. behind a dead client not
+            # yet reaped) completes the TCP handshake but drops all writes.
+            # Only a connection that answers a query is trustworthy.
+            live = False
+            for attempt in range(10):
+                if link.sock is not None:
+                    try:
+                        link.sock.close()
+                    except OSError:
+                        pass
+                    link.sock = None
+                if link.connect() and "model" in link.query("channelmod show current", wait=1.5):
+                    live = True
+                    break
+                time.sleep(2.5)
+            if not live:
+                print(f"FATAL: telnet :{port} never became responsive")
+                return
+            print(f"[verify] telnet :{port}: connection live (attempt {attempt+1})")
+        # Read-back verification: write each model's baseline, then parse
+        # it back from `channelmod show current`. A silently-dropped write
+        # (this bug's signature) fails loudly here instead of poisoning a
+        # whole campaign.
+        for name, (port, idx, base) in MODEL_MAP.items():
+            port_links[port].send(f"channelmod modify {idx} ploss {-base:.2f}")
+        time.sleep(1)
+        for port, link in port_links.items():
+            expect = {idx: -base for n, (p, idx, base) in MODEL_MAP.items() if p == port}
+            ok = False
+            for attempt in range(4):
+                reply = link.query("channelmod show current", wait=2.0)
+                # pair model index -> its own block's path loss
+                got = {}
+                # NOTE: don't split on "model " — the "model owner:" line
+                # inside each block would sever the header from its params
+                for m in re.finditer(
+                        r"model (\d+) rfsimu[\s\S]*?path loss: (-?[\d.]+)",
+                        reply):
+                    got[int(m.group(1))] = float(m.group(2))
+                ok = all(got.get(i) is not None and abs(got[i] - w) < 0.01
+                         for i, w in expect.items())
+                if ok:
+                    break
+                # empty/partial replies happen on a freshly-drained
+                # connection — resend baselines and retry before declaring
+                # the link dead
+                for n, (p, idx, base) in MODEL_MAP.items():
+                    if p == port:
+                        link.send(f"channelmod modify {idx} ploss {-base:.2f}")
+                time.sleep(2)
+            if not ok:
+                print(f"FATAL: telnet :{port} read-back failed after retries "
+                      f"(expect {expect}, got {got}) — writes may be dropped")
+                return
+            print(f"[verify] telnet :{port}: all model baselines read back OK")
+
+    # gz subscription starts AFTER telnet verification — fail fast on a
+    # bad RAN link before touching the simulation side.
     gz = GzNode()
     ok = gz.subscribe(Pose_V, POSE_TOPIC, pose_cb)
     if not ok:
         print(f"ERROR: failed to subscribe to {POSE_TOPIC}")
         return
     print(f"Subscribed to {POSE_TOPIC}")
-
-    links = {name: TelnetLink(port) for name, (port, _idx, _base) in MODEL_MAP.items()}
-    if not args.dry_run:
-        for name, link in links.items():
-            link.connect()
 
     pl_ref, _, _, _ = a2g_path_loss(args.ref_distance, UAV_DEFAULT_H)
 
