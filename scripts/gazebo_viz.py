@@ -236,7 +236,7 @@ COLOR_LOST = (1.0, 0.15, 0.15)      # red
 COLOR_NEUTRAL_A = (0.0, 0.8, 1.0)   # fallback when C2 not measurable
 COLOR_NEUTRAL_B = (1.0, 0.6, 0.0)
 
-PLOSS_DEGRADED_DB = 33.0   # ~110m: TCP falling, HARQ retransmissions rising
+PLOSS_DEGRADED_DB = 25.0   # recalibrated 2026-07-11: TCP halves ~20dB, link dies ~35dB
 C2_RTT_DEGRADED_MS = 150.0
 
 
@@ -284,7 +284,7 @@ def _health_color(ploss, c2_rtt, c2_status, neutral):
     return COLOR_HEALTHY
 
 REFERENCE_HORIZ_DISTANCE_M = 50.0
-TX_REF = -11.0
+TX_REF = -42.0
 DL_UL_OFFSET = 5.0
 UAV_DEFAULT_H = 40.0
 UE_HEIGHT = 0.1

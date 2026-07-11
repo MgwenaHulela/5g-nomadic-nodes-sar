@@ -55,7 +55,7 @@ UAV_X = 0.0
 UAV_Y = 0.0
 UAV_Z = 40.0
 GROUND_Z = 0.0  # burger base_footprint is its ground-contact point — 0.1 floats it
-TX_REF = -11.0       # calibrated: RSRP_observed + ploss_DL at close range
+TX_REF = -42.0       # recalibrated 2026-07-11: measured SS-RSRP = -42 - DL attenuation
 DL_UL_OFFSET = 5.0   # DL baseline is 5 dB below UL baseline (from bridge config)
 
 ALPHA_MODEL = "sar_ground_alpha"
@@ -109,8 +109,8 @@ MAX_RADIUS = 150
 # ── A2G path-loss model (mirror of channel_bridge.py — keep in sync) ────────
 FREQ_GHZ, MODEL_UE_H, MODEL_REF_H = 3.31968, 0.5, 30.0
 A_C, B_C, ETA_LOS, ETA_NLOS = 9.61, 0.16, 1.0, 20.0
-BRAVO_UL_BASELINE = 25.0
-SAFE_BRAVO_PLOSS_DB = 40.0   # keep worst UE ~5dB under the 45dB RLF cliff
+BRAVO_UL_BASELINE = 13.0
+SAFE_BRAVO_PLOSS_DB = 30.0   # keep worst UE ~5dB under the ~35dB link-death point (recalibrated 2026-07-11, true attenuation)
 
 
 def _a2g_pl(d_horiz, h_uav):

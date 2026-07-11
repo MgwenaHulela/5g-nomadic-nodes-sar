@@ -49,7 +49,7 @@ FREQ_GHZ, UE_H, UAV_DEFAULT_H = 3.31968, 0.5, 30.0
 A_C, B_C, ETA_LOS, ETA_NLOS = 9.61, 0.16, 1.0, 20.0
 UAV_H = 40.0                       # actual UAV altitude in the world
 REF_D = 50.0                       # bridge reference horizontal distance
-BASELINES_UL = {"a": 20.0, "b": 25.0}
+BASELINES_UL = {"a": 8.0, "b": 13.0}
 
 
 def a2g_pl(d_horiz, h_uav):
@@ -66,7 +66,7 @@ PL_REF = a2g_pl(REF_D, UAV_DEFAULT_H)  # bridge computes ref with default h
 def expected_ul_ploss(d, side, h_uav=UAV_H):
     """What the bridge would send (pre-EMA, unclamped-in-range)."""
     delta = a2g_pl(d, h_uav) - PL_REF
-    return max(10.0, min(80.0, BASELINES_UL[side] + delta))
+    return max(0.0, min(45.0, BASELINES_UL[side] + delta))
 
 
 # ── per-robot column map (free/both schema) ──────────────────────────────────

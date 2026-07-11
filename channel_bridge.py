@@ -90,13 +90,19 @@ EMA_ALPHA = 0.3
 MODEL_MAP = {
     # name: (telnet_port, model_index, baseline_ploss_dB)
     # gNB model 0 = rfsimu_channel_enB0 (owner: not set — unused), 1 = ue0 (alpha UL), 2 = ue1 (bravo UL)
-    "gnb_ue0_alpha_ul": (9091, 1, 20.0),
-    "gnb_ue1_bravo_ul": (9091, 2, 25.0),
-    "ue_alpha_dl":      (9092, 0, 15.0),
-    "ue_bravo_dl":      (9093, 0, 20.0),
+    #
+    # Baselines recalibrated 2026-07-11 for TRUE attenuation semantics
+    # (see the sign note at the telnet send): with noise_power_dB = -40,
+    # the link is healthy at 0 dB attenuation and dies at ~35 dB.
+    # Alpha UL 8 + distance delta (0..~27 dB over 10-190 m) spans
+    # healthy -> cliff like the original design; bravo +5 dB weaker.
+    "gnb_ue0_alpha_ul": (9091, 1, 8.0),
+    "gnb_ue1_bravo_ul": (9091, 2, 13.0),
+    "ue_alpha_dl":      (9092, 0, 3.0),
+    "ue_bravo_dl":      (9093, 0, 8.0),
 }
 
-PLOSS_MIN, PLOSS_MAX = 10.0, 80.0
+PLOSS_MIN, PLOSS_MAX = 0.0, 45.0
 MAX_DELTA_DB = 50.0  # allow full A2G range for ML training
 POSITION_MIN_D = 1.0
 POSITION_MAX_JUMP_M = 200.0  # reject pose jumps >200m (Gazebo glitch filter)
@@ -243,7 +249,7 @@ def main():
             time.sleep(args.rate)
 
             if "sar_uav" not in positions:
-                print("waiting for sar_uav pose...")
+                print("waiting for UAV pose...")
                 continue
 
             uav = positions["sar_uav"]
@@ -314,8 +320,14 @@ def main():
                 new_ploss = smoothed[name]
 
                 if abs(new_ploss - last_sent[name]) >= CHANGE_THRESHOLD_DB:
+                    # SIGN NOTE (2026-07-11): OAI's rfsimulator applies this
+                    # field as a linear GAIN — apply_channelmod.c: "path_loss_dB
+                    # should contain the total path gain"; pow(10, +x/20).
+                    # Positive values AMPLIFY (until sample clipping). All
+                    # internal math here keeps ploss as a positive attenuation
+                    # magnitude; the sign is flipped exactly once, at the wire.
                     if not args.dry_run:
-                        links[name].send(f"channelmod modify {idx} ploss {new_ploss:.2f}")
+                        links[name].send(f"channelmod modify {idx} ploss {-new_ploss:.2f}")
                     print(f"  {name} (:{port}:{idx}) -> ploss {new_ploss:.2f}dB "
                           f"(d={data['d_horiz']:.1f}m, v={data['speed']:.1f}m/s)")
                     last_sent[name] = new_ploss
