@@ -302,6 +302,24 @@ def random_step(x, y, step_m, min_r, max_r):
     return x, y
 
 
+def fresh_l1(ue_log):
+    """Newest SS-RSRP/SINR straight from the UE log tail. The windowed
+    parser (metrics_collector) carries values that can be minutes stale;
+    the modem prints these lines near-continuously, so the last one in
+    the final 2MB is current to within ~a second. (Verified 2026-07-11:
+    parser said -48 dBm while the log's fresh line read -64.)"""
+    try:
+        out = subprocess.run(
+            ["bash", "-c", f"tail -c 2000000 {ue_log} | grep -a 'SS-RSRP' | tail -1"],
+            capture_output=True, text=True, timeout=10).stdout
+        m = re.search(r"SS-RSRP:\s*(-?\d+)\s*dBm.*?SS-SINR:\s*(-?[\d.]+)", out)
+        if m:
+            return float(m.group(1)), float(m.group(2))
+    except Exception:
+        pass
+    return None, None
+
+
 def test_one_ue(tun, test_ip, ue_log, seen, prev, ns=NS_ALPHA):
     """Run TCP+UDP+ping for one UE, return (row_values, new_seen, new_prev)."""
     lines, seen = tail_file(ue_log, seen)
@@ -319,9 +337,14 @@ def test_one_ue(tun, test_ip, ue_log, seen, prev, ns=NS_ALPHA):
         prev = tmp
 
     m = prev
+    # fresh L1 read overrides the (potentially stale) windowed parse
+    f_rsrp, f_sinr = fresh_l1(ue_log)
+    ss_rsrp = f_rsrp if f_rsrp is not None else m.get("ss_rsrp", "")
+    ss_sinr = f_sinr if f_sinr is not None else m.get("ss_sinr", "")
+
     vals = [tcp_tp, retrans, udp_tp, jitter_ms, udp_lost,
             rtt_min, rtt_avg, rtt_max, ping_lost,
-            m.get("pbch_rsrp", ""), m.get("ss_rsrp", ""), m.get("ss_sinr", ""),
+            m.get("pbch_rsrp", ""), ss_rsrp, ss_sinr,
             m.get("ul_bits_per_sym", ""), m.get("ul_code_rate", ""),
             m.get("ul_nb_rbs", ""), m.get("ul_nb_sym", ""),
             m.get("dl_harq_ok", ""), m.get("dl_harq_nok", ""),
