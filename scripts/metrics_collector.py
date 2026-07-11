@@ -43,12 +43,21 @@ RE_UL_HARQ = re.compile(
 )
 
 
-def tail_file(path, seen_bytes=0, max_read=50000):
-    """Read new lines from a file since last read (max `max_read` lines)."""
+def tail_file(path, seen_bytes=0, max_read=50000, max_backlog=4_000_000):
+    """Read new lines from a file since last read (max `max_read` lines).
+
+    Never reads more than `max_backlog` bytes behind the file's end: a
+    truncated-while-open log becomes SPARSE (the writer keeps its old
+    offset), and readline() scanning a multi-GB hole of zeros for a
+    newline inflates it all into RAM — this OOM-killed two patrols
+    (14.7GB RSS) on 2026-07-12.
+    """
     try:
         size = os.path.getsize(path)
         if size < seen_bytes:
             seen_bytes = 0
+        if size - seen_bytes > max_backlog:
+            seen_bytes = size - max_backlog
         with open(path, "r", errors="replace") as f:
             f.seek(seen_bytes)
             lines = []
