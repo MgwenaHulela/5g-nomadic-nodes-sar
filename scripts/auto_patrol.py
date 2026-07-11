@@ -799,6 +799,14 @@ if __name__ == "__main__":
                      f"--duration=N --step=N --speed=N "
                      f"--max-radius=N --min-radius=N")
 
+    # Write our OWN pid to a well-known file. Prior runs captured the pid
+    # via `pgrep | head -1`, which grabbed a transient (the setsid/nohup
+    # chain), and when THAT exited a watcher wrongly declared the run over
+    # and launched a second patrol on top of the still-running first —
+    # two patrols fighting over the same robots (2026-07-12). Self-written
+    # pid is unambiguous.
+    Path("/tmp/patrol.pid").write_text(str(os.getpid()))
+
     print(f"Patrol mode={mode}, duration={duration}s")
     if mode in ("random", "both"):
         print(f"  random walk, step={step}m, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
