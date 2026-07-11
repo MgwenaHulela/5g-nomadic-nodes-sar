@@ -97,13 +97,59 @@ IPERF_INTERVAL = 0
 # at range the loss%/jitter columns become the video-QoS degradation signal.
 VIDEO_BITRATE_MBPS = 8
 
-# Roam bounds (radius from origin). Overridable via --min-radius= /
-# --max-radius=. Coverage edges measured 2026-07-10: alpha (baseline
-# 20dB) dies ~135m, bravo (baseline 25dB) ~130m — and RLF is sticky:
-# walking back does NOT quickly restore the link, and the UE may never
-# re-attach without a RAN restart.
+# Roam bounds (radius from the UAV's ground track in free mode, from the
+# origin in the teleport modes). Overridable via --min-radius= /
+# --max-radius=. Coverage edges measured 2026-07-10 at h=40: alpha
+# (baseline 20dB) dies ~135m, bravo (baseline 25dB) ~130m — and RLF is
+# sticky: walking back does NOT quickly restore the link, and the UE may
+# never re-attach without a RAN restart.
 MIN_RADIUS = 2
 MAX_RADIUS = 150
+
+# ── A2G path-loss model (mirror of channel_bridge.py — keep in sync) ────────
+FREQ_GHZ, MODEL_UE_H, MODEL_REF_H = 3.31968, 0.5, 30.0
+A_C, B_C, ETA_LOS, ETA_NLOS = 9.61, 0.16, 1.0, 20.0
+BRAVO_UL_BASELINE = 25.0
+SAFE_BRAVO_PLOSS_DB = 40.0   # keep worst UE ~5dB under the 45dB RLF cliff
+
+
+def _a2g_pl(d_horiz, h_uav):
+    d3 = max(math.hypot(d_horiz, h_uav - MODEL_UE_H), 1.0)
+    fspl = 20 * math.log10(d3) + 20 * math.log10(FREQ_GHZ * 1e9) - 147.55
+    theta = math.degrees(math.atan2(h_uav - MODEL_UE_H, max(d_horiz, 0.1)))
+    p_los = 1.0 / (1.0 + A_C * math.exp(-B_C * (theta - A_C)))
+    return fspl + p_los * ETA_LOS + (1 - p_los) * ETA_NLOS
+
+
+_PL_REF = _a2g_pl(50.0, MODEL_REF_H)  # bridge's fixed reference
+
+
+def safe_radius(h_uav):
+    """Largest horizontal distance keeping bravo (worst link budget)
+    under SAFE_BRAVO_PLOSS_DB at this UAV altitude. The edge moves with
+    altitude: low UAV -> shallow angles -> NLoS excess bites earlier
+    (~80m at h=20), high UAV extends it (~145m at h=60)."""
+    lo, hi = 5.0, 300.0
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        pl = BRAVO_UL_BASELINE + (_a2g_pl(mid, h_uav) - _PL_REF)
+        if pl <= SAFE_BRAVO_PLOSS_DB:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
+# UAV waypoint schedule for --vary-uav: (x, y, z). Dwell per waypoint is
+# duration/len(schedule); the UAV glides between them at UAV_SPEED.
+# Altitude is varied both at the origin (pure-altitude effect) and at
+# offset positions (combined geometry), covering z in {20,40,60}.
+UAV_SCHEDULE = [
+    (0, 0, 40), (0, 0, 20), (0, 0, 60),
+    (40, 30, 40), (-40, 30, 60), (40, -30, 20),
+    (-40, -30, 40), (0, 0, 50), (0, 0, 30),
+]
+UAV_SPEED = 3.0  # m/s glide between waypoints
 
 
 # In-process gz-transport node for set_pose: a `gz service` subprocess
@@ -445,13 +491,19 @@ def random_walk_both(step_m=2, duration_s=180):
     print(f"\nSaved: {PATROL_LOG}")
 
 
-def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
+def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1, vary_uav=False):
     """Both robots DRIVE continuously and independently — DiffDrive
     cmd_vel with pose feedback and heading-error steering, so wheels
     genuinely spin and motion is kinematic, not teleportation. Metrics
     are sampled in parallel; each CSV row is tagged with the robot's
     position at the midpoint of its measurement window (an iperf+ping
     cycle spans ~8-10s of travel).
+
+    With vary_uav, the UAV glides through UAV_SCHEDULE (x, y AND
+    altitude vary; equal dwell per waypoint). The robots' wander annulus
+    is centered on the UAV's live ground track and its outer radius
+    follows safe_radius(altitude), so a descending UAV pulls the robots
+    inward before the shrinking coverage edge can RLF them.
 
     Fine-grained ploss-vs-position at every 0.5s tick is already captured
     by channel_bridge_log.csv; this CSV adds the expensive link metrics.
@@ -460,9 +512,10 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
     if _gz_node is None:
         _gz_node = GzNode()
 
-    # live pose feedback (position + yaw) from the world's pose topic
+    # live pose feedback from the world's pose topic
     fb_lock = threading.Lock()
-    feedback = {}  # model -> (x, y, yaw)
+    feedback = {}       # robot model -> (x, y, yaw)
+    uav_now = [UAV_X, UAV_Y, UAV_Z]   # live UAV pose (mutated by pose_cb)
 
     def pose_cb(msg):
         for p in msg.pose:
@@ -472,6 +525,10 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
                                  1.0 - 2.0 * (q.y * q.y + q.z * q.z))
                 with fb_lock:
                     feedback[p.name] = (p.position.x, p.position.y, yaw)
+            elif p.name == "sar_uav":
+                with fb_lock:
+                    uav_now[0], uav_now[1], uav_now[2] = \
+                        p.position.x, p.position.y, p.position.z
 
     _gz_node.subscribe(Pose_V, f"/world/{WORLD}/pose/info", pose_cb)
 
@@ -485,13 +542,47 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
             fb = feedback.get(model)
         return (fb[0], fb[1]) if fb else default
 
+    def current_uav():
+        with fb_lock:
+            return tuple(uav_now)
+
     # one-time placement at start positions (teleport is fine for setup)
     gz_set_pose(ALPHA_MODEL, 10.0, 0.0, GROUND_Z)
     gz_set_pose(BRAVO_MODEL, 25.0, 0.0, GROUND_Z)
+    if vary_uav:
+        gz_set_pose("sar_uav", *UAV_SCHEDULE[0])
     time.sleep(2)
 
     running = threading.Event()
     running.set()
+
+    def uav_pilot():
+        """Glide the (static) UAV through the schedule: kinematic steps
+        at UAV_SPEED, then dwell. Equal dwell per waypoint over the run."""
+        dwell = max(30.0, duration_s / len(UAV_SCHEDULE))
+        x, y, z = UAV_SCHEDULE[0]
+        i = 0
+        while running.is_set():
+            # dwell (interruptible)
+            end = time.time() + dwell
+            while running.is_set() and time.time() < end:
+                time.sleep(0.5)
+            if not running.is_set():
+                return
+            i = (i + 1) % len(UAV_SCHEDULE)
+            tx, ty, tz = UAV_SCHEDULE[i]
+            dist = math.sqrt((tx-x)**2 + (ty-y)**2 + (tz-z)**2)
+            steps = max(1, int(dist / (UAV_SPEED * 0.1)))
+            for s in range(1, steps + 1):
+                if not running.is_set():
+                    return
+                f = s / steps
+                gz_set_pose("sar_uav", x + (tx-x)*f, y + (ty-y)*f, z + (tz-z)*f)
+                time.sleep(0.1)
+            x, y, z = tx, ty, tz
+            print(f"[uav] repositioned to ({x}, {y}, {z}), "
+                  f"safe radius {safe_radius(z):.0f}m", flush=True)
+
     # wander heading target per robot; the driver steers toward it
     targets = {
         ALPHA_MODEL: random.random() * 2 * math.pi,
@@ -500,20 +591,36 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
 
     def driver():
         while running.is_set():
+            ux, uy, uz = current_uav()
+            # outer bound: user cap AND the model's per-altitude edge
+            r_max = min(MAX_RADIUS, safe_radius(uz))
             for model in (ALPHA_MODEL, BRAVO_MODEL):
                 with fb_lock:
                     fb = feedback.get(model)
                 if fb is None:
                     continue
                 x, y, yaw = fb
+                rx, ry = x - ux, y - uy
+                r = math.hypot(rx, ry)
+                # Emergency guard: a relocating UAV can strand a 1 m/s
+                # robot outside the (moving, altitude-dependent) coverage
+                # edge for minutes — long enough for sticky RLF that only
+                # a RAN restart cures. Snap it back inside the annulus;
+                # rows log true positions, so the data stays honest.
+                if r > r_max + 5:
+                    f = (r_max * 0.6) / r
+                    gz_set_pose(model, ux + rx * f, uy + ry * f, GROUND_Z)
+                    targets[model] = random.random() * 2 * math.pi
+                    print(f"[guard] {model} was {r:.0f}m from UAV "
+                          f"(edge {r_max:.0f}m) — teleported inside", flush=True)
+                    continue
                 # wander: drift the target heading; steer back inside the
-                # allowed annulus near its edges
+                # allowed annulus (centered on the UAV ground track)
                 tgt = targets[model] + random.gauss(0.0, 0.5 * tick_s)
-                r = math.hypot(x, y)
-                if r > MAX_RADIUS - 5:
-                    tgt = math.atan2(-y, -x)
+                if r > r_max - 5:
+                    tgt = math.atan2(-ry, -rx)
                 elif r < MIN_RADIUS + 1:
-                    tgt = math.atan2(y, x)
+                    tgt = math.atan2(ry, rx)
                 targets[model] = tgt
 
                 err = math.atan2(math.sin(tgt - yaw), math.cos(tgt - yaw))
@@ -528,6 +635,8 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
             time.sleep(tick_s)
 
     threading.Thread(target=driver, daemon=True).start()
+    if vary_uav:
+        threading.Thread(target=uav_pilot, daemon=True).start()
 
     t0 = time.time()
     seen_a, seen_b = 0, 0
@@ -562,6 +671,7 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
             while time.time() - t0 < duration_s:
                 a_start = current_pos(ALPHA_MODEL, (10.0, 0.0))
                 b_start = current_pos(BRAVO_MODEL, (25.0, 0.0))
+                u_start = current_uav()
 
                 vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
                 time.sleep(2)  # let the iperf servers + gNB queues idle between robots
@@ -572,19 +682,24 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
 
                 a_end = current_pos(ALPHA_MODEL, a_start)
                 b_end = current_pos(BRAVO_MODEL, b_start)
+                u_end = current_uav()
 
                 # Midpoint of the measurement window = best single-point tag
                 ax = (a_start[0] + a_end[0]) / 2
                 ay = (a_start[1] + a_end[1]) / 2
                 bx = (b_start[0] + b_end[0]) / 2
                 by = (b_start[1] + b_end[1]) / 2
+                # UAV is live too (moves under --vary-uav)
+                ux = (u_start[0] + u_end[0]) / 2
+                uy = (u_start[1] + u_end[1]) / 2
+                uz = (u_start[2] + u_end[2]) / 2
 
                 t_elapsed = time.time() - t0
                 ploss_a, _ = read_bridge_ploss_side("alpha")
                 ploss_b, _ = read_bridge_ploss_side("bravo")
-                d_a = math.hypot(ax - UAV_X, ay - UAV_Y)
-                d_b = math.hypot(bx - UAV_X, by - UAV_Y)
-                dz = abs(UAV_Z - GROUND_Z)
+                d_a = math.hypot(ax - ux, ay - uy)
+                d_b = math.hypot(bx - ux, by - uy)
+                dz = abs(uz - GROUND_Z)
                 a_slant = math.hypot(d_a, dz)
                 b_slant = math.hypot(d_b, dz)
                 a_rsrp_c = round(TX_REF - (ploss_a - DL_UL_OFFSET), 1)
@@ -592,7 +707,7 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1):
 
                 row = [datetime.now(timezone.utc).isoformat(),
                        round(t_elapsed, 1),
-                       UAV_X, UAV_Y, UAV_Z,
+                       round(ux, 1), round(uy, 1), round(uz, 1),
                        round(ax, 1), round(ay, 1), round(d_a, 1), round(a_slant, 1), round(ploss_a, 2)]
                 row += vals_a + [a_rsrp_c]
                 row += [round(bx, 1), round(by, 1), round(d_b, 1), round(b_slant, 1), round(ploss_b, 2)]
@@ -627,6 +742,7 @@ if __name__ == "__main__":
     duration = 180
     step = 15
     speed = 1.0
+    vary_uav = False
 
     for arg in sys.argv[1:]:
         if arg == "--circle":
@@ -637,6 +753,8 @@ if __name__ == "__main__":
             mode = "both"
         elif arg == "--free":
             mode = "free"
+        elif arg == "--vary-uav":
+            vary_uav = True
         elif arg.startswith("--duration="):
             duration = int(arg.split("=")[1])
         elif arg.startswith("--step="):
@@ -654,20 +772,26 @@ if __name__ == "__main__":
             # fail loudly: silently ignoring e.g. "-duration=300" (one
             # dash) ran the 180s default and wasted a session
             sys.exit(f"ERROR: unrecognized argument '{arg}' — valid: "
-                     f"--free --random --both --circle --duration=N "
-                     f"--step=N --speed=N --max-radius=N --min-radius=N")
+                     f"--free --random --both --circle --vary-uav "
+                     f"--duration=N --step=N --speed=N "
+                     f"--max-radius=N --min-radius=N")
 
     print(f"Patrol mode={mode}, duration={duration}s")
     if mode in ("random", "both"):
         print(f"  random walk, step={step}m, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
     elif mode == "free":
         print(f"  free roam, speed={speed}m/s, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
+        if vary_uav:
+            dwell = max(30.0, duration / len(UAV_SCHEDULE))
+            print(f"  UAV schedule: {len(UAV_SCHEDULE)} waypoints, "
+                  f"dwell {dwell/60:.1f}min each, z 20-60m, "
+                  f"safe radius {safe_radius(20):.0f}-{safe_radius(60):.0f}m by altitude")
     print(f"Logging to: {PATROL_LOG}")
     print()
 
     if mode in ("random", "both"):
         random_walk_both(step_m=step, duration_s=duration)
     elif mode == "free":
-        free_roam_both(speed_ms=speed, duration_s=duration)
+        free_roam_both(speed_ms=speed, duration_s=duration, vary_uav=vary_uav)
     else:
         linear_sweep(step=step, duration_s=duration)

@@ -63,9 +63,9 @@ def a2g_pl(d_horiz, h_uav):
 PL_REF = a2g_pl(REF_D, UAV_DEFAULT_H)  # bridge computes ref with default h
 
 
-def expected_ul_ploss(d, side):
+def expected_ul_ploss(d, side, h_uav=UAV_H):
     """What the bridge would send (pre-EMA, unclamped-in-range)."""
-    delta = a2g_pl(d, UAV_H) - PL_REF
+    delta = a2g_pl(d, h_uav) - PL_REF
     return max(10.0, min(80.0, BASELINES_UL[side] + delta))
 
 
@@ -106,6 +106,7 @@ def tidy(df):
     for side, c in COLS.items():
         t = pd.DataFrame({
             "t": df["t_elapsed_s"], "side": side,
+            "uz": df["uav_z_m"],
             "d": df[c["d"]], "pl": df[c["pl"]],
             "tcp": df[c["tcp"]], "udp": df[c["udp"]],
             "jit": df[c["jit"]], "udploss": df[c["udploss"]],
@@ -136,24 +137,41 @@ def binned(t, col, edges):
 
 
 def fig_ploss(t, outdir):
+    multi_alt = t["uz"].round().nunique() > 1
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    dd = np.linspace(2, max(150, t["d"].max() * 1.05), 300)
-    for side in ("a", "b"):
-        ax.plot(dd, [expected_ul_ploss(x, side) for x in dd],
-                color=C_MODEL, lw=1.4, ls="--", zorder=2)
-        s = t[t["side"] == side]
-        ax.scatter(s["d"], s["pl"], s=22, color=COLORS[side], zorder=3,
-                   label=f"{NAMES[side]} (measured UL ploss)")
-        out = s[s["outage"]]
-        ax.scatter(out["d"], out["pl"], marker="x", s=60, color=COLORS[side],
-                   lw=2, zorder=4)
-    ax.plot([], [], color=C_MODEL, lw=1.4, ls="--",
-            label="A2G model (FSPL + LoS/NLoS)")
-    ax.scatter([], [], marker="x", s=60, color="#52514e", lw=2,
-               label="outage sample")
-    ax.set_xlabel("horizontal distance to UAV (m)")
-    ax.set_ylabel("path loss injected into OAI (dB)")
-    ax.set_title("Measured vs modeled A2G path loss")
+    if multi_alt:
+        # varying UAV altitude: no single model curve exists — parity
+        # plot (measured vs per-row-geometry prediction) instead
+        for side in ("a", "b"):
+            s = t[t["side"] == side]
+            pred = s.apply(lambda r: expected_ul_ploss(r["d"], side, r["uz"]),
+                           axis=1)
+            ax.scatter(pred, s["pl"], s=20, color=COLORS[side], zorder=3,
+                       label=f"{NAMES[side]}")
+        lim = [t["pl"].min() - 2, t["pl"].max() + 2]
+        ax.plot(lim, lim, color=C_MODEL, lw=1.4, ls="--",
+                label="perfect agreement")
+        ax.set_xlabel("model-predicted path loss (dB, per-row 3D geometry)")
+        ax.set_ylabel("measured path loss (dB)")
+        ax.set_title("Measured vs modeled A2G path loss — varying UAV altitude")
+    else:
+        dd = np.linspace(2, max(150, t["d"].max() * 1.05), 300)
+        for side in ("a", "b"):
+            ax.plot(dd, [expected_ul_ploss(x, side) for x in dd],
+                    color=C_MODEL, lw=1.4, ls="--", zorder=2)
+            s = t[t["side"] == side]
+            ax.scatter(s["d"], s["pl"], s=22, color=COLORS[side], zorder=3,
+                       label=f"{NAMES[side]} (measured UL ploss)")
+            out = s[s["outage"]]
+            ax.scatter(out["d"], out["pl"], marker="x", s=60,
+                       color=COLORS[side], lw=2, zorder=4)
+        ax.plot([], [], color=C_MODEL, lw=1.4, ls="--",
+                label="A2G model (FSPL + LoS/NLoS)")
+        ax.scatter([], [], marker="x", s=60, color="#52514e", lw=2,
+                   label="outage sample")
+        ax.set_xlabel("horizontal distance to UAV (m)")
+        ax.set_ylabel("path loss injected into OAI (dB)")
+        ax.set_title("Measured vs modeled A2G path loss")
     ax.legend(frameon=False, fontsize=9)
     fig.tight_layout()
     fig.savefig(outdir / "1_ploss_vs_distance.png")
@@ -264,7 +282,7 @@ def report(t, outdir):
         live = ok.dropna(subset=["pl"])
         if len(live):
             resid = live["pl"] - live.apply(
-                lambda r: expected_ul_ploss(r["d"], side), axis=1)
+                lambda r: expected_ul_ploss(r["d"], side, r["uz"]), axis=1)
             say(f"  ploss vs model: mean residual {resid.mean():+.1f} dB, "
                 f"MAE {resid.abs().mean():.1f} dB (EMA lag explains most)")
     say("\n── binned means (TCP Mbps / C2 RTT ms) ──")
