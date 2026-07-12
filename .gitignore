@@ -12,3 +12,6 @@ worlds/PX4-Autopilot
 .~lock.*#
 # local export bundles
 docs/paper/*.zip
+
+# local secrets / environment
+.env

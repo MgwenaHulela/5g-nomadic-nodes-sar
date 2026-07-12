@@ -74,7 +74,7 @@ NS_BRAVO = "robot_bravo"
 ALPHA_UE_IP = "10.45.0.2"
 BRAVO_UE_IP = "10.45.0.3"
 NETNS_MODE = Path("/var/run/netns/robot_alpha").exists()
-SUDO_PASS = "Makhubela1"  # same convention as restart_ran.sh / start_full_stack.sh
+SUDO_PASS = os.environ.get("SAR_SUDO_PASS", "")  # export SAR_SUDO_PASS; never hardcode
 
 
 def ns_run(ns, cmd, timeout):

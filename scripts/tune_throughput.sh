@@ -24,19 +24,19 @@ grep -E 'log_level' "$CONFIG_DIR/nrue_alpha.conf"
 
 echo ""
 echo "== 3. Increase TUN txqueuelen (burst absorption) =="
-echo "Makhubela1" | sudo -S ip link set dev oaitun_ue1 txqueuelen 10000 2>/dev/null
-echo "Makhubela1" | sudo -S ip link set dev oaitun_ue1p2 txqueuelen 10000 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S ip link set dev oaitun_ue1 txqueuelen 10000 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S ip link set dev oaitun_ue1p2 txqueuelen 10000 2>/dev/null
 ip link show oaitun_ue1 | grep -o 'qlen [0-9]*'
 ip link show oaitun_ue1p2 | grep -o 'qlen [0-9]*'
 
 echo ""
 echo "== 4. TCP tuning (BBR, larger buffers) =="
-echo "Makhubela1" | sudo -S sysctl -w net.core.rmem_max=134217728 2>/dev/null
-echo "Makhubela1" | sudo -S sysctl -w net.core.wmem_max=134217728 2>/dev/null
-echo "Makhubela1" | sudo -S sysctl -w net.ipv4.tcp_rmem="4096 87380 134217728" 2>/dev/null
-echo "Makhubela1" | sudo -S sysctl -w net.ipv4.tcp_wmem="4096 65536 134217728" 2>/dev/null
-echo "Makhubela1" | sudo -S sysctl -w net.ipv4.tcp_congestion_control=bbr 2>/dev/null
-echo "Makhubela1" | sudo -S sysctl -w net.core.default_qdisc=fq 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.core.rmem_max=134217728 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.core.wmem_max=134217728 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.ipv4.tcp_rmem="4096 87380 134217728" 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.ipv4.tcp_wmem="4096 65536 134217728" 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.ipv4.tcp_congestion_control=bbr 2>/dev/null
+echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w net.core.default_qdisc=fq 2>/dev/null
 echo "  BBR: $(sysctl net.ipv4.tcp_congestion_control 2>/dev/null | awk '{print $3}')"
 echo "  buffers: rmem=$(sysctl net.ipv4.tcp_rmem 2>/dev/null | awk '{print $4,$5,$6}')"
 

@@ -26,9 +26,9 @@ TEST_IP_B="10.0.0.201"
 UPF_SRC="127.0.0.7"
 
 # ----- Helpers ---------------------------------------------------------------
-sudo_sysctl() { echo "Makhubela1" | sudo -S sysctl -w "$1=$2" 2>/dev/null; }
-sudo_ip()     { echo "Makhubela1" | sudo -S ip "$@" 2>/dev/null; }
-sudo_ipt()    { echo "Makhubela1" | sudo -S iptables "$@" 2>/dev/null; }
+sudo_sysctl() { echo "${SAR_SUDO_PASS:-}" | sudo -S sysctl -w "$1=$2" 2>/dev/null; }
+sudo_ip()     { echo "${SAR_SUDO_PASS:-}" | sudo -S ip "$@" 2>/dev/null; }
+sudo_ipt()    { echo "${SAR_SUDO_PASS:-}" | sudo -S iptables "$@" 2>/dev/null; }
 
 # ----- Setup -----------------------------------------------------------------
 setup() {

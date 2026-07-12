@@ -16,6 +16,15 @@
 #
 set -uo pipefail
 
+# sudo password comes from the environment, never the source tree. Export it
+# once per shell:  export SAR_SUDO_PASS='...'  (or configure passwordless
+# sudo for systemctl/ip/sysctl/iptables/mongosh and leave it unset).
+if [[ -z "${SAR_SUDO_PASS:-}" ]] && ! sudo -n true 2>/dev/null; then
+  echo "FATAL: set SAR_SUDO_PASS (export SAR_SUDO_PASS='<your sudo password>')"
+  echo "       or configure passwordless sudo. It is intentionally not stored in the repo."
+  exit 1
+fi
+
 # Clean stale Python bytecache
 find "$(cd "$(dirname "$0")" && pwd)/scripts" -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
@@ -36,7 +45,7 @@ if pgrep -x mongod >/dev/null 2>&1; then
   ok "MongoDB running"
 else
   echo "  Starting MongoDB..."
-  echo "Makhubela1" | sudo -S systemctl start mongod 2>/dev/null || \
+  echo "${SAR_SUDO_PASS:-}" | sudo -S systemctl start mongod 2>/dev/null || \
     die "Could not start MongoDB"
   sleep 2
   ok "MongoDB started"
@@ -48,14 +57,14 @@ for svc in nrfd amfd smfd upfd ausfd udmd udrd; do
     ok "open5gs-${svc} running"
   else
     echo "  Restarting open5gs-${svc}..."
-    echo "Makhubela1" | sudo -S systemctl restart "open5gs-${svc}" 2>/dev/null || \
+    echo "${SAR_SUDO_PASS:-}" | sudo -S systemctl restart "open5gs-${svc}" 2>/dev/null || \
       die "Could not restart open5gs-${svc}"
   fi
 done
 ok "Open5GS core services running"
 
 # 1c. Subscribers in MongoDB
-SUB_COUNT=$(echo "Makhubela1" | sudo -S mongosh --quiet open5gs --eval 'db.subscribers.countDocuments()' 2>/dev/null)
+SUB_COUNT=$(echo "${SAR_SUDO_PASS:-}" | sudo -S mongosh --quiet open5gs --eval 'db.subscribers.countDocuments()' 2>/dev/null)
 if [[ "${SUB_COUNT:-0}" -lt 2 ]]; then
   die "Expected at least 2 subscribers in Open5GS, found ${SUB_COUNT:-0}"
 fi
@@ -202,7 +211,7 @@ ok "Log janitor running (5GB cap per OAI log)"
 # radio. Must run AFTER the UEs attach and AFTER the root-ns connectivity
 # checks above (which need the TUNs still in the root namespace).
 info "Isolating robot networks (C2/downlink over-air)..."
-NS_OUT=$(echo "Makhubela1" | sudo -S bash "$SELF_DIR/scripts/setup_robot_netns.sh" setup 2>/dev/null)
+NS_OUT=$(echo "${SAR_SUDO_PASS:-}" | sudo -S bash "$SELF_DIR/scripts/setup_robot_netns.sh" setup 2>/dev/null)
 echo "$NS_OUT" | sed 's/^/  /'
 [[ $(echo "$NS_OUT" | grep -c "downlink OK") -eq 2 ]] || \
   die "robot netns setup failed — downlink not verified"
