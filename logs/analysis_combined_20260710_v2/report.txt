@@ -1,0 +1,31 @@
+=== SAR patrol analysis ===
+sources: patrol_20260710_113442.csv, patrol_20260710_131330.csv, patrol_20260710_202806.csv
+span: 90.1 min, 649 samples/robot
+
+── Alpha ──
+  distance range: 4–136 m
+  outage samples: 4/649, suspect (failed measurement, excluded): 77
+  TCP: mean 7.0 Mbps, min 0.0 (at 67 m)
+  UDP video: delivered ≥7.9 Mbps in 93% of live samples
+  C2 RTT: median 38 ms, p95 266 ms
+  farthest fully-healthy sample: 126 m
+  first C2 trouble at: 6 m
+  ploss vs model: mean residual +0.1 dB, MAE 0.4 dB (EMA lag explains most)
+
+── Bravo ──
+  distance range: 5–131 m
+  outage samples: 4/649, suspect (failed measurement, excluded): 65
+  TCP: mean 6.8 Mbps, min 0.0 (at 43 m)
+  UDP video: delivered ≥7.9 Mbps in 97% of live samples
+  C2 RTT: median 38 ms, p95 56 ms
+  farthest fully-healthy sample: 105 m
+  first C2 trouble at: 36 m
+  ploss vs model: mean residual +0.1 dB, MAE 0.3 dB (EMA lag explains most)
+
+── binned means (TCP Mbps / C2 RTT ms) ──
+  [0, 25)       alpha   4.9 / 183.0   bravo   7.8 / 79.0
+  [25, 50)      alpha   7.6 / 132.0   bravo   7.2 / 39.0
+  [50, 75)      alpha   7.5 / 81.0   bravo   6.5 / 42.0
+  [75, 100)     alpha   7.0 / 49.0   bravo   6.7 / 42.0
+  [100, 125)    alpha   4.9 / 116.0   bravo   6.9 / 38.0
+  [125, 200)    alpha   2.7 / 378.0   bravo   1.5 / 98.0

@@ -7,3 +7,8 @@ oaitelnet.history
 *.pyc
 __pycache__/
 worlds/PX4-Autopilot
+
+# LibreOffice/editor lock files
+.~lock.*#
+# local export bundles
+docs/paper/*.zip

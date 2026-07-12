@@ -1,0 +1,5 @@
+Reference: 50.0m horiz -> pl_ref=83.9dB
+  gnb_ue0_alpha_ul (:9091:1) -> ploss 20.00dB (d=8.1m, v=2836759.3m/s)
+  gnb_ue1_bravo_ul (:9091:2) -> ploss 25.00dB (d=25.0m, v=14967908.5m/s)
+  ue_alpha_dl (:9092:0) -> ploss 15.00dB (d=8.1m, v=2836759.3m/s)
+  ue_bravo_dl (:9093:0) -> ploss 20.00dB (d=25.0m, v=14967908.5m/s)
