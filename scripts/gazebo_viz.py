@@ -194,24 +194,28 @@ def update_viz(ux, uy, uz,
     _publish_marker(m4)
 
     def _c2_str(rtt, st):
-        return {"ok": f"C2 {rtt:.0f}ms", "lost": "C2 LOST", "na": "C2 n/a"}[st]
+        return {"ok": f"{rtt:.0f}ms", "lost": "LOST", "na": "n/a"}[st]
 
-    # Metrics string for the GUI TopicViewer panel
-    def _panel(side, x, y, z, d, ploss, c2_rtt, c2_st):
-        rsrp = round(TX_REF - (ploss - DL_UL_OFFSET), 1) if ploss > 0 else 0.0
-        return (
-            f"── {side} ──\n"
-            f"  Position: ({x:.1f}, {y:.1f})m   d_horiz: {d:.1f}m\n"
-            f"  Ploss(UL): {ploss:.1f}dB   RSRP(calc): {rsrp:.1f}dBm\n"
-            f"  C2 downlink: {_c2_str(c2_rtt, c2_st)}\n"
-        )
+    # Tabular link-monitor panel: measured RSRP/SINR (UE log) + live TCP
+    # throughput (monitor thread), path loss (bridge), and C2 round trip.
+    def _row(label, key, d, ploss, c2_rtt, c2_st):
+        rsrp, sinr = _l1_state[key]
+        tp = _tp_state[key]
+        cell = lambda v, f, u: (f % v + u) if v is not None else "--" + u
+        d_s = ("%.1f" % d + "m") if d > 0 else "--m"
+        pl_s = ("%.1f" % ploss + "dB") if ploss > 0 else "--dB"
+        return (f"{label:<6} d:{d_s:<7} tp:{cell(tp,'%.1f','Mbps'):<8} "
+                f"ploss:{pl_s:<7} rsrp:{cell(rsrp,'%.0f','dBm'):<7} "
+                f"sinr:{cell(sinr,'%.0f','dB'):<6} c2:{_c2_str(c2_rtt, c2_st)}")
 
+    rule = "─" * 66
     text = (
-        f"=== SAR A2G Link Monitor ===\n"
-        f"Time: {t_elapsed:.1f}s   UAV: ({ux:.1f}, {uy:.1f}, {uz:.1f})m\n\n"
-        + _panel("ALPHA", ax, ay, az, a_d, a_ploss, a_c2_rtt, a_c2_st) + "\n"
-        + _panel("BRAVO", bx, by, bz, b_d, b_ploss, b_c2_rtt, b_c2_st)
-        + "\nBeams: green=healthy amber=degraded red=C2 lost\n"
+        f"UAV      x:{ux:.1f}  y:{uy:.1f}  z:{uz:.1f}\n"
+        f"{rule}\n"
+        f"{_row('ALPHA','alpha',a_d,a_ploss,a_c2_rtt,a_c2_st)}\n"
+        f"{_row('BRAVO','bravo',b_d,b_ploss,b_c2_rtt,b_c2_st)}\n"
+        f"{rule}\n"
+        f"t: {t_elapsed:.1f}s\n"
     )
     publish_metrics(text)
 
@@ -289,6 +293,83 @@ DL_UL_OFFSET = 5.0
 UAV_DEFAULT_H = 40.0
 UE_HEIGHT = 0.1
 
+# ── L1 (measured RSRP/SINR) + live throughput ────────────────────────────────
+UE_LOGS   = {"alpha": "/tmp/ue_alpha.log", "bravo": "/tmp/ue_bravo.log"}
+UE_TUN    = {"alpha": "oaitun_ue1",        "bravo": "oaitun_ue1p2"}
+UE_TESTIP = {"alpha": "10.0.0.200",        "bravo": "10.0.0.201"}
+UE_NS     = {"alpha": "robot_alpha",       "bravo": "robot_bravo"}
+SUDO_PASS = os.environ.get("SAR_SUDO_PASS", "")
+
+_l1_state = {"alpha": (None, None), "bravo": (None, None)}  # (rsrp_dBm, sinr_dB)
+_tp_state = {"alpha": None, "bravo": None}                  # TCP Mbps
+
+
+def _read_l1(ue_log):
+    """Freshest SS-RSRP / SS-SINR straight from the UE log tail."""
+    try:
+        out = subprocess.run(
+            ["bash", "-c", f"tail -c 2000000 {ue_log} | grep -a 'SS-RSRP' | tail -1"],
+            capture_output=True, text=True, timeout=6).stdout
+        m = re.search(r"SS-RSRP:\s*(-?\d+)\s*dBm.*?SS-SINR:\s*(-?[\d.]+)", out)
+        if m:
+            return float(m.group(1)), float(m.group(2))
+    except Exception:
+        pass
+    return None, None
+
+
+def _tp_from_latest_csv():
+    """When a patrol owns the iperf servers, read the last CSV row's TCP
+    goodput rather than measuring (avoids a server-busy collision)."""
+    import glob
+    try:
+        csvs = sorted(glob.glob(str(Path.home() / "sar_sim" / "logs" / "patrol_*.csv")))
+        if not csvs:
+            return None, None
+        hdr = subprocess.run(["head", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
+        vals = subprocess.run(["tail", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
+        def col(name):
+            try:
+                v = vals[hdr.index(name)]
+                return float(v) if v not in ("", None) else None
+            except (ValueError, IndexError):
+                return None
+        return col("a_tcp_tp_mbps"), col("b_tcp_tp_mbps")
+    except Exception:
+        return None, None
+
+
+def _measure_tp(side):
+    """Quick 1 s TCP goodput inside the robot's namespace."""
+    import json
+    try:
+        r = subprocess.run(
+            ["sudo", "-S", "-p", "", "ip", "netns", "exec", UE_NS[side],
+             "iperf3", "-c", UE_TESTIP[side], "--bind-dev", UE_TUN[side], "-t", "1", "-J"],
+            capture_output=True, text=True, timeout=12, input=SUDO_PASS + "\n")
+        return round(json.loads(r.stdout)["end"]["sum_received"]["bits_per_second"] / 1e6, 1)
+    except Exception:
+        return None
+
+
+def _monitor_loop():
+    """Refresh RSRP/SINR (cheap, every cycle) and TCP throughput (measured
+    when idle, read from the patrol CSV when a patrol is running)."""
+    while True:
+        for side in UE_IPS:
+            _l1_state[side] = _read_l1(UE_LOGS[side])
+        if not _netns_active():
+            for side in UE_IPS:
+                _tp_state[side] = None
+        elif subprocess.run(["pgrep", "-f", "auto_patrol.py"], capture_output=True).returncode == 0:
+            _tp_state["alpha"], _tp_state["bravo"] = _tp_from_latest_csv()
+        else:
+            for side in UE_IPS:
+                tp = _measure_tp(side)
+                if tp is not None:
+                    _tp_state[side] = tp
+        time.sleep(6)
+
 
 def _find_latest_ploss(side):
     if not _bridge_log.exists():
@@ -319,7 +400,9 @@ def main():
     print(f"[gazebo_viz] subscribed to {_POSE_TOPIC}")
 
     threading.Thread(target=_c2_probe_loop, daemon=True).start()
-    print(f"[gazebo_viz] C2 probing {'ACTIVE' if _netns_active() else 'n/a (netns not set up)'}")
+    threading.Thread(target=_monitor_loop, daemon=True).start()
+    print(f"[gazebo_viz] C2 probing {'ACTIVE' if _netns_active() else 'n/a (netns not set up)'}; "
+          f"RSRP/SINR+throughput monitor started")
 
     clear_all()
     t0 = time.time()
