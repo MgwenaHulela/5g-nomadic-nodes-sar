@@ -208,7 +208,10 @@ def update_viz(ux, uy, uz,
                 f"ploss:{pl_s:<7} rsrp:{cell(rsrp,'%.0f','dBm'):<7} "
                 f"sinr:{cell(sinr,'%.0f','dB'):<6} c2:{_c2_str(c2_rtt, c2_st)}")
 
-    rule = "─" * 66
+    # ASCII only: the gz StringMsg viewer escapes non-ASCII bytes, so a
+    # Unicode box-drawing rule ("─") renders as a wall of \342\224\200
+    # escapes that buries the data rows. Plain dashes stay readable.
+    rule = "-" * 60
     text = (
         f"UAV      x:{ux:.1f}  y:{uy:.1f}  z:{uz:.1f}\n"
         f"{rule}\n"
