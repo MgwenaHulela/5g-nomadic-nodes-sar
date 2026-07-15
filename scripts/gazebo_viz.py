@@ -10,6 +10,7 @@ Usage:
   # or alongside start_full_stack.sh
 """
 
+import json
 import os
 import re
 import subprocess
@@ -35,17 +36,22 @@ ID_ORB_BRAVO = 201
 # ── Lazy-initialised globals ──────────────────────────────────────────────────
 _node = None
 _marker_pub = None
-_string_pub = None
+_json_pub = None       # /sar/metrics       — JSON, read by SarMetricsTable plugin
+_text_pub = None       # /sar/metrics_text  — plain text fallback (TopicEcho / CLI)
 _lock = threading.Lock()
 
 
 def _ensure_node():
-    global _node, _string_pub
+    global _node, _json_pub, _text_pub
     with _lock:
         if _node is not None:
             return
         _node = Node()
-        _string_pub = _node.advertise("/sar/metrics", stringmsg_pb2.StringMsg())
+        # /sar/metrics carries JSON for the SarMetricsTable GUI plugin;
+        # /sar/metrics_text keeps the old human-readable table for TopicEcho
+        # and `gz topic -e -t /sar/metrics_text` debugging.
+        _json_pub = _node.advertise("/sar/metrics", stringmsg_pb2.StringMsg())
+        _text_pub = _node.advertise("/sar/metrics_text", stringmsg_pb2.StringMsg())
         # Start a keep-alive spin loop so the node processes messages
         def _spin():
             while True:
@@ -72,13 +78,16 @@ def _publish_marker(m):
             pass
 
 
-def _publish_string(text):
+def _publish_string(which, text):
+    # `which` is "json" or "text" — resolved to the global publisher AFTER
+    # _ensure_node(), since the globals are None until the node is built.
     _ensure_node()
     msg = stringmsg_pb2.StringMsg()
     msg.data = text
+    pub = _json_pub if which == "json" else _text_pub
     with _lock:
         try:
-            _string_pub.publish(msg)
+            pub.publish(msg)
         except Exception:
             pass
 
@@ -151,7 +160,13 @@ def update_beam(id_, x1, y1, z1, x2, y2, z2, color):
 
 
 def publish_metrics(text):
-    _publish_string(text)
+    """Plain-text metrics table on /sar/metrics_text (fallback panel)."""
+    _publish_string("text", text)
+
+
+def publish_metrics_json(payload):
+    """JSON metrics on /sar/metrics, consumed by the SarMetricsTable plugin."""
+    _publish_string("json", json.dumps(payload, separators=(",", ":")))
 
 
 def update_viz(ux, uy, uz,
@@ -196,27 +211,54 @@ def update_viz(ux, uy, uz,
     def _c2_str(rtt, st):
         return {"ok": f"{rtt:.0f}ms", "lost": "LOST", "na": "n/a"}[st]
 
-    # Tabular link-monitor panel: measured RSRP/SINR (UE log) + live TCP
-    # throughput (monitor thread), path loss (bridge), and C2 round trip.
-    def _row(label, key, d, ploss, c2_rtt, c2_st):
+    # One metrics dict per node — feeds both the JSON payload (the
+    # SarMetricsTable GUI plugin) and the plain-text fallback below.
+    # Missing readings use the sentinels the plugin's QML checks against:
+    # -1 for never-negative fields (dist/tput/ploss/RTT), -9999 for RSRP/
+    # SINR which are legitimately negative dBm/dB.
+    def _node(label, key, d, ploss, c2_rtt, c2_st):
         rsrp, sinr = _l1_state[key]
         tp = _tp_state[key]
-        cell = lambda v, f, u: (f % v + u) if v is not None else "--" + u
-        d_s = ("%.1f" % d + "m") if d > 0 else "--m"
-        pl_s = ("%.1f" % ploss + "dB") if ploss > 0 else "--dB"
-        return (f"{label:<6} d:{d_s:<7} tp:{cell(tp,'%.1f','Mbps'):<8} "
-                f"ploss:{pl_s:<7} rsrp:{cell(rsrp,'%.0f','dBm'):<7} "
-                f"sinr:{cell(sinr,'%.0f','dB'):<6} c2:{_c2_str(c2_rtt, c2_st)}")
+        return {
+            "label": label,
+            "d": d if d > 0 else -1.0,
+            "tp_mbps": tp if tp is not None else -1.0,
+            "ploss_db": ploss if ploss > 0 else -1.0,
+            "rsrp_dbm": rsrp if rsrp is not None else -9999.0,
+            "sinr_db": sinr if sinr is not None else -9999.0,
+            "c2_rtt_ms": c2_rtt if c2_st == "ok" else -1.0,
+            "c2_status": c2_st,
+        }
 
-    # ASCII only: the gz StringMsg viewer escapes non-ASCII bytes, so a
-    # Unicode box-drawing rule ("─") renders as a wall of \342\224\200
-    # escapes that buries the data rows. Plain dashes stay readable.
+    nodes = [
+        _node("ALPHA", "alpha", a_d, a_ploss, a_c2_rtt, a_c2_st),
+        _node("BRAVO", "bravo", b_d, b_ploss, b_c2_rtt, b_c2_st),
+    ]
+    publish_metrics_json({
+        "t": t_elapsed,
+        "uav": {"x": ux, "y": uy, "z": uz},
+        "nodes": nodes,
+    })
+
+    # Plain-text fallback on /sar/metrics_text. ASCII only: the gz StringMsg
+    # viewer escapes non-ASCII bytes, so a Unicode box rule ("─") becomes a
+    # wall of \342\224\200 escapes — plain dashes stay readable.
+    def _row(nd):
+        d_s = ("%.1f" % nd["d"] + "m") if nd["d"] > 0 else "--m"
+        pl_s = ("%.1f" % nd["ploss_db"] + "dB") if nd["ploss_db"] > 0 else "--dB"
+        tp_s = ("%.1f" % nd["tp_mbps"] + "Mbps") if nd["tp_mbps"] >= 0 else "--Mbps"
+        rsrp_s = ("%.0f" % nd["rsrp_dbm"] + "dBm") if nd["rsrp_dbm"] > -9000 else "--dBm"
+        sinr_s = ("%.0f" % nd["sinr_db"] + "dB") if nd["sinr_db"] > -9000 else "--dB"
+        return (f"{nd['label']:<6} d:{d_s:<7} tp:{tp_s:<8} "
+                f"ploss:{pl_s:<7} rsrp:{rsrp_s:<7} sinr:{sinr_s:<6} "
+                f"c2:{_c2_str(nd['c2_rtt_ms'], nd['c2_status'])}")
+
     rule = "-" * 60
     text = (
         f"UAV      x:{ux:.1f}  y:{uy:.1f}  z:{uz:.1f}\n"
         f"{rule}\n"
-        f"{_row('ALPHA','alpha',a_d,a_ploss,a_c2_rtt,a_c2_st)}\n"
-        f"{_row('BRAVO','bravo',b_d,b_ploss,b_c2_rtt,b_c2_st)}\n"
+        f"{_row(nodes[0])}\n"
+        f"{_row(nodes[1])}\n"
         f"{rule}\n"
         f"t: {t_elapsed:.1f}s\n"
     )
