@@ -778,12 +778,252 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1, vary_uav=False):
     print(f"\nSaved: {PATROL_LOG}")
 
 
+# ── SAR coverage search ──────────────────────────────────────────────────────
+def _coverage_lawnmower(x_from, x_to, reach, lane, ystep=8):
+    """Boustrophedon (lawnmower) waypoints covering the vertical strip
+    between x_from and x_to within a `reach` radius, skipping building
+    interiors (with a clearance margin). Adjacent columns run in opposite
+    y-directions so the robot sweeps back and forth."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "worlds"))
+        from urban_buildings import BUILDINGS
+    except Exception:
+        BUILDINGS = []
+
+    def in_building(x, y):
+        return any(abs(x - cx) < w / 2 + 2.5 and abs(y - cy) < d / 2 + 2.5
+                   for cx, cy, w, d, h in BUILDINGS)
+
+    step = int(lane) if x_to >= x_from else -int(lane)
+    reach = int(reach)
+    xs = list(range(int(x_from), int(x_to), step))
+    wps = []
+    for i, x in enumerate(xs):
+        ys = list(range(-reach, reach + 1, int(ystep)))
+        if i % 2:
+            ys.reverse()
+        for y in ys:
+            if x * x + y * y <= reach * reach and not in_building(x, y):
+                wps.append((float(x), float(y)))
+    return wps
+
+
+def search_both(speed_ms=1.0, duration_s=600, tick_s=0.1, reach=110, lane=18):
+    """SAR area-coverage search: each robot sweeps a lawnmower pattern over
+    half the search area (Alpha the +x half, Bravo the -x half), driving
+    via DiffDrive and steering toward successive coverage waypoints while
+    avoiding building interiors. Robots stream their sensor feed (the fixed
+    UDP uplink) throughout, so the CSV/console capture link quality and
+    delivered-data volume across the covered ground — the SAR mission of
+    'search the area while streaming data back over the nomadic 5G link'.
+    """
+    global _gz_node
+    if _gz_node is None:
+        _gz_node = GzNode()
+
+    wps = {
+        ALPHA_MODEL: _coverage_lawnmower( 8,  reach, reach, lane),
+        BRAVO_MODEL: _coverage_lawnmower(-8, -reach, reach, lane),
+    }
+    total = {m: max(1, len(w)) for m, w in wps.items()}
+    print(f"  coverage plan: Alpha {total[ALPHA_MODEL]} cells (+x half), "
+          f"Bravo {total[BRAVO_MODEL]} cells (-x half), lane {lane} m")
+
+    fb_lock = threading.Lock()
+    feedback = {}
+    uav_now = [UAV_X, UAV_Y, UAV_Z]
+
+    def pose_cb(msg):
+        for p in msg.pose:
+            if p.name in (ALPHA_MODEL, BRAVO_MODEL):
+                q = p.orientation
+                yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+                with fb_lock:
+                    feedback[p.name] = (p.position.x, p.position.y, yaw)
+            elif p.name == "sar_uav":
+                with fb_lock:
+                    uav_now[0], uav_now[1], uav_now[2] = \
+                        p.position.x, p.position.y, p.position.z
+
+    _gz_node.subscribe(Pose_V, f"/world/{WORLD}/pose/info", pose_cb)
+    pubs = {
+        ALPHA_MODEL: _gz_node.advertise(f"/model/{ALPHA_MODEL}/cmd_vel", Twist()),
+        BRAVO_MODEL: _gz_node.advertise(f"/model/{BRAVO_MODEL}/cmd_vel", Twist()),
+    }
+
+    def current_pos(model, default):
+        with fb_lock:
+            fb = feedback.get(model)
+        return (fb[0], fb[1]) if fb else default
+
+    def current_uav():
+        with fb_lock:
+            return tuple(uav_now)
+
+    gz_set_pose(ALPHA_MODEL, 8.0, -reach, GROUND_Z)
+    gz_set_pose(BRAVO_MODEL, -8.0, -reach, GROUND_Z)
+    time.sleep(2)
+
+    running = threading.Event(); running.set()
+    idx = {ALPHA_MODEL: 0, BRAVO_MODEL: 0}
+    visited = {ALPHA_MODEL: 0, BRAVO_MODEL: 0}
+    stuck = {ALPHA_MODEL: [time.time(), None], BRAVO_MODEL: [time.time(), None]}
+    TOL, STUCK_S = 3.0, 9.0
+
+    def driver():
+        while running.is_set():
+            for model in (ALPHA_MODEL, BRAVO_MODEL):
+                wl = wps[model]
+                i = idx[model]
+                if i >= len(wl):                      # sweep complete → hold
+                    try: pubs[model].publish(Twist())
+                    except Exception: pass
+                    continue
+                with fb_lock:
+                    fb = feedback.get(model)
+                if fb is None:
+                    continue
+                x, y, yaw = fb
+                tx, ty = wl[i]
+                dx, dy = tx - x, ty - y
+                dist = math.hypot(dx, dy)
+                now = time.time()
+                if dist < TOL:                        # reached this cell
+                    idx[model] = i + 1
+                    visited[model] += 1
+                    stuck[model] = [now, None]
+                    continue
+                # obstacle/stuck: no progress toward the cell for STUCK_S → skip
+                if stuck[model][1] is None or dist < stuck[model][1] - 0.3:
+                    stuck[model] = [now, dist]
+                elif now - stuck[model][0] > STUCK_S:
+                    idx[model] = i + 1
+                    stuck[model] = [now, None]
+                    continue
+                desired = math.atan2(dy, dx)
+                err = math.atan2(math.sin(desired - yaw), math.cos(desired - yaw))
+                tw = Twist()
+                tw.angular.z = max(-1.5, min(1.5, 2.0 * err))
+                tw.linear.x = speed_ms * max(0.1, math.cos(err))
+                try: pubs[model].publish(tw)
+                except Exception: pass
+            time.sleep(tick_s)
+
+    threading.Thread(target=driver, daemon=True).start()
+
+    t0 = time.time()
+    seen_a, seen_b = 0, 0
+    prev_a, prev_b = {}, {}
+    streamed_mb = {"a": 0.0, "b": 0.0}   # delivered UDP sensor data (MB)
+
+    with open(PATROL_LOG, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow([
+            "timestamp", "t_elapsed_s",
+            "uav_x_m", "uav_y_m", "uav_z_m",
+            "ax_m", "ay_m", "a_d_horiz_m", "a_d_slant_m", "a_ploss_dB",
+            "a_tcp_tp_mbps", "a_tcp_retransmits",
+            "a_udp_tp_mbps", "a_udp_jitter_ms", "a_udp_lost_pct",
+            "a_rtt_min_ms", "a_rtt_avg_ms", "a_rtt_max_ms", "a_ping_loss_pct",
+            "a_pbch_rsrp", "a_ss_rsrp_dBm", "a_ss_sinr_dB",
+            "a_ul_bits_per_sym", "a_ul_code_rate",
+            "a_ul_nb_rbs", "a_ul_nb_sym",
+            "a_dl_harq_ok", "a_dl_harq_nok", "a_dl_bler", "a_rsrp_computed_dBm",
+            "bx_m", "by_m", "b_d_horiz_m", "b_d_slant_m", "b_ploss_dB",
+            "b_tcp_tp_mbps", "b_tcp_retransmits",
+            "b_udp_tp_mbps", "b_udp_jitter_ms", "b_udp_lost_pct",
+            "b_rtt_min_ms", "b_rtt_avg_ms", "b_rtt_max_ms", "b_ping_loss_pct",
+            "b_pbch_rsrp", "b_ss_rsrp_dBm", "b_ss_sinr_dB",
+            "b_ul_bits_per_sym", "b_ul_code_rate",
+            "b_ul_nb_rbs", "b_ul_nb_sym",
+            "b_dl_harq_ok", "b_dl_harq_nok", "b_dl_bler", "b_rsrp_computed_dBm",
+            "a_c2_rtt_ms", "a_c2_loss_pct", "b_c2_rtt_ms", "b_c2_loss_pct",
+            "a_coverage_pct", "b_coverage_pct", "a_streamed_mb", "b_streamed_mb",
+        ])
+        try:
+            while time.time() - t0 < duration_s:
+                # mission complete early if both robots finished their sweep
+                if idx[ALPHA_MODEL] >= len(wps[ALPHA_MODEL]) and \
+                   idx[BRAVO_MODEL] >= len(wps[BRAVO_MODEL]):
+                    print("  coverage complete — both sweeps finished")
+                    break
+
+                a_start = current_pos(ALPHA_MODEL, (8.0, 0.0))
+                b_start = current_pos(BRAVO_MODEL, (-8.0, 0.0))
+                u_start = current_uav()
+                dt0 = time.time()
+
+                vals_a, seen_a, prev_a = test_one_ue(ALPHA_TUN, ALPHA_IP, ALPHA_UE_LOG, seen_a, prev_a, NS_ALPHA)
+                time.sleep(2)
+                vals_b, seen_b, prev_b = test_one_ue(BRAVO_TUN, BRAVO_IP, BRAVO_UE_LOG, seen_b, prev_b, NS_BRAVO)
+                time.sleep(2)
+                a_c2_rtt, a_c2_loss = run_c2(ALPHA_UE_IP)
+                b_c2_rtt, b_c2_loss = run_c2(BRAVO_UE_IP)
+
+                a_end = current_pos(ALPHA_MODEL, a_start)
+                b_end = current_pos(BRAVO_MODEL, b_start)
+                u_end = current_uav()
+                dt = max(0.1, time.time() - dt0)
+
+                ax = (a_start[0] + a_end[0]) / 2; ay = (a_start[1] + a_end[1]) / 2
+                bx = (b_start[0] + b_end[0]) / 2; by = (b_start[1] + b_end[1]) / 2
+                ux = (u_start[0] + u_end[0]) / 2; uy = (u_start[1] + u_end[1]) / 2
+                uz = (u_start[2] + u_end[2]) / 2
+
+                # streamed sensor data = delivered UDP rate integrated over dt
+                streamed_mb["a"] += vals_a[2] * dt / 8.0
+                streamed_mb["b"] += vals_b[2] * dt / 8.0
+                cov_a = 100.0 * visited[ALPHA_MODEL] / total[ALPHA_MODEL]
+                cov_b = 100.0 * visited[BRAVO_MODEL] / total[BRAVO_MODEL]
+
+                t_elapsed = time.time() - t0
+                ploss_a, _ = read_bridge_ploss_side("alpha")
+                ploss_b, _ = read_bridge_ploss_side("bravo")
+                d_a = math.hypot(ax - ux, ay - uy)
+                d_b = math.hypot(bx - ux, by - uy)
+                dz = abs(uz - GROUND_Z)
+                a_slant = math.hypot(d_a, dz); b_slant = math.hypot(d_b, dz)
+                a_rsrp_c = round(TX_REF - (ploss_a - DL_UL_OFFSET), 1)
+                b_rsrp_c = round(TX_REF - (ploss_b - DL_UL_OFFSET), 1)
+
+                row = [datetime.now(timezone.utc).isoformat(), round(t_elapsed, 1),
+                       round(ux, 1), round(uy, 1), round(uz, 1),
+                       round(ax, 1), round(ay, 1), round(d_a, 1), round(a_slant, 1), round(ploss_a, 2)]
+                row += vals_a + [a_rsrp_c]
+                row += [round(bx, 1), round(by, 1), round(d_b, 1), round(b_slant, 1), round(ploss_b, 2)]
+                row += vals_b + [b_rsrp_c]
+                row += [a_c2_rtt, a_c2_loss, b_c2_rtt, b_c2_loss]
+                row += [round(cov_a, 1), round(cov_b, 1),
+                        round(streamed_mb["a"], 1), round(streamed_mb["b"], 1)]
+                w.writerow(row); f.flush()
+
+                print(f"  α cov {cov_a:3.0f}% ({ax:.0f},{ay:.0f}) ploss={ploss_a:.1f}dB "
+                      f"stream={vals_a[2]:.1f}M loss={vals_a[4]:.0f}% "
+                      f"sent={streamed_mb['a']:.0f}MB C2={a_c2_rtt:.0f}ms")
+                print(f"  β cov {cov_b:3.0f}% ({bx:.0f},{by:.0f}) ploss={ploss_b:.1f}dB "
+                      f"stream={vals_b[2]:.1f}M loss={vals_b[4]:.0f}% "
+                      f"sent={streamed_mb['b']:.0f}MB C2={b_c2_rtt:.0f}ms")
+        finally:
+            running.clear()
+            time.sleep(tick_s * 2)
+            for model in (ALPHA_MODEL, BRAVO_MODEL):
+                try: pubs[model].publish(Twist())
+                except Exception: pass
+
+    print(f"\nSearch done. Coverage: Alpha {100.0*visited[ALPHA_MODEL]/total[ALPHA_MODEL]:.0f}%, "
+          f"Bravo {100.0*visited[BRAVO_MODEL]/total[BRAVO_MODEL]:.0f}%. "
+          f"Streamed: {streamed_mb['a']:.0f}+{streamed_mb['b']:.0f} MB. Saved: {PATROL_LOG}")
+
+
 if __name__ == "__main__":
     mode = "linear"
     duration = 180
     step = 15
     speed = 1.0
     vary_uav = False
+    reach = 110.0
+    lane = 18.0
 
     for arg in sys.argv[1:]:
         if arg == "--circle":
@@ -794,6 +1034,8 @@ if __name__ == "__main__":
             mode = "both"
         elif arg == "--free":
             mode = "free"
+        elif arg == "--search":
+            mode = "search"
         elif arg == "--vary-uav":
             vary_uav = True
         elif arg.startswith("--duration="):
@@ -802,6 +1044,10 @@ if __name__ == "__main__":
             step = float(arg.split("=")[1])
         elif arg.startswith("--speed="):
             speed = float(arg.split("=")[1])
+        elif arg.startswith("--reach="):
+            reach = float(arg.split("=")[1])
+        elif arg.startswith("--lane="):
+            lane = float(arg.split("=")[1])
         elif arg.startswith("--max-radius="):
             # <=110m: survivable long runs (bravo stays under ~39dB).
             # 150m: deliberately crosses the coverage edge — labeled
@@ -813,8 +1059,8 @@ if __name__ == "__main__":
             # fail loudly: silently ignoring e.g. "-duration=300" (one
             # dash) ran the 180s default and wasted a session
             sys.exit(f"ERROR: unrecognized argument '{arg}' — valid: "
-                     f"--free --random --both --circle --vary-uav "
-                     f"--duration=N --step=N --speed=N "
+                     f"--free --search --random --both --circle --vary-uav "
+                     f"--duration=N --step=N --speed=N --reach=N --lane=N "
                      f"--max-radius=N --min-radius=N")
 
     # Write our OWN pid to a well-known file. Prior runs captured the pid
@@ -825,7 +1071,7 @@ if __name__ == "__main__":
     # pid is unambiguous.
     Path("/tmp/patrol.pid").write_text(str(os.getpid()))
 
-    print(f"Patrol mode={mode}, duration={duration}s")
+    print(f"Patrol mode={mode}, duration={duration}s, world={WORLD}")
     if mode in ("random", "both"):
         print(f"  random walk, step={step}m, bounds=[{MIN_RADIUS},{MAX_RADIUS}]m")
     elif mode == "free":
@@ -835,6 +1081,9 @@ if __name__ == "__main__":
             print(f"  UAV schedule: {len(UAV_SCHEDULE)} waypoints, "
                   f"dwell {dwell/60:.1f}min each, z 20-60m, "
                   f"safe radius {safe_radius(20):.0f}-{safe_radius(60):.0f}m by altitude")
+    elif mode == "search":
+        print(f"  SAR coverage search, speed={speed}m/s, reach={reach}m, lane={lane}m, "
+              f"streaming sensor feed throughout")
     print(f"Logging to: {PATROL_LOG}")
     print()
 
@@ -842,5 +1091,7 @@ if __name__ == "__main__":
         random_walk_both(step_m=step, duration_s=duration)
     elif mode == "free":
         free_roam_both(speed_ms=speed, duration_s=duration, vary_uav=vary_uav)
+    elif mode == "search":
+        search_both(speed_ms=speed, duration_s=duration, reach=reach, lane=lane)
     else:
         linear_sweep(step=step, duration_s=duration)
