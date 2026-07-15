@@ -44,12 +44,25 @@ ETA_LOS = 1.0
 ETA_NLOS = 20.0
 
 
-def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ):
+def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ,
+                  los_blocked=None):
+    """A2G path loss = FSPL + LoS/NLoS excess.
+
+    los_blocked=None (open-field): LoS *probability* from the elevation
+    angle (Al-Hourani sigmoid), the graded model used for the LoS study.
+    los_blocked=True/False (urban): LoS is *deterministic* — set by a
+    geometric check of whether a building blocks the UAV->UE ray. This is
+    what makes the urban world's obstacles genuinely shadow the link, so
+    that climbing the UAV to clear a rooftop restores LoS.
+    """
     d_3d = math.sqrt(d_horiz ** 2 + (h_uav - h_ue) ** 2)
     d_3d = max(d_3d, POSITION_MIN_D)
     fspl = 20 * math.log10(d_3d) + 20 * math.log10(freq_ghz * 1e9) - 147.55
     theta = math.degrees(math.atan2(h_uav - h_ue, max(d_horiz, 0.1)))
-    los_p = 1.0 / (1.0 + A_COEFF * math.exp(-B_COEFF * (theta - A_COEFF)))
+    if los_blocked is None:
+        los_p = 1.0 / (1.0 + A_COEFF * math.exp(-B_COEFF * (theta - A_COEFF)))
+    else:
+        los_p = 0.0 if los_blocked else 1.0
     pl = fspl + los_p * ETA_LOS + (1.0 - los_p) * ETA_NLOS
     return pl, los_p, d_3d, theta
 
@@ -175,7 +188,17 @@ class TelnetLink:
 
 
 # ── Pose data ────────────────────────────────────────────────────────────────
-POSE_TOPIC = "/world/sar_open_field/pose/info"
+WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
+POSE_TOPIC = f"/world/{WORLD}/pose/info"
+
+# Urban NLoS coupling: when the urban world is selected, import the shared
+# building geometry and switch the channel to a deterministic line-of-sight
+# check (see a2g_path_loss). Open-field keeps the probabilistic model.
+_URBAN = WORLD == "sar_urban"
+if _URBAN:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "worlds"))
+    from urban_buildings import any_blocked, BUILDINGS
+    print(f"[urban] NLoS active — {len(BUILDINGS)} buildings drive LoS/NLoS")
 
 # {model_name: (x, y, z)}
 positions = {}
@@ -366,7 +389,11 @@ def main():
                     continue
                 prev_accepted[ue_name] = d_horiz
 
-                pl, los_p, d_3d, theta = a2g_path_loss(d_horiz, uav_h)
+                # Urban: does a building block the UAV->UE ray? (deterministic
+                # LoS). Open-field: None -> probabilistic elevation-angle model.
+                blocked = any_blocked(uav, ue_pos) if _URBAN else None
+                pl, los_p, d_3d, theta = a2g_path_loss(d_horiz, uav_h,
+                                                       los_blocked=blocked)
                 delta = pl - pl_ref
                 speed = compute_speed(ue_name, ue_pos, now)
                 ch_type = select_channel_type(los_p)

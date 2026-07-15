@@ -224,7 +224,8 @@ def update_viz(ux, uy, uz,
 
 
 # ── Runtime state ──────────────────────────────────────────────────────────────
-_POSE_TOPIC = "/world/sar_open_field/pose/info"
+_WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
+_POSE_TOPIC = f"/world/{_WORLD}/pose/info"
 _TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
 _positions = {}
 _bridge_log = Path("/tmp/ch_bridge.log")

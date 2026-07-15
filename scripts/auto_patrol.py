@@ -50,7 +50,7 @@ from gz.msgs10.boolean_pb2 import Boolean
 from gz.msgs10.twist_pb2 import Twist
 from gz.msgs10.pose_v_pb2 import Pose_V
 
-WORLD = "sar_open_field"
+WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
 UAV_X = 0.0
 UAV_Y = 0.0
 UAV_Z = 40.0

@@ -30,6 +30,16 @@ find "$(cd "$(dirname "$0")" && pwd)/scripts" -name "__pycache__" -exec rm -rf {
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 OAI_DIR="$HOME/openairinterface5g"
+
+# World selector: SAR_WORLD picks the Gazebo world (default open field).
+# 'sar_urban' loads the NLoS building world; the bridge reads the same
+# SAR_WORLD to switch its channel model. If the urban SDF is missing,
+# (re)generate it from the shared building list.
+WORLD="${SAR_WORLD:-sar_open_field}"
+export SAR_WORLD="$WORLD"
+if [[ "$WORLD" == "sar_urban" && ! -f "$SELF_DIR/worlds/sar_urban.sdf" ]]; then
+  python3 "$SELF_DIR/worlds/make_urban_world.py"
+fi
 CONF_DIR="$SELF_DIR/oai_configs"
 
 die() { echo "FATAL: $1"; exit 1; }
@@ -115,7 +125,7 @@ if pgrep -f "gz sim" >/dev/null 2>&1; then
   sleep 2
 fi
 
-gz sim -r -s "$SELF_DIR/worlds/sar_open_field.sdf" -v 1 &>/tmp/gz_sim.log &
+gz sim -r -s "$SELF_DIR/worlds/$WORLD.sdf" -v 1 &>/tmp/gz_sim.log &
 GZ_PID=$!
 for i in $(seq 1 15); do
   sleep 1
@@ -146,7 +156,7 @@ spawn_model() {
     echo "  $name already exists"
     return 0
   fi
-  gz service -s /world/sar_open_field/create \
+  gz service -s /world/$WORLD/create \
     --reqtype gz.msgs.EntityFactory \
     --reptype gz.msgs.Boolean \
     --timeout 5000 \
@@ -232,7 +242,7 @@ echo "    UL: sudo ip netns exec robot_alpha iperf3 -c 10.0.0.200 -t 10"
 echo "    UL: sudo ip netns exec robot_bravo iperf3 -c 10.0.0.201 -t 10"
 echo ""
 echo "  Dynamic A2G (move ground alpha to 150m):"
-echo "    gz service -s /world/sar_open_field/set_pose \\"
+echo "    gz service -s /world/$WORLD/set_pose \\"
 echo "      --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean \\"
 echo "      --timeout 2000 \\"
 echo "      --req 'name: \"sar_ground_alpha\" position: {x: 150, y: 0, z: 0.1}'"
