@@ -24,6 +24,7 @@ import argparse
 import csv
 import math
 import os
+import random
 import re
 import socket
 import subprocess
@@ -43,6 +44,17 @@ A_COEFF = 9.61
 B_COEFF = 0.16
 ETA_LOS = 1.0
 ETA_NLOS = 20.0
+
+# Log-normal shadow fading (Gaussian in dB) layered on top of the mean A2G
+# path loss. The pure geometry gives a clean, noise-free loss; real urban
+# shadowing has several dB of spread, and NLoS scenes shadow harder than
+# LoS (rooftop diffraction + clutter depth). Modelled as an AR(1) process so
+# the fade is *correlated* over time/space (a decorrelation length), not
+# white per-tick noise. SHADOW_RHO sets the correlation between successive
+# updates; the sqrt(1-rho^2) factor keeps the stationary std equal to sigma.
+SHADOW_SIGMA_LOS = 2.0    # dB, 1-sigma shadowing with clear line of sight
+SHADOW_SIGMA_NLOS = 5.0   # dB, 1-sigma shadowing when a building blocks
+SHADOW_RHO = 0.9          # AR(1) correlation between consecutive updates
 
 
 def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ,
@@ -267,7 +279,14 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--rate", type=float, default=UPDATE_INTERVAL_S)
     ap.add_argument("--ref-distance", type=float, default=REFERENCE_HORIZ_DISTANCE_M)
+    ap.add_argument("--no-shadow", action="store_true",
+                    help="disable log-normal shadow fading (deterministic "
+                         "geometric path loss only, reproducible)")
+    ap.add_argument("--shadow-seed", type=int, default=None,
+                    help="RNG seed for shadow fading, for reproducible runs")
     args = ap.parse_args()
+    if args.shadow_seed is not None:
+        random.seed(args.shadow_seed)
 
     # ONE TelnetLink PER PORT, shared by all models on that port. OAI's
     # telnet server accepts a single client: a second socket to the same
@@ -368,6 +387,7 @@ def main():
 
     last_sent = {name: base for name, (_p, _i, base) in MODEL_MAP.items()}
     smoothed = {name: base for name, (_p, _i, base) in MODEL_MAP.items()}
+    shadow = {name: 0.0 for name in MODEL_MAP}   # AR(1) shadow-fade state
     sent_ds = set()
     prev_accepted = {}
 
@@ -451,7 +471,21 @@ def main():
                 raw_ploss = max(PLOSS_MIN, min(PLOSS_MAX, baseline + capped_delta))
                 smoothed[name] = (EMA_ALPHA * raw_ploss
                                    + (1.0 - EMA_ALPHA) * smoothed[name])
-                new_ploss = smoothed[name]
+
+                # Log-normal shadow fading (AR(1), correlated) on top of the
+                # smoothed deterministic mean. sigma is larger under NLoS.
+                # Kept separate from the EMA so its stationary std matches the
+                # target sigma instead of being damped by the smoother.
+                if args.no_shadow:
+                    shadow[name] = 0.0
+                else:
+                    sigma = (SHADOW_SIGMA_NLOS if data["los_p"] < 0.5
+                             else SHADOW_SIGMA_LOS)
+                    shadow[name] = (SHADOW_RHO * shadow[name]
+                                    + math.sqrt(1.0 - SHADOW_RHO ** 2)
+                                    * random.gauss(0.0, sigma))
+                new_ploss = max(PLOSS_MIN,
+                                min(PLOSS_MAX, smoothed[name] + shadow[name]))
 
                 if abs(new_ploss - last_sent[name]) >= CHANGE_THRESHOLD_DB:
                     # SIGN NOTE (2026-07-11): OAI's rfsimulator applies this

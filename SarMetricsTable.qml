@@ -6,9 +6,11 @@
 // either depending on platform — this avoids that whole axis of risk
 // for what's a 2-3 row, 7-column display.
 //
-// "rows" and "elapsed" below are the Q_PROPERTYs from SarMetricsTable.hh,
-// read directly (no object prefix) because gz-gui loads this file with
-// the plugin's own C++ instance as the QML context object.
+// "rows" and "elapsed" are Q_PROPERTYs on the C++ SarMetricsTable class,
+// reached as SarMetricsTable.rows / SarMetricsTable.elapsed — the plugin
+// registers itself under that name as a root-context property in its
+// constructor (gz-gui does NOT auto-expose plugin properties as bare
+// QML names).
 
 import QtQuick 2.9
 
@@ -45,7 +47,7 @@ Rectangle {
 
     Repeater {
       id: repeater
-      model: rows
+      model: SarMetricsTable.rows
       delegate: Row {
         spacing: 6
 
@@ -103,7 +105,7 @@ Rectangle {
 
     Text {
       id: footer
-      text: "t: " + elapsed.toFixed(1) + "s"
+      text: "t: " + SarMetricsTable.elapsed.toFixed(1) + "s"
       font.pixelSize: 10
       color: "#6b6e70"
     }

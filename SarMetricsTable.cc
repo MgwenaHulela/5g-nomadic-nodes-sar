@@ -18,6 +18,7 @@
 #include <QVariantMap>
 
 #include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
@@ -56,6 +57,13 @@ class SarMetricsTablePrivate
 SarMetricsTable::SarMetricsTable()
   : gz::gui::Plugin(), dataPtr(new SarMetricsTablePrivate)
 {
+  // gz-gui does NOT auto-expose a plugin's Q_PROPERTYs as bare QML names
+  // (that gave "ReferenceError: rows is not defined"). Register this
+  // instance as a root-context property so the QML can read
+  // SarMetricsTable.rows / SarMetricsTable.elapsed — the same idiom the
+  // stock TopicEcho plugin uses for its TopicEchoMsgList model.
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
+      "SarMetricsTable", this);
 }
 
 /////////////////////////////////////////////////
