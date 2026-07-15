@@ -50,7 +50,25 @@ from gz.msgs10.boolean_pb2 import Boolean
 from gz.msgs10.twist_pb2 import Twist
 from gz.msgs10.pose_v_pb2 import Pose_V
 
-WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
+def _detect_world():
+    """SAR_WORLD if set, else auto-detect the running gz world from its
+    pose topic (so `auto_patrol.py` works without remembering the env var
+    when the stack is already up), else the open-field default."""
+    env = os.environ.get("SAR_WORLD")
+    if env:
+        return env
+    try:
+        out = subprocess.run(["gz", "topic", "-l"], capture_output=True,
+                             text=True, timeout=5).stdout
+        m = re.search(r"/world/([^/]+)/pose/info", out)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "sar_open_field"
+
+
+WORLD = _detect_world()
 UAV_X = 0.0
 UAV_Y = 0.0
 UAV_Z = 40.0

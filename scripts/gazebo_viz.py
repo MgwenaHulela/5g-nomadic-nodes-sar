@@ -224,7 +224,22 @@ def update_viz(ux, uy, uz,
 
 
 # ── Runtime state ──────────────────────────────────────────────────────────────
-_WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
+def _detect_world():
+    env = os.environ.get("SAR_WORLD")
+    if env:
+        return env
+    try:
+        out = subprocess.run(["gz", "topic", "-l"], capture_output=True,
+                             text=True, timeout=5).stdout
+        m = re.search(r"/world/([^/]+)/pose/info", out)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "sar_open_field"
+
+
+_WORLD = _detect_world()
 _POSE_TOPIC = f"/world/{_WORLD}/pose/info"
 _TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
 _positions = {}

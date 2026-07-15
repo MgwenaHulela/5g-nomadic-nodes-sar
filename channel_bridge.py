@@ -26,6 +26,7 @@ import math
 import os
 import re
 import socket
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -188,7 +189,22 @@ class TelnetLink:
 
 
 # ── Pose data ────────────────────────────────────────────────────────────────
-WORLD = os.environ.get("SAR_WORLD", "sar_open_field")
+def _detect_world():
+    env = os.environ.get("SAR_WORLD")
+    if env:
+        return env
+    try:
+        out = subprocess.run(["gz", "topic", "-l"], capture_output=True,
+                             text=True, timeout=5).stdout
+        m = re.search(r"/world/([^/]+)/pose/info", out)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "sar_open_field"
+
+
+WORLD = _detect_world()
 POSE_TOPIC = f"/world/{WORLD}/pose/info"
 
 # Urban NLoS coupling: when the urban world is selected, import the shared
