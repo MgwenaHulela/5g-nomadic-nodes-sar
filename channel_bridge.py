@@ -48,13 +48,16 @@ ETA_NLOS = 20.0
 # Log-normal shadow fading (Gaussian in dB) layered on top of the mean A2G
 # path loss. The pure geometry gives a clean, noise-free loss; real urban
 # shadowing has several dB of spread, and NLoS scenes shadow harder than
-# LoS (rooftop diffraction + clutter depth). Modelled as an AR(1) process so
-# the fade is *correlated* over time/space (a decorrelation length), not
-# white per-tick noise. SHADOW_RHO sets the correlation between successive
-# updates; the sqrt(1-rho^2) factor keeps the stationary std equal to sigma.
+# LoS (rooftop diffraction + clutter depth).
+#
+# Crucially the fade is correlated over DISTANCE, not time: a receiver that
+# stops moving keeps a constant shadow offset (Gudmundson model, corr =
+# exp(-d_moved / d_corr)). Driving it off wall-clock ticks instead made a
+# stationary robot's loss flicker every tick — the "metrics coming and
+# going" symptom. d_corr is the decorrelation length (tens of m in cities).
 SHADOW_SIGMA_LOS = 2.0    # dB, 1-sigma shadowing with clear line of sight
 SHADOW_SIGMA_NLOS = 5.0   # dB, 1-sigma shadowing when a building blocks
-SHADOW_RHO = 0.9          # AR(1) correlation between consecutive updates
+SHADOW_DCORR_M = 20.0     # m, shadow-fading decorrelation distance
 
 
 def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ,
@@ -472,17 +475,21 @@ def main():
                 smoothed[name] = (EMA_ALPHA * raw_ploss
                                    + (1.0 - EMA_ALPHA) * smoothed[name])
 
-                # Log-normal shadow fading (AR(1), correlated) on top of the
-                # smoothed deterministic mean. sigma is larger under NLoS.
-                # Kept separate from the EMA so its stationary std matches the
-                # target sigma instead of being damped by the smoother.
+                # Log-normal shadow fading on top of the smoothed mean, with
+                # sigma larger under NLoS. Correlated over distance moved
+                # (Gudmundson): rho -> 1 when the robot is still, so its
+                # shadow offset holds steady instead of flickering; only
+                # motion mixes in new fading. Kept separate from the EMA so
+                # its stationary std matches sigma rather than being damped.
                 if args.no_shadow:
                     shadow[name] = 0.0
                 else:
                     sigma = (SHADOW_SIGMA_NLOS if data["los_p"] < 0.5
                              else SHADOW_SIGMA_LOS)
-                    shadow[name] = (SHADOW_RHO * shadow[name]
-                                    + math.sqrt(1.0 - SHADOW_RHO ** 2)
+                    d_moved = max(0.0, data["speed"]) * args.rate
+                    rho = math.exp(-d_moved / SHADOW_DCORR_M)
+                    shadow[name] = (rho * shadow[name]
+                                    + math.sqrt(1.0 - rho ** 2)
                                     * random.gauss(0.0, sigma))
                 new_ploss = max(PLOSS_MIN,
                                 min(PLOSS_MAX, smoothed[name] + shadow[name]))
