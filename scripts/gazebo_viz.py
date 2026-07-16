@@ -312,6 +312,11 @@ def _netns_active():
 C2_MISS_LIMIT = 3   # consecutive misses before declaring LOST
 
 
+def _patrol_running():
+    return subprocess.run(["pgrep", "-f", "auto_patrol.py"],
+                          capture_output=True).returncode == 0
+
+
 def _c2_probe_loop():
     # Require several consecutive misses before declaring LOST: under iperf
     # load / NLoS a single probe can exceed the wait without the link being
@@ -320,6 +325,20 @@ def _c2_probe_loop():
     misses = {side: 0 for side in UE_IPS}
     while True:
         active = _netns_active()
+        # During a patrol, defer to its CSV C2 rather than running a SECOND
+        # ping: two independent pingers + iperf load collide and drop ICMP,
+        # which read as "lost" even while the data plane pushes ~10 Mbps.
+        if active and _patrol_running():
+            c2 = _c2_from_latest_csv()
+            for side in UE_IPS:
+                r = c2.get(side)
+                if r is None:
+                    continue                      # keep last-good on blank row
+                rtt, loss = r
+                _c2_state[side] = (0.0, "lost") if loss >= 100 else (rtt, "ok")
+                misses[side] = 0
+            time.sleep(2)
+            continue
         for side, ip in UE_IPS.items():
             if not active:
                 _c2_state[side] = (0.0, "na")
@@ -411,6 +430,34 @@ def _tp_from_latest_csv():
         return None, None
 
 
+def _c2_from_latest_csv():
+    """Per-robot (rtt_ms, loss_pct) from the running patrol's last CSV row,
+    so the panel's C2 matches the patrol console instead of a second,
+    contending ping. Returns {} / partial dict on a blank/absent row."""
+    import glob
+    out = {}
+    try:
+        csvs = sorted(glob.glob(str(Path.home() / "sar_sim" / "logs" / "patrol_*.csv")))
+        if not csvs:
+            return out
+        hdr = subprocess.run(["head", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
+        vals = subprocess.run(["tail", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
+        def col(name):
+            try:
+                v = vals[hdr.index(name)]
+                return float(v) if v not in ("", None) else None
+            except (ValueError, IndexError):
+                return None
+        for side, rk, lk in (("alpha", "a_c2_rtt_ms", "a_c2_loss_pct"),
+                             ("bravo", "b_c2_rtt_ms", "b_c2_loss_pct")):
+            rtt, loss = col(rk), col(lk)
+            if rtt is not None and loss is not None:
+                out[side] = (rtt, loss)
+    except Exception:
+        pass
+    return out
+
+
 def _sweep_iperf(side):
     """Reap any orphaned iperf3 client for this test IP. subprocess.run's
     timeout kills the sudo parent but the root-owned iperf3 child in the
@@ -459,7 +506,7 @@ def _monitor_loop():
         if not _netns_active():
             for side in UE_IPS:
                 _tp_state[side] = None            # netns down -> genuinely no data
-        elif subprocess.run(["pgrep", "-f", "auto_patrol.py"], capture_output=True).returncode == 0:
+        elif _patrol_running():
             # Patrol owns the iperf servers: read its CSV, but keep last-good
             # when a column is blank (e.g. a just-created CSV with no rows).
             a, b = _tp_from_latest_csv()
