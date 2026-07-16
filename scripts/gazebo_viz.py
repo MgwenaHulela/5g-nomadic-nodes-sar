@@ -309,21 +309,27 @@ def _netns_active():
     return Path("/var/run/netns/robot_alpha").exists()
 
 
+C2_MISS_LIMIT = 3   # consecutive misses before declaring LOST
+
+
 def _c2_probe_loop():
-    # Two consecutive misses before declaring LOST — a single dropped probe
-    # (e.g. coinciding with an iperf burst) shouldn't flash the beam red.
+    # Require several consecutive misses before declaring LOST: under iperf
+    # load / NLoS a single probe can exceed the wait without the link being
+    # down (a manual ping in the same conditions returned 0% loss). A 2 s
+    # wait tolerates the tens-of-ms RTTs seen behind buildings.
     misses = {side: 0 for side in UE_IPS}
     while True:
         active = _netns_active()
         for side, ip in UE_IPS.items():
             if not active:
                 _c2_state[side] = (0.0, "na")
+                misses[side] = 0
                 continue
             rtt = None
             try:
                 out = subprocess.run(
-                    ["ping", "-c", "1", "-W", "1", "-s", "64", ip],
-                    capture_output=True, text=True, timeout=3,
+                    ["ping", "-c", "1", "-W", "2", "-s", "64", ip],
+                    capture_output=True, text=True, timeout=4,
                 ).stdout
                 m = re.search(r'time=([\d.]+) ms', out)
                 rtt = float(m.group(1)) if m else None
@@ -334,7 +340,7 @@ def _c2_probe_loop():
                 _c2_state[side] = (rtt, "ok")
             else:
                 misses[side] += 1
-                if misses[side] >= 2:
+                if misses[side] >= C2_MISS_LIMIT:
                     _c2_state[side] = (0.0, "lost")
         time.sleep(2)
 
@@ -366,11 +372,16 @@ _tp_state = {"alpha": None, "bravo": None}                  # TCP Mbps
 
 
 def _read_l1(ue_log):
-    """Freshest SS-RSRP / SS-SINR straight from the UE log tail."""
+    """Freshest SS-RSRP / SS-SINR straight from the UE log tail.
+
+    Wider tail window (6 MB) so the per-slot PHY debug spam can't push the
+    last SS-RSRP line out of view, and a longer timeout so a loaded system
+    doesn't abort the read mid-patrol. Returns (None, None) only on genuine
+    absence/failure — the caller keeps the last good value on a miss."""
     try:
         out = subprocess.run(
-            ["bash", "-c", f"tail -c 2000000 {ue_log} | grep -a 'SS-RSRP' | tail -1"],
-            capture_output=True, text=True, timeout=6).stdout
+            ["bash", "-c", f"tail -c 6000000 {ue_log} | grep -a 'SS-RSRP' | tail -1"],
+            capture_output=True, text=True, timeout=10).stdout
         m = re.search(r"SS-RSRP:\s*(-?\d+)\s*dBm.*?SS-SINR:\s*(-?[\d.]+)", out)
         if m:
             return float(m.group(1)), float(m.group(2))
@@ -400,16 +411,37 @@ def _tp_from_latest_csv():
         return None, None
 
 
+def _sweep_iperf(side):
+    """Reap any orphaned iperf3 client for this test IP. subprocess.run's
+    timeout kills the sudo parent but the root-owned iperf3 child in the
+    netns can survive and wedge the next probe (this is what left bravo's
+    throughput reading stuck at 0). Empty SUDO_PASS just fails auth fast via
+    -S rather than blocking on a prompt."""
+    try:
+        subprocess.run(
+            ["sudo", "-S", "-p", "", "pkill", "-f",
+             f"iperf3 -c {UE_TESTIP[side]}"],
+            capture_output=True, text=True, timeout=5, input=SUDO_PASS + "\n")
+    except Exception:
+        pass
+
+
 def _measure_tp(side):
-    """Quick 1 s TCP goodput inside the robot's namespace."""
+    """Quick 1 s TCP goodput inside the robot's namespace. Hardened:
+    --connect-timeout makes a bad/NLoS link fail fast instead of hanging,
+    and orphaned iperf3 clients are swept before and after so a wedged
+    probe can't pin the reading at 0 indefinitely."""
     import json
+    _sweep_iperf(side)   # clear any leftover from a previous timed-out probe
     try:
         r = subprocess.run(
             ["sudo", "-S", "-p", "", "ip", "netns", "exec", UE_NS[side],
-             "iperf3", "-c", UE_TESTIP[side], "--bind-dev", UE_TUN[side], "-t", "1", "-J"],
-            capture_output=True, text=True, timeout=12, input=SUDO_PASS + "\n")
+             "iperf3", "-c", UE_TESTIP[side], "--bind-dev", UE_TUN[side],
+             "--connect-timeout", "2000", "-t", "1", "-J"],
+            capture_output=True, text=True, timeout=8, input=SUDO_PASS + "\n")
         return round(json.loads(r.stdout)["end"]["sum_received"]["bits_per_second"] / 1e6, 1)
     except Exception:
+        _sweep_iperf(side)   # a timed-out probe orphans the root iperf3 child
         return None
 
 
@@ -417,13 +449,24 @@ def _monitor_loop():
     """Refresh RSRP/SINR (cheap, every cycle) and TCP throughput (measured
     when idle, read from the patrol CSV when a patrol is running)."""
     while True:
+        # RSRP/SINR: keep the last good reading on a transient miss so a
+        # single loaded-system timeout doesn't blank the panel to "--" when
+        # the link is actually up (the -9999 flicker).
         for side in UE_IPS:
-            _l1_state[side] = _read_l1(UE_LOGS[side])
+            rsrp, sinr = _read_l1(UE_LOGS[side])
+            if rsrp is not None:
+                _l1_state[side] = (rsrp, sinr)
         if not _netns_active():
             for side in UE_IPS:
-                _tp_state[side] = None
+                _tp_state[side] = None            # netns down -> genuinely no data
         elif subprocess.run(["pgrep", "-f", "auto_patrol.py"], capture_output=True).returncode == 0:
-            _tp_state["alpha"], _tp_state["bravo"] = _tp_from_latest_csv()
+            # Patrol owns the iperf servers: read its CSV, but keep last-good
+            # when a column is blank (e.g. a just-created CSV with no rows).
+            a, b = _tp_from_latest_csv()
+            if a is not None:
+                _tp_state["alpha"] = a
+            if b is not None:
+                _tp_state["bravo"] = b
         else:
             for side in UE_IPS:
                 tp = _measure_tp(side)
