@@ -52,5 +52,54 @@
       <parent>base_link</parent>
       <child>camera_link</child>
     </joint>
+
+    <!-- Thermal camera (victim detection by body heat). sar_-prefixed link
+         to avoid clashing with the stock model. Auto-scoped topic:
+         .../link/sar_thermal_link/sensor/thermal/image . Objects with a
+         <temperature> show up hot; the world adds a warm "victim" marker. -->
+    <link name="sar_thermal_link">
+      <pose>0.03 0 0.17 0 0 0</pose>
+      <sensor name="thermal" type="thermal">
+        <update_rate>10</update_rate>
+        <always_on>true</always_on>
+        <camera>
+          <horizontal_fov>1.35</horizontal_fov>
+          <image><width>320</width><height>240</height></image>
+          <clip><near>0.05</near><far>250</far></clip>
+        </camera>
+      </sensor>
+    </link>
+    <joint name="sar_thermal_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>sar_thermal_link</child>
+    </joint>
+
+    <!-- 2D lidar (mapping / obstacle sensing). gpu_lidar so it renders on
+         Harmonic (the stock burger's Classic 'ray' sensor is inert here).
+         sar_-prefixed to avoid clashing with the stock lidar_joint.
+         Auto-scoped topic: .../link/sar_lidar_link/sensor/lidar/scan -->
+    <link name="sar_lidar_link">
+      <pose>-0.02 0 0.18 0 0 0</pose>
+      <sensor name="lidar" type="gpu_lidar">
+        <update_rate>10</update_rate>
+        <always_on>true</always_on>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples><resolution>1</resolution>
+              <min_angle>-3.14159</min_angle><max_angle>3.14159</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples><min_angle>0</min_angle><max_angle>0</max_angle>
+            </vertical>
+          </scan>
+          <range><min>0.12</min><max>30.0</max><resolution>0.01</resolution></range>
+        </lidar>
+      </sensor>
+    </link>
+    <joint name="sar_lidar_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>sar_lidar_link</child>
+    </joint>
   </model>
 </sdf>
