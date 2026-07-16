@@ -17,11 +17,11 @@ import QtQuick 2.9
 Rectangle {
   id: root
   color: "transparent"
-  implicitWidth: 480
+  implicitWidth: 540
   implicitHeight: header.height + (repeater.count * 22) + footer.height + 24
 
-  property var colWidths: [66, 56, 70, 60, 62, 52, 56]
-  property var colLabels: ["Node", "Dist", "Tput", "Ploss", "RSRP", "SINR", "C2"]
+  property var colWidths: [62, 52, 52, 66, 58, 60, 50, 58]
+  property var colLabels: ["Node", "Link", "Dist", "Tput", "Ploss", "RSRP", "SINR", "C2"]
 
   Column {
     anchors.fill: parent
@@ -62,42 +62,56 @@ Rectangle {
         }
         Text {
           width: colWidths[1]
+          text: modelData.los === "na" ? "--" : modelData.los
+          font.pixelSize: 12
+          font.bold: true
+          // LoS clear = green, NLoS (shadowed by a building) = amber
+          color: modelData.los === "LOS" ? "#5dcaa5"
+               : modelData.los === "NLOS" ? "#e0a33a"
+               : "#6b6e70"
+        }
+        Text {
+          width: colWidths[2]
           text: modelData.d >= 0 ? modelData.d.toFixed(1) + "m" : "--"
           font.pixelSize: 12
           color: "#e6e7e8"
         }
         Text {
-          width: colWidths[2]
+          width: colWidths[3]
           text: modelData.tp >= 0 ? modelData.tp.toFixed(1) + "Mbps" : "--"
           font.pixelSize: 12
           color: "#e6e7e8"
         }
         Text {
-          width: colWidths[3]
+          width: colWidths[4]
           text: modelData.ploss >= 0 ? modelData.ploss.toFixed(1) + "dB" : "--"
           font.pixelSize: 12
           color: "#e6e7e8"
         }
         Text {
-          width: colWidths[4]
+          width: colWidths[5]
           text: modelData.rsrp > -9000 ? modelData.rsrp.toFixed(0) + "dBm" : "--"
           font.pixelSize: 12
           color: "#e6e7e8"
         }
         Text {
-          width: colWidths[5]
+          width: colWidths[6]
           text: modelData.sinr > -9000 ? modelData.sinr.toFixed(0) + "dB" : "--"
           font.pixelSize: 12
           color: "#e6e7e8"
         }
         Text {
-          width: colWidths[6]
+          width: colWidths[7]
+          // "stale?" = C2 probe reads lost but geometry says LoS -> not a
+          // real outage. "LOST" is reserved for genuine NLoS shadowing.
           text: modelData.c2Status === "ok" ? modelData.c2Rtt.toFixed(0) + "ms"
               : modelData.c2Status === "lost" ? "LOST"
+              : modelData.c2Status === "stale" ? "stale?"
               : "n/a"
           font.pixelSize: 12
           color: modelData.c2Status === "ok" ? "#e6e7e8"
                : modelData.c2Status === "lost" ? "#e24b4a"
+               : modelData.c2Status === "stale" ? "#e0a33a"
                : "#6b6e70"
         }
       }

@@ -127,6 +127,7 @@ void SarMetricsTable::OnMessage(const gz::msgs::StringMsg &_msg)
       row["sinr"] = n.value("sinr_db").toDouble(kMissingDbm);
       row["c2Rtt"] = n.value("c2_rtt_ms").toDouble(kMissing);
       row["c2Status"] = n.value("c2_status").toString("na");
+      row["los"] = n.value("los").toString("na");   // "LOS" / "NLOS" / "na"
       newRows.append(row);
     }
   }

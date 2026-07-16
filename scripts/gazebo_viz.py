@@ -209,16 +209,29 @@ def update_viz(ux, uy, uz,
     _publish_marker(m4)
 
     def _c2_str(rtt, st):
-        return {"ok": f"{rtt:.0f}ms", "lost": "LOST", "na": "n/a"}[st]
+        return {"ok": f"{rtt:.0f}ms", "lost": "LOST",
+                "stale": "stale?", "na": "n/a"}[st]
+
+    # LoS/NLoS per robot from the same building geometry the channel uses.
+    a_los = _los_state((ux, uy, uz), (ax, ay, az))
+    b_los = _los_state((ux, uy, uz), (bx, by, bz))
 
     # One metrics dict per node — feeds both the JSON payload (the
     # SarMetricsTable GUI plugin) and the plain-text fallback below.
     # Missing readings use the sentinels the plugin's QML checks against:
     # -1 for never-negative fields (dist/tput/ploss/RTT), -9999 for RSRP/
     # SINR which are legitimately negative dBm/dB.
-    def _node(label, key, d, ploss, c2_rtt, c2_st):
+    def _node(label, key, d, ploss, c2_rtt, c2_st, los):
         rsrp, sinr = _l1_state[key]
         tp = _tp_state[key]
+        # Cross-validate C2 against the geometry: a "lost" reading while the
+        # robot has clear line of sight is almost certainly a stale/contended
+        # probe, not a real outage. Only trust "lost" when the geometry
+        # agrees the robot is shadowed (NLoS). los True=LoS, False=NLoS,
+        # None=unknown (non-urban -> trust the probe as-is).
+        if c2_st == "lost" and los is True:
+            c2_st = "stale"
+        los_s = "LOS" if los is True else "NLOS" if los is False else "na"
         return {
             "label": label,
             "d": d if d > 0 else -1.0,
@@ -228,11 +241,12 @@ def update_viz(ux, uy, uz,
             "sinr_db": sinr if sinr is not None else -9999.0,
             "c2_rtt_ms": c2_rtt if c2_st == "ok" else -1.0,
             "c2_status": c2_st,
+            "los": los_s,
         }
 
     nodes = [
-        _node("ALPHA", "alpha", a_d, a_ploss, a_c2_rtt, a_c2_st),
-        _node("BRAVO", "bravo", b_d, b_ploss, b_c2_rtt, b_c2_st),
+        _node("ALPHA", "alpha", a_d, a_ploss, a_c2_rtt, a_c2_st, a_los),
+        _node("BRAVO", "bravo", b_d, b_ploss, b_c2_rtt, b_c2_st, b_los),
     ]
     publish_metrics_json({
         "t": t_elapsed,
@@ -249,7 +263,7 @@ def update_viz(ux, uy, uz,
         tp_s = ("%.1f" % nd["tp_mbps"] + "Mbps") if nd["tp_mbps"] >= 0 else "--Mbps"
         rsrp_s = ("%.0f" % nd["rsrp_dbm"] + "dBm") if nd["rsrp_dbm"] > -9000 else "--dBm"
         sinr_s = ("%.0f" % nd["sinr_db"] + "dB") if nd["sinr_db"] > -9000 else "--dB"
-        return (f"{nd['label']:<6} d:{d_s:<7} tp:{tp_s:<8} "
+        return (f"{nd['label']:<6} {nd['los']:<4} d:{d_s:<7} tp:{tp_s:<8} "
                 f"ploss:{pl_s:<7} rsrp:{rsrp_s:<7} sinr:{sinr_s:<6} "
                 f"c2:{_c2_str(nd['c2_rtt_ms'], nd['c2_status'])}")
 
@@ -286,6 +300,25 @@ _POSE_TOPIC = f"/world/{_WORLD}/pose/info"
 _TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
 _positions = {}
 _bridge_log = Path("/tmp/ch_bridge.log")
+
+# Same building geometry the channel model uses, so the panel's LoS/NLoS
+# label and the injected path loss agree on where the walls are.
+_URBAN = _WORLD == "sar_urban"
+if _URBAN:
+    sys.path.insert(0, os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "worlds"))
+    from urban_buildings import any_blocked
+
+
+def _los_state(uav, ue_pos):
+    """True = LoS, False = NLoS (a building blocks the UAV->robot ray),
+    None = unknown (non-urban world, no geometry)."""
+    if not _URBAN:
+        return None
+    try:
+        return not any_blocked(uav, ue_pos)
+    except Exception:
+        return None
 
 # ── C2 (command/downlink) live probe ─────────────────────────────────────────
 # One small ping base->robot every ~2s per UE. Only meaningful when the
