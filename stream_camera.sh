@@ -25,8 +25,14 @@ SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROBOT="${1:-bravo}"
 DURATION="${2:-120}"
 KBPS="${3:-1500}"
+SENSOR="${4:-rgb}"          # rgb (camera POV) | thermal (heat / victim)
 W=320; H=240; FPS=15
-case "$ROBOT" in alpha|bravo) ;; *) echo "usage: $0 [alpha|bravo] [dur] [kbps]"; exit 2 ;; esac
+case "$ROBOT" in alpha|bravo) ;; *) echo "usage: $0 [alpha|bravo] [dur] [kbps] [rgb|thermal]"; exit 2 ;; esac
+case "$SENSOR" in
+  rgb)     LINK=camera_link;      SNAME=cam_front; GSTFMT=rgb;   BFMT=rgb;     TAG="CAM" ;;
+  thermal) LINK=sar_thermal_link; SNAME=thermal;   GSTFMT=gray8; BFMT=thermal; TAG="THERMAL" ;;
+  *) echo "sensor must be rgb or thermal"; exit 2 ;;
+esac
 
 if ! sudo -n true 2>/dev/null && [ -z "${SAR_SUDO_PASS:-}" ]; then
   echo "ERROR: the encoder runs inside a network namespace (need root)." >&2
@@ -41,7 +47,7 @@ ns="${NS[$ROBOT]}"; dst="${DST[$ROBOT]}"; vport="${PORT[$ROBOT]}"
 # Camera sensor has no explicit <topic>, so gz auto-scopes it to the model
 # name the world assigned (sar_ground_alpha/bravo). Override with SAR_WORLD.
 WORLD="${SAR_WORLD:-sar_urban}"
-topic="/world/${WORLD}/model/sar_ground_${ROBOT}/link/camera_link/sensor/cam_front/image"
+topic="/world/${WORLD}/model/sar_ground_${ROBOT}/link/${LINK}/sensor/${SNAME}/image"
 
 # camera topic present?
 if ! gz topic -l 2>/dev/null | grep -qx "$topic"; then
@@ -80,15 +86,15 @@ else
 fi
 sleep 1
 
-echo "[stream_camera] ${ROBOT^^}: camera POV -> H.264 ${KBPS}kbps -> 5G -> $dst:$vport (${DURATION}s)"
+echo "[stream_camera] ${ROBOT^^} ${SENSOR}: -> H.264 ${KBPS}kbps -> 5G -> $dst:$vport (${DURATION}s)"
 # bridge (default ns, reads gz camera) | encoder (robot netns, over the air)
 timeout "$DURATION" python3 "$SELF_DIR/scripts/gz_camera_bridge.py" \
-      --topic "$topic" --width "$W" --height "$H" \
+      --topic "$topic" --width "$W" --height "$H" --format "$BFMT" \
   | sudo -A ip netns exec "$ns" \
       gst-launch-1.0 -e fdsrc fd=0 \
-        ! rawvideoparse width=$W height=$H format=rgb framerate=$FPS/1 \
+        ! rawvideoparse width=$W height=$H format=$GSTFMT framerate=$FPS/1 \
         ! videoconvert \
-        ! textoverlay text="SAR ${ROBOT^^} CAM" valignment=top halignment=left font-desc="Sans, 18" \
+        ! textoverlay text="SAR ${ROBOT^^} ${TAG}" valignment=top halignment=left font-desc="Sans, 18" \
         ! timeoverlay valignment=bottom halignment=right \
         ! x264enc tune=zerolatency bitrate=$KBPS speed-preset=ultrafast key-int-max=$FPS \
         ! rtph264pay config-interval=1 pt=96 \

@@ -28,20 +28,35 @@ def main():
     ap.add_argument("--topic", required=True, help="gz camera Image topic")
     ap.add_argument("--width", type=int, default=320)
     ap.add_argument("--height", type=int, default=240)
+    ap.add_argument("--format", choices=("rgb", "thermal"), default="rgb",
+                    help="rgb = R8G8B8 passthrough; thermal = L16 temperature "
+                         "normalised per-frame to gray8 (feed GStreamer with "
+                         "format=gray8)")
     args = ap.parse_args()
 
     out = sys.stdout.buffer
-    state = {"n": 0, "warned": False, "expect": args.width * args.height * 3}
+    bpp = 2 if args.format == "thermal" else 3
+    state = {"n": 0, "warned": False,
+             "expect": args.width * args.height * (1 if args.format == "thermal" else 3)}
+    _np = None
+    if args.format == "thermal":
+        import numpy as _np
 
     def cb(msg):
         data = msg.data
-        # Tightly packed R8G8B8 expected; if the row has stride padding
-        # (step > width*3) repack row-by-row so the encoder stays aligned.
-        step = msg.step or (msg.width * 3)
-        if step != msg.width * 3:
-            rows = [data[r * step: r * step + msg.width * 3]
+        # Repack row-by-row if the source row has stride padding.
+        step = msg.step or (msg.width * bpp)
+        if step != msg.width * bpp:
+            rows = [data[r * step: r * step + msg.width * bpp]
                     for r in range(msg.height)]
             data = b"".join(rows)
+        if args.format == "thermal":
+            # L16 temperature -> gray8, auto-scaled per frame so the warm
+            # victim stands out against the cooler background.
+            a = _np.frombuffer(data, dtype="<u2").astype(_np.float32)
+            lo, hi = float(a.min()), float(a.max())
+            a = (a - lo) * (255.0 / (hi - lo)) if hi > lo else a * 0
+            data = a.astype(_np.uint8).tobytes()
         if len(data) != state["expect"] and not state["warned"]:
             sys.stderr.write(
                 f"[gz_cam] warn: frame {msg.width}x{msg.height} "
@@ -56,7 +71,7 @@ def main():
             raise SystemExit(0)
         state["n"] += 1
         if state["n"] % 30 == 0:
-            sys.stderr.write(f"[gz_cam] {state['n']} frames "
+            sys.stderr.write(f"[gz_cam] {state['n']} {args.format} frames "
                              f"({msg.width}x{msg.height})\n")
 
     node = Node()

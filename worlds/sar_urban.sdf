@@ -680,6 +680,19 @@
         </visual>
       </link>
     </model>
+    <model name="victim">
+      <static>true</static>
+      <pose>30.0 8.0 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.3</radius><length>1.0</length></cylinder></geometry>
+          <plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal">
+            <temperature>310.0</temperature>
+          </plugin>
+          <material><ambient>0.9 0.5 0.4 1</ambient><diffuse>0.95 0.55 0.45 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
 
     <!-- Robots (static includes so the GUI renders them; motion is
          cmd_vel/set_pose). Placed in the clear zone inside the inner

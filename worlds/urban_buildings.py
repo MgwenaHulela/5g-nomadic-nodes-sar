@@ -152,10 +152,36 @@ def _tree_sdf(i, cx, cy, th, cr):
     )
 
 
+# A trapped "victim" heat source for the thermal camera to find. Placed in
+# an open street (reachable by a ground robot, visible to the thermal cam).
+VICTIM = (30.0, 8.0)
+
+
+def _victim_sdf():
+    vx, vy = VICTIM
+    return (
+        f'    <model name="victim">\n'
+        f'      <static>true</static>\n'
+        f'      <pose>{vx} {vy} 0.5 0 0 0</pose>\n'
+        f'      <link name="link">\n'
+        f'        <visual name="visual">\n'
+        f'          <geometry><cylinder><radius>0.3</radius><length>1.0</length></cylinder></geometry>\n'
+        f'          <plugin filename="gz-sim-thermal-system" name="gz::sim::systems::Thermal">\n'
+        f'            <temperature>310.0</temperature>\n'
+        f'          </plugin>\n'
+        f'          <material><ambient>0.9 0.5 0.4 1</ambient>'
+        f'<diffuse>0.95 0.55 0.45 1</diffuse></material>\n'
+        f'        </visual>\n'
+        f'      </link>\n'
+        f'    </model>'
+    )
+
+
 def sdf_models():
     """SDF <model> blocks for every building and tree, for the world file."""
     out = [_building_sdf(i, *b) for i, b in enumerate(BUILDINGS)]
     out += [_tree_sdf(i, *t) for i, t in enumerate(TREES)]
+    out += [_victim_sdf()]
     return "\n".join(out)
 
 
