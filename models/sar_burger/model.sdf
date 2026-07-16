@@ -38,6 +38,9 @@
          stream_camera.sh via scripts/gz_camera_bridge.py. -->
     <link name="camera_link">
       <pose>0.03 0 0.17 0 0 0</pose>
+      <inertial><mass>0.01</mass>
+        <inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia>
+      </inertial>
       <sensor name="cam_front" type="camera">
         <update_rate>15</update_rate>
         <always_on>true</always_on>
@@ -59,6 +62,9 @@
          <temperature> show up hot; the world adds a warm "victim" marker. -->
     <link name="sar_thermal_link">
       <pose>0.03 0 0.17 0 0 0</pose>
+      <inertial><mass>0.01</mass>
+        <inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia>
+      </inertial>
       <sensor name="thermal" type="thermal">
         <update_rate>10</update_rate>
         <always_on>true</always_on>
@@ -80,6 +86,9 @@
          Auto-scoped topic: .../link/sar_lidar_link/sensor/lidar/scan -->
     <link name="sar_lidar_link">
       <pose>-0.02 0 0.18 0 0 0</pose>
+      <inertial><mass>0.01</mass>
+        <inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia>
+      </inertial>
       <sensor name="lidar" type="gpu_lidar">
         <update_rate>10</update_rate>
         <always_on>true</always_on>
