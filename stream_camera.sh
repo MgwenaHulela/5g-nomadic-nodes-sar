@@ -38,12 +38,15 @@ declare -A NS=(  [alpha]=robot_alpha [bravo]=robot_bravo )
 declare -A DST=( [alpha]=10.0.0.200  [bravo]=10.0.0.201 )
 declare -A PORT=([alpha]=5604        [bravo]=5605 )
 ns="${NS[$ROBOT]}"; dst="${DST[$ROBOT]}"; vport="${PORT[$ROBOT]}"
-topic="/sar/${ROBOT}/camera"
+# Camera sensor has no explicit <topic>, so gz auto-scopes it to the model
+# name the world assigned (sar_ground_alpha/bravo). Override with SAR_WORLD.
+WORLD="${SAR_WORLD:-sar_urban}"
+topic="/world/${WORLD}/model/sar_ground_${ROBOT}/link/camera_link/sensor/cam_front/image"
 
 # camera topic present?
 if ! gz topic -l 2>/dev/null | grep -qx "$topic"; then
-  echo "WARNING: $topic not found. Restart the stack so the models with the" >&2
-  echo "         camera reload (SAR_WORLD=sar_urban ./start_full_stack.sh)." >&2
+  echo "WARNING: $topic not found. Restart the stack so the camera-equipped" >&2
+  echo "         model reloads (SAR_WORLD=$WORLD ./start_full_stack.sh)." >&2
 fi
 
 # askpass: sudo can't read the password from stdin (the video pipe owns it)
