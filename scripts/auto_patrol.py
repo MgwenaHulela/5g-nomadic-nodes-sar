@@ -124,6 +124,64 @@ VIDEO_BITRATE_MBPS = 8
 MIN_RADIUS = 2
 MAX_RADIUS = 150
 
+# ── Obstacle avoidance (urban world) ─────────────────────────────────────────
+# Ground robots reactively steer around buildings using the SAME footprint
+# geometry the channel model uses (urban_buildings.any_blocked). A short
+# forward "whisker" is cast along the desired heading; if it would clip a
+# building within the lookahead, the heading is deflected to the first clear
+# angle, fanning out symmetrically. Trees are not blockers (clutter only),
+# matching the channel model.
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "worlds"))
+    from urban_buildings import any_blocked as _any_blocked, BUILDINGS as _BUILDINGS
+except Exception:
+    _any_blocked = None
+    _BUILDINGS = []
+
+AVOID_LOOKAHEAD_M = 7.0                      # how far ahead to probe for a wall
+AVOID_MARGIN_M = 1.5                         # clearance kept from footprints
+AVOID_FAN_DEG = (20, 40, 60, 80, 110, 140)  # deflection angles to try
+
+
+def _path_clear(x, y, heading, dist=AVOID_LOOKAHEAD_M):
+    """True if a straight probe of length `dist` from (x, y) along `heading`
+    clears every building footprint (margin included). No geometry (open
+    field) -> always clear."""
+    if _any_blocked is None:
+        return True
+    z = GROUND_Z + 0.3
+    p0 = (x, y, z)
+    p1 = (x + dist * math.cos(heading), y + dist * math.sin(heading), z)
+    return not _any_blocked(p0, p1, margin=AVOID_MARGIN_M)
+
+
+def _away_from_nearest_building(x, y, fallback):
+    """Heading pointing away from the nearest building centre — the escape
+    direction when a robot is hugging a facade (inside the clearance margin,
+    so every probe reads blocked)."""
+    if not _BUILDINGS:
+        return fallback + math.pi
+    cx, cy = min(_BUILDINGS, key=lambda b: (x - b[0])**2 + (y - b[1])**2)[:2]
+    return math.atan2(y - cy, x - cx)
+
+
+def avoid_heading(x, y, desired):
+    """Nearest heading to `desired` whose forward path is clear of buildings.
+    Returns (heading, blocked): if `desired` is already clear it is returned
+    unchanged with blocked=False; otherwise fan out symmetrically and take
+    the first clear side (blocked=True so the caller can also slow down).
+    If nothing is clear (robot hugging a wall, inside the margin), steer
+    directly away from the nearest building to back off."""
+    if _any_blocked is None or _path_clear(x, y, desired):
+        return desired, False
+    for deg in AVOID_FAN_DEG:
+        d = math.radians(deg)
+        for cand in (desired + d, desired - d):
+            if _path_clear(x, y, cand):
+                return cand, True
+    return _away_from_nearest_building(x, y, desired), True
+
+
 # ── A2G path-loss model (mirror of channel_bridge.py — keep in sync) ────────
 FREQ_GHZ, MODEL_UE_H, MODEL_REF_H = 3.31968, 0.5, 30.0
 A_C, B_C, ETA_LOS, ETA_NLOS = 9.61, 0.16, 1.0, 20.0
@@ -664,11 +722,20 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1, vary_uav=False):
                     tgt = math.atan2(ry, rx)
                 targets[model] = tgt
 
-                err = math.atan2(math.sin(tgt - yaw), math.cos(tgt - yaw))
+                # Reactive obstacle avoidance: deflect around any building in
+                # the path. When blocked, commit to the detour heading so the
+                # robot slides along the facade instead of fighting the wall.
+                steer, blocked = avoid_heading(x, y, tgt)
+                if blocked:
+                    targets[model] = steer
+
+                err = math.atan2(math.sin(steer - yaw), math.cos(steer - yaw))
                 tw = Twist()
                 tw.angular.z = max(-1.5, min(1.5, 2.0 * err))
-                # slow down through sharp turns, never fully stop
-                tw.linear.x = speed_ms * max(0.15, math.cos(err))
+                # slow down through sharp turns / while squeezing past a wall,
+                # never fully stop
+                floor = 0.05 if blocked else 0.15
+                tw.linear.x = speed_ms * max(floor, math.cos(err))
                 try:
                     pubs[model].publish(tw)
                 except Exception:
@@ -902,10 +969,12 @@ def search_both(speed_ms=1.0, duration_s=600, tick_s=0.1, reach=110, lane=18):
                     stuck[model] = [now, None]
                     continue
                 desired = math.atan2(dy, dx)
-                err = math.atan2(math.sin(desired - yaw), math.cos(desired - yaw))
+                # deflect around any building between the robot and the cell
+                steer, blocked = avoid_heading(x, y, desired)
+                err = math.atan2(math.sin(steer - yaw), math.cos(steer - yaw))
                 tw = Twist()
                 tw.angular.z = max(-1.5, min(1.5, 2.0 * err))
-                tw.linear.x = speed_ms * max(0.1, math.cos(err))
+                tw.linear.x = speed_ms * max(0.05 if blocked else 0.1, math.cos(err))
                 try: pubs[model].publish(tw)
                 except Exception: pass
             time.sleep(tick_s)
