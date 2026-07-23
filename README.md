@@ -10,12 +10,20 @@ logs used to validate stability.
 > Supervisor: Dr. Joyce Mwangama
 > Funding: Telkom-NRF FutureTech Programme, DIGITAfrica (Horizon Europe)
 
+![The urban NLoS search-and-rescue world rendered in Gazebo Harmonic — building facades and trees on open ground](docs/img/gazebo_scene.png)
+
+<sub>The urban NLoS world in **Gazebo Harmonic**: the building facades are the
+line-of-sight blockers for the air-to-ground 5G link, with the UAV base station holding
+overhead and the two TurtleBot3 ground robots patrolling between the blocks. Drive a
+robot behind a building and its uplink degrades as the channel bridge applies the NLoS
+path loss.</sub>
+
 ![SAR fleet situational map — UAV base station, two ground robots, a detected victim, building footprints and the coverage radius](docs/img/sar_situational_map.png)
 
-<sub>Live situational map from a patrol in the urban NLoS world: the UAV-mounted base
-station (blue diamond), the two ground-robot UEs (ALPHA/BRAVO), a detected victim heat
-source, building footprints, the coverage radius, and the current line-of-sight state —
-all driven by real Gazebo poses feeding the OAI channel bridge.</sub>
+<sub>The live situational map from the same scenario: the UAV-mounted base station (blue
+diamond), the two ground-robot UEs (ALPHA/BRAVO), a detected victim heat source, building
+footprints, the coverage radius, and the current line-of-sight state — all driven by real
+Gazebo poses feeding the OAI channel bridge.</sub>
 
 ---
 
