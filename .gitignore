@@ -23,3 +23,8 @@ build/
 ros_ws/build/
 ros_ws/log/
 ros_ws/install/
+
+# Generated run logs. Files already committed under logs/ stay tracked;
+# this stops NEW patrol/soak/bridge output from being committed.
+# To force-add a curated log or figure anyway:  git add -f logs/<path>
+logs/
