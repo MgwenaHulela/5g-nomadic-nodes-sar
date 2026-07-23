@@ -203,6 +203,10 @@ ping 10.45.0.2                               # downlink/C2 over air
 Legacy soak test (pre-dates the netns move — its in-root-ns test commands
 need updating before reuse): `./soak_test.sh --duration 2700`.
 
+**Full operational guide:** [`docs/WORLDS_RUNBOOK.md`](docs/WORLDS_RUNBOOK.md) —
+selecting the world (open field vs. urban NLoS), running every patrol mode,
+camera/video streaming over 5G, and end-to-end troubleshooting.
+
 ---
 
 ## Known issues / open items

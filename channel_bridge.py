@@ -61,15 +61,21 @@ SHADOW_DCORR_M = 20.0     # m, shadow-fading decorrelation distance
 
 
 def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ,
-                  los_blocked=None):
-    """A2G path loss = FSPL + LoS/NLoS excess.
+                  los_blocked=None, excess_db=0.0):
+    """A2G path loss = FSPL + LoS/NLoS excess + terrain excess.
 
     los_blocked=None (open-field): LoS *probability* from the elevation
     angle (Al-Hourani sigmoid), the graded model used for the LoS study.
-    los_blocked=True/False (urban): LoS is *deterministic* — set by a
-    geometric check of whether a building blocks the UAV->UE ray. This is
-    what makes the urban world's obstacles genuinely shadow the link, so
-    that climbing the UAV to clear a rooftop restores LoS.
+    los_blocked=True/False (urban/forest/hills/indoor): LoS is
+    *deterministic* — set by a geometric check of whether an obstacle
+    blocks the UAV->UE ray. This is what makes each world's obstacles
+    genuinely shadow the link, so that climbing the UAV to clear a
+    rooftop / ridge / canopy restores LoS.
+    excess_db: extra attenuation from graded terrain clutter — foliage
+    depth (Weissberger), terrain diffraction (knife-edge), or building
+    penetration — layered on top of the FSPL+LoS/NLoS baseline. This is
+    what lets forest/hills/indoor worlds add *continuous* loss instead
+    of only a binary block.
     """
     d_3d = math.sqrt(d_horiz ** 2 + (h_uav - h_ue) ** 2)
     d_3d = max(d_3d, POSITION_MIN_D)
@@ -79,7 +85,7 @@ def a2g_path_loss(d_horiz, h_uav, h_ue=UE_HEIGHT, freq_ghz=FREQ_GHZ,
         los_p = 1.0 / (1.0 + A_COEFF * math.exp(-B_COEFF * (theta - A_COEFF)))
     else:
         los_p = 0.0 if los_blocked else 1.0
-    pl = fspl + los_p * ETA_LOS + (1.0 - los_p) * ETA_NLOS
+    pl = fspl + los_p * ETA_LOS + (1.0 - los_p) * ETA_NLOS + excess_db
     return pl, los_p, d_3d, theta
 
 
@@ -222,14 +228,54 @@ def _detect_world():
 WORLD = _detect_world()
 POSE_TOPIC = f"/world/{WORLD}/pose/info"
 
-# Urban NLoS coupling: when the urban world is selected, import the shared
-# building geometry and switch the channel to a deterministic line-of-sight
-# check (see a2g_path_loss). Open-field keeps the probabilistic model.
-_URBAN = WORLD == "sar_urban"
-if _URBAN:
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "worlds"))
+# ── Per-world terrain coupling ───────────────────────────────────────────────
+# Each world defines world_channel(uav, ue) -> (los_blocked, excess_db):
+#   los_blocked: True/False forces deterministic NLoS/LoS; None keeps the
+#                open-field probabilistic elevation-angle model.
+#   excess_db:   graded extra attenuation from terrain clutter (foliage
+#                depth, terrain diffraction, building penetration) added on
+#                top of FSPL+LoS/NLoS.
+# The obstacle geometry is imported from a shared module that ALSO drives
+# the world SDF generator, so the radio and the visuals agree on where the
+# trees / hills / walls are. Open-field is the graded-probability baseline.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "worlds"))
+
+if WORLD == "sar_urban":
     from urban_buildings import any_blocked, BUILDINGS
+
+    def world_channel(uav, ue):
+        return (any_blocked(uav, ue), 0.0)
     print(f"[urban] NLoS active — {len(BUILDINGS)} buildings drive LoS/NLoS")
+
+elif WORLD == "sar_forest":
+    from forest_trees import foliage_depth, foliage_loss_db, TREES, DEPTH_NLOS_M
+
+    def world_channel(uav, ue):
+        depth = foliage_depth(uav, ue)
+        return (depth >= DEPTH_NLOS_M, foliage_loss_db(depth))
+    print(f"[forest] foliage attenuation active — {len(TREES)} trees "
+          f"(Weissberger, NLoS >= {DEPTH_NLOS_M} m canopy)")
+
+elif WORLD == "sar_hills":
+    from terrain_hills import terrain_diffraction_db, HILLS, DIFFRACTION_NLOS_DB
+
+    def world_channel(uav, ue):
+        loss = terrain_diffraction_db(uav, ue)
+        return (loss >= DIFFRACTION_NLOS_DB, loss)
+    print(f"[hills] terrain diffraction active — {len(HILLS)} hills "
+          f"(ITU-R P.526 knife-edge, NLoS >= {DIFFRACTION_NLOS_DB} dB)")
+
+elif WORLD == "sar_indoor":
+    from indoor_building import indoor_loss, WALLS
+
+    def world_channel(uav, ue):
+        return indoor_loss(uav, ue)   # (blocked, excess_db)
+    print(f"[indoor] building-penetration active — {len(WALLS)} walls "
+          f"(roof + per-wall loss when the robot is inside)")
+
+else:
+    def world_channel(uav, ue):
+        return (None, 0.0)
 
 # {model_name: (x, y, z)}
 positions = {}
@@ -428,11 +474,13 @@ def main():
                     continue
                 prev_accepted[ue_name] = d_horiz
 
-                # Urban: does a building block the UAV->UE ray? (deterministic
-                # LoS). Open-field: None -> probabilistic elevation-angle model.
-                blocked = any_blocked(uav, ue_pos) if _URBAN else None
+                # Per-world terrain coupling: deterministic LoS block and/or
+                # graded excess loss (foliage / diffraction / wall). Open-field
+                # returns (None, 0) -> probabilistic elevation-angle model.
+                blocked, excess = world_channel(uav, ue_pos)
                 pl, los_p, d_3d, theta = a2g_path_loss(d_horiz, uav_h,
-                                                       los_blocked=blocked)
+                                                       los_blocked=blocked,
+                                                       excess_db=excess)
                 delta = pl - pl_ref
                 speed = compute_speed(ue_name, ue_pos, now)
                 ch_type = select_channel_type(los_p)

@@ -32,13 +32,24 @@ SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 OAI_DIR="$HOME/openairinterface5g"
 
 # World selector: SAR_WORLD picks the Gazebo world (default open field).
-# 'sar_urban' loads the NLoS building world; the bridge reads the same
-# SAR_WORLD to switch its channel model. If the urban SDF is missing,
-# (re)generate it from the shared building list.
+# The generated worlds share their obstacle geometry with channel_bridge.py,
+# which reads the same SAR_WORLD to switch its channel model:
+#   sar_open_field  flat, probabilistic LoS (no generator)
+#   sar_urban       building NLoS            (make_urban_world.py)
+#   sar_forest      Weissberger foliage      (make_forest_world.py)
+#   sar_hills       knife-edge diffraction   (make_hills_world.py)
+#   sar_indoor      enterable building / O2I (make_indoor_world.py)
+# If a generated world's SDF is missing, (re)generate it from its module.
 WORLD="${SAR_WORLD:-sar_open_field}"
 export SAR_WORLD="$WORLD"
-if [[ "$WORLD" == "sar_urban" && ! -f "$SELF_DIR/worlds/sar_urban.sdf" ]]; then
-  python3 "$SELF_DIR/worlds/make_urban_world.py"
+declare -A WORLD_GEN=(
+  [sar_urban]=make_urban_world.py
+  [sar_forest]=make_forest_world.py
+  [sar_hills]=make_hills_world.py
+  [sar_indoor]=make_indoor_world.py
+)
+if [[ -n "${WORLD_GEN[$WORLD]:-}" && ! -f "$SELF_DIR/worlds/$WORLD.sdf" ]]; then
+  python3 "$SELF_DIR/worlds/${WORLD_GEN[$WORLD]}"
 fi
 CONF_DIR="$SELF_DIR/oai_configs"
 
