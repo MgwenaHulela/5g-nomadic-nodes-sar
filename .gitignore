@@ -18,3 +18,8 @@ docs/paper/*.zip
 
 # SarMetricsTable GUI plugin build artifacts (cmake --build build)
 build/
+
+# ROS 2 / colcon build artifacts (contained a leaked env dump — never commit)
+ros_ws/build/
+ros_ws/log/
+ros_ws/install/

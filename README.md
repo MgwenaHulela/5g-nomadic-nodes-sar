@@ -128,7 +128,215 @@ sar_sim/
 
 ---
 
-## Environment
+## Requirements
+
+This is a full 5G-SA-over-simulator testbed, not a single package — it stitches
+together OAI, a 5G core, ROS 2, and Gazebo. Budget time for the one-time install
+of the external stacks; after that the whole thing is one command.
+
+### Hardware
+
+| Resource | Recommended |
+|---|---|
+| CPU | x86-64, 8+ physical cores (OAI PHY is CPU-heavy) |
+| RAM | 16 GB+ |
+| Disk | ~40 GB free (OAI + core + models + logs; OAI writes ~5 GB/h of PHY logs) |
+| GPU | Not required — Gazebo runs **headless** (`gz sim -s`). A GTX 1650 crashes `gzclient`, so the GUI is optional and separate. |
+| Privileges | `sudo`/root — needed for network namespaces, TUN interfaces, and the Open5GS systemd services |
+
+### Software prerequisites (installed once, outside this repo)
+
+| Component | Version | Notes / install pointer |
+|---|---|---|
+| Ubuntu | 22.04 LTS | Reference platform |
+| ROS 2 | Humble | https://docs.ros.org/en/humble/Installation.html |
+| Gazebo | Harmonic (`gz-sim` 8.x) | https://gazebosim.org/docs/harmonic/install |
+| OpenAirInterface 5G | `develop` (rfsimulator) | Build `nr-softmodem` + `nr-uesoftmodem`. Expected at `$HOME/openairinterface5g`. https://gitlab.eurecom.fr/oai/openairinterface5g |
+| Open5GS | 2.8.0 | Installed as systemd services (`open5gs-*`). https://open5gs.org/open5gs/docs/guide/01-quickstart/ |
+| MongoDB | 6.0 | Open5GS subscriber DB |
+| iperf3 | 3.16 (from source) | Must have `--bind-dev` support — the distro package is too old. https://github.com/esnet/iperf |
+| TurtleBot3 sim | Humble | `turtlebot3_simulations` + `turtlebot3_description` — provides the ground-robot (burger) Gazebo models |
+| PX4 Gazebo models | — | Provides the x500 UAV model. Any checkout of `PX4-gazebo-models` works. |
+| Python | 3.10 | See `requirements.txt` |
+
+Python packages (see [`requirements.txt`](requirements.txt)): `numpy`, `pandas`,
+`matplotlib`, `mavsdk`, plus the **`gz-transport` Python bindings** (installed
+with Gazebo Harmonic, not via pip).
+
+---
+
+## Installation (from a fresh clone)
+
+The install is in two parts: **A.** install the external stacks (one-time, the
+heavy part — budget an afternoon, mostly for the OAI build), then **B.** set up
+this repo. All commands target **Ubuntu 22.04**.
+
+> Tip: run the prerequisite installs from a scratch directory in `$HOME`. The
+> paths below (`$HOME/openairinterface5g`, `$HOME/turtlebot3_ws`, …) are the ones
+> `start_full_stack.sh` expects — keep them, or update the script in Part B step 4.
+
+### Part A — install the external stacks
+
+**A1. Base build tools**
+
+```bash
+sudo apt update
+sudo apt install -y git build-essential cmake curl gnupg lsb-release \
+                    software-properties-common python3-pip
+```
+
+**A2. ROS 2 Humble + colcon**
+
+```bash
+sudo add-apt-repository universe -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+     -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" \
+     | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+sudo apt update
+sudo apt install -y ros-humble-desktop ros-dev-tools python3-colcon-common-extensions
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+```
+
+**A3. Gazebo Harmonic + the ROS–Gazebo bridge**
+
+```bash
+sudo curl https://packages.osrfoundation.org/gazebo.gpg \
+     --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+     | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+sudo apt update
+sudo apt install -y gz-harmonic ros-humble-ros-gzharmonic
+# gz-harmonic ships the `gz` CLI *and* the gz-transport Python bindings the scripts use.
+```
+
+**A4. 5G core — MongoDB 6.0 + Open5GS**
+
+```bash
+# MongoDB 6.0 (Open5GS subscriber DB)
+curl -fsSL https://pgp.mongodb.com/server-6.0.asc \
+     | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" \
+     | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+sudo apt update && sudo apt install -y mongodb-org mongodb-mongosh
+sudo systemctl enable --now mongod
+
+# Open5GS 2.8.x (installs the open5gs-* systemd services)
+sudo add-apt-repository ppa:open5gs/latest -y
+sudo apt update && sudo apt install -y open5gs
+```
+
+Optionally install the Open5GS WebUI for point-and-click subscriber management
+(needs Node.js) — see https://open5gs.org/open5gs/docs/guide/01-quickstart/.
+
+**A5. OpenAirInterface 5G (gNB + UE, rfsimulator)** — the long one
+
+```bash
+git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git ~/openairinterface5g
+cd ~/openairinterface5g
+git checkout develop
+source oaienv
+cd cmake_targets
+./build_oai -I                          # first time only: pull external deps
+./build_oai -w SIMU --gNB --nrUE --ninja
+cd ~
+# Binaries land in ~/openairinterface5g/cmake_targets/ran_build/build/
+```
+
+**A6. iperf3 3.16 from source** (distro package lacks `--bind-dev`)
+
+```bash
+git clone https://github.com/esnet/iperf.git ~/iperf
+cd ~/iperf && git checkout 3.16
+./configure && make -j"$(nproc)" && sudo make install && sudo ldconfig
+cd ~ && iperf3 --version        # confirm 3.16
+```
+
+**A7. Robot models — TurtleBot3 (ground UGVs) + PX4 x500 (UAV)**
+
+```bash
+# TurtleBot3 (built from source for Gazebo Harmonic)
+mkdir -p ~/turtlebot3_ws/src && cd ~/turtlebot3_ws/src
+git clone -b humble https://github.com/ROBOTIS-GIT/turtlebot3.git
+git clone -b humble https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
+cd ~/turtlebot3_ws && colcon build --symlink-install
+echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
+
+# PX4 x500 UAV Gazebo model
+git clone https://github.com/PX4/PX4-gazebo-models.git ~/PX4-gazebo-models
+```
+
+### Part B — set up this repo
+
+**B1. Clone**
+
+```bash
+git clone https://github.com/MgwenaHulela/5g-nomadic-nodes-sar.git
+cd 5g-nomadic-nodes-sar          # (directory is `sar_sim` locally)
+```
+
+**B2. Python dependencies**
+
+```bash
+python3 -m pip install -r requirements.txt
+# gz-transport Python bindings come from the Gazebo Harmonic install (A3), not pip.
+```
+
+**B3. Build the ROS 2 workspace**
+
+```bash
+source /opt/ros/humble/setup.bash
+cd ros_ws && colcon build && cd ..
+source ros_ws/install/setup.bash
+```
+
+**B4. Point the launcher at *your* tool locations**
+
+`start_full_stack.sh` currently hard-codes a few absolute paths — edit these to
+match where Part A put things (or export the equivalents before running):
+
+| Variable (in `start_full_stack.sh`) | Default | What it must point at |
+|---|---|---|
+| `OAI_DIR` | `$HOME/openairinterface5g` | Your OAI build tree (A5) |
+| `PX4_MODELS` | `$HOME/Desktop/.../PX4-gazebo-models/models` | x500 UAV models (A7) |
+| `TB3_MODELS` | `$HOME/turtlebot3_ws/.../turtlebot3_gazebo/models` | TurtleBot3 models (A7) |
+| `TB3_DESC` | `$HOME/turtlebot3_ws/.../turtlebot3_description` | TurtleBot3 description (A7) |
+
+**B5. Register the two UE subscribers in Open5GS**
+
+Add both IMSIs to the Open5GS subscriber DB (via the Open5GS WebUI or `mongosh`),
+with key/OPc matching `oai_configs/nrue_alpha.conf` / `nrue_bravo.conf`:
+
+| UE | IMSI | Tunnel IP |
+|---|---|---|
+| alpha | `999700123456780` | `10.45.0.2` |
+| bravo | `999700123456781` | `10.45.0.3` |
+
+**B6. Provide the sudo password to the launcher**
+
+```bash
+cp .env.example .env
+# edit .env: set SAR_SUDO_PASS=... (git-ignored), or configure passwordless sudo
+export $(grep -v '^#' .env | xargs)
+```
+
+**B7. (Optional) Build the in-scene metrics GUI plugin**
+
+Only needed if you run the Gazebo GUI. See `SarMetricsTable` build notes; then
+`export GZ_GUI_PLUGIN_PATH=$(pwd)/build`.
+
+**B8. Bring it up**
+
+```bash
+./start_full_stack.sh        # core -> RAN -> Gazebo -> models -> bridge -> netns
+./verify_stack.sh            # confirm gNB + both UEs attached
+```
+
+See **Running** below for the experiment commands once the stack is up.
+
+---
+
+## Environment (tested versions)
 
 | Component | Version / detail |
 |---|---|

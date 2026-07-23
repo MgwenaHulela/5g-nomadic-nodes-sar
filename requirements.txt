@@ -1,0 +1,9 @@
+# Python dependencies for the SAR 5G nomadic-nodes testbed.
+#
+# NOTE: the Gazebo Python bindings (`gz-transport` / `gz.msgs`) are NOT on PyPI.
+# They are installed system-wide with Gazebo Harmonic. Everything below is pip-installable.
+
+numpy
+pandas
+matplotlib
+mavsdk        # PX4 UAV control (offboard / position hold) via MAVSDK
