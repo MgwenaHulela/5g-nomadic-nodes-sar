@@ -422,6 +422,32 @@ UE identities:
 
 ## Running
 
+### The easy way — `sar.py` control centre
+
+`sar.py` is the single front door: pick a terrain, start the stack, run patrols,
+stream a feed over 5G, fly the UAV, or do a full research run — from one menu or
+as scriptable subcommands.
+
+```bash
+./sar.py                       # interactive menu (start / patrol / stream / fly / collect / status / stop)
+
+# …or drive it directly:
+./sar.py start   --world sar_urban
+./sar.py patrol  --mode search --speed 1.5 --duration 900   # structured area-coverage search
+./sar.py patrol  --mode free   --speed 2.0                  # robots roam freely (cmd_vel)
+./sar.py stream  --kind camera --robot bravo --sensor rgb   # watch the robot's POV over 5G
+./sar.py collect --world sar_urban --mode search --speed 1.5 --duration 1800
+./sar.py status
+./sar.py stop
+```
+
+Patrol modes: `linear`, `random`, `both`, `free` (continuous roam), `circle`,
+`search` (lawnmower area coverage), `nomadic` (UAV flies a schedule, robots
+follow). `--speed` sets robot speed (m/s) for the continuous modes; the
+interactive menu prompts for it too.
+
+### The manual way
+
 ```bash
 cd ~/sar_sim
 ./start_full_stack.sh          # brings up EVERYTHING, gated at every step
