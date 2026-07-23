@@ -171,11 +171,29 @@ The install is in two parts: **A.** install the external stacks (one-time, the
 heavy part — budget an afternoon, mostly for the OAI build), then **B.** set up
 this repo. All commands target **Ubuntu 22.04**.
 
+### Quick path — one command installs everything
+
+On a fresh Ubuntu 22.04 machine, the whole prerequisite stack (ROS 2, Gazebo,
+Open5GS + MongoDB, OpenAirInterface, iperf3, robot models, Python packages) is:
+
+```bash
+git clone https://github.com/MgwenaHulela/5g-nomadic-nodes-sar.git
+cd 5g-nomadic-nodes-sar
+./install_requirements.sh            # installs the entire pipeline (needs sudo)
+```
+
+It's re-runnable and you can install one piece at a time, e.g.
+`./install_requirements.sh oai` (components: `base ros gz core oai iperf models python`).
+When it finishes, skip to **Part B, step B4** to wire up paths and subscribers.
+
+Prefer to do it by hand, or need to adapt a step? The rest of this section is
+exactly what the script runs, spelled out.
+
+### Part A — install the external stacks (what the script does)
+
 > Tip: run the prerequisite installs from a scratch directory in `$HOME`. The
 > paths below (`$HOME/openairinterface5g`, `$HOME/turtlebot3_ws`, …) are the ones
 > `start_full_stack.sh` expects — keep them, or update the script in Part B step 4.
-
-### Part A — install the external stacks
 
 **A1. Base build tools**
 
