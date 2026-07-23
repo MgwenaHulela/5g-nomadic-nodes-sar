@@ -10,6 +10,13 @@ logs used to validate stability.
 > Supervisor: Dr. Joyce Mwangama
 > Funding: Telkom-NRF FutureTech Programme, DIGITAfrica (Horizon Europe)
 
+![SAR fleet situational map — UAV base station, two ground robots, a detected victim, building footprints and the coverage radius](docs/img/sar_situational_map.png)
+
+<sub>Live situational map from a patrol in the urban NLoS world: the UAV-mounted base
+station (blue diamond), the two ground-robot UEs (ALPHA/BRAVO), a detected victim heat
+source, building footprints, the coverage radius, and the current line-of-sight state —
+all driven by real Gazebo poses feeding the OAI channel bridge.</sub>
+
 ---
 
 ## What this is
