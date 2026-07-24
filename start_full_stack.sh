@@ -136,19 +136,7 @@ if pgrep -f "gz sim" >/dev/null 2>&1; then
   sleep 2
 fi
 
-# The camera / thermal SENSORS need a working render context. On headless
-# NVIDIA boxes (e.g. the GTX 1650 here) the default Mesa EGL path fails to
-# create a dri2 screen, so the sensor topics exist but publish NO frames —
-# and camera streaming (stream_camera.sh) shows a blank/frozen feed. Force
-# NVIDIA's own EGL vendor + offscreen rendering so the sensors actually
-# render. Guarded by the vendor file so non-NVIDIA machines are unaffected.
-NV_EGL="/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
-if [[ -f "$NV_EGL" ]]; then
-  export __EGL_VENDOR_LIBRARY_FILENAMES="$NV_EGL"
-  export __GLX_VENDOR_LIBRARY_NAME=nvidia
-fi
-
-gz sim -r -s --headless-rendering "$SELF_DIR/worlds/$WORLD.sdf" -v 1 &>/tmp/gz_sim.log &
+gz sim -r -s "$SELF_DIR/worlds/$WORLD.sdf" -v 1 &>/tmp/gz_sim.log &
 GZ_PID=$!
 for i in $(seq 1 15); do
   sleep 1
