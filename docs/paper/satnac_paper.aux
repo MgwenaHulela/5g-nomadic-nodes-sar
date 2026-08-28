@@ -1,0 +1,90 @@
+\relax 
+\citation{zeng2016wireless,zeng2019accessing,mozaffari2019tutorial}
+\citation{alhourani2014optimal,3gpp36777}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\citation{alhourani2014optimal}
+\citation{zeng2016wireless,zeng2019accessing}
+\citation{mozaffari2019tutorial}
+\citation{3gpp36777,3gpp38901}
+\citation{weissberger1982}
+\citation{ituP526}
+\citation{nikaein2014oai}
+\citation{open5gs}
+\citation{koenig2004gazebo}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Why Protocol-in-the-Loop Emulation}{2}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A rendered terrain instance (urban). The x500 UAV carries the gNB; two TurtleBot3 robots are the ground UEs. The same building footprints seen here are imported by the channel bridge so the radio shadowing matches the visible scene.}}{2}{}\protected@file@percent }
+\newlabel{fig:world}{{1}{2}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Software stack and roles}}{2}{}\protected@file@percent }
+\newlabel{tab:software}{{I}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}System Architecture}{2}{}\protected@file@percent }
+\newlabel{sec:arch}{{IV}{2}}
+\citation{alhourani2014optimal}
+\citation{weissberger1982}
+\citation{ituP526}
+\citation{3gpp38901}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Testbed architecture. The channel loop (pose $\rightarrow $ bridge $\rightarrow $ RAN) closes the coupling between physical motion \emph  {in terrain} and radio conditions; user traffic is measured over the emulated air interface after namespace isolation.}}{3}{}\protected@file@percent }
+\newlabel{fig:arch}{{2}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Geometry and the Terrain-Parameterized A2G Channel}{3}{}\protected@file@percent }
+\newlabel{sec:channel}{{V}{3}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces The five terrains and their NLoS mechanism}}{3}{}\protected@file@percent }
+\newlabel{tab:terrain}{{II}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Channel validation: emulated injected path loss vs.\ per-sample model prediction, on the diagonal (MAE ${\sim }1.2$\nobreakspace  {}dB). The measurements below are a consequence of the intended physics, not artifacts.}}{4}{}\protected@file@percent }
+\newlabel{fig:parity}{{3}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Traffic Model and Metrics}{4}{}\protected@file@percent }
+\newlabel{sec:metrics}{{VI}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Mobility and Propagation-Aware Coverage Governance}{4}{}\protected@file@percent }
+\newlabel{sec:control}{{VII}{4}}
+\newlabel{eq:rsafe}{{9}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Emulation correctness safeguards}{4}{}\protected@file@percent }
+\newlabel{sec:pitfalls}{{\mbox  {VII-A}}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Experimental Setup}{4}{}\protected@file@percent }
+\newlabel{sec:setup}{{VIII}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Results}{4}{}\protected@file@percent }
+\newlabel{sec:results}{{IX}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Propagation and coverage across terrains}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Measured path loss vs.\ gNB--robot slant distance (binned means) per terrain. Forest rises steeply with distance; open field and hills stay low; urban is intermediate.}}{5}{}\protected@file@percent }
+\newlabel{fig:ploss}{{4}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Watching the drone move}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}Moving the drone: the effect flips with terrain}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}What it costs the mission: streaming and control}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Coverage field over the search area (weaker UE), per terrain. Left: link attenuation for a \emph  {static} drone at the origin (red star; white contour = usable edge). Right: fraction of time each point is covered as a \emph  {nomadic} drone roams. Urban is fractured by building shadows; forest never coheres; open field's field is radial and spreads as the drone moves.}}{5}{}\protected@file@percent }
+\newlabel{fig:covmap}{{5}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-E}}Throughput and coverage as the UE moves}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-F}}The real stack adapts}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces C2 connectivity over the 6-hour mission, per terrain, both UEs (rolling availability); dashed line = static$\to $nomadic transition (3\nobreakspace  {}h), shaded = nomadic. UE\nobreakspace  {}$\beta $ steadies under nomadism in open field; forest collapses when the drone starts moving.}}{6}{}\protected@file@percent }
+\newlabel{fig:tsc2}{{6}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-G}}Device budget and the weakest radio}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-H}}Keeping robots connected in NLoS}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces C2 availability by terrain and gNB phase (bar = robot mean; whiskers span the two UEs). Nomadism helps in open field, is neutral in urban, and hurts in hills and forest.}}{6}{}\protected@file@percent }
+\newlabel{fig:c2}{{7}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces C2 availability and mean link metrics by terrain and gNB phase (robot-averaged). $\Delta $ is nomadic$-$static C2 (pp).}}{6}{}\protected@file@percent }
+\newlabel{tab:main}{{III}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-I}}Indoor: a coverage limit}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Delivered video rate and loss, static vs.\ nomadic gNB per terrain. Forest video collapses to $1.9$\nobreakspace  {}Mbit/s ($>70\%$ loss) under a nomadic drone; open-field nomadism instead \emph  {helps} the weak UE.}}{7}{}\protected@file@percent }
+\newlabel{fig:video}{{8}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces TCP goodput vs.\ UE--gNB distance, static vs.\ nomadic gNB, per terrain. Nomadism flattens the open-field cliff (the drone follows the robot) but cannot lift the blocked forest link.}}{7}{}\protected@file@percent }
+\newlabel{fig:tputdist}{{9}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {X}Discussion}{7}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Uplink spectral efficiency and downlink BLER, static vs.\ nomadic per terrain. In forest-nomadic the scheduler drops MCS while HARQ keeps BLER bounded---the real stack adapting.}}{7}{}\protected@file@percent }
+\newlabel{fig:linkadapt}{{10}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Link-recovery events per 6-hour trial. Forest requires by far the most governor interventions; urban and hills incur zero failed re-attaches.}}{7}{}\protected@file@percent }
+\newlabel{fig:events}{{11}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {XI}Limitations}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {XII}Conclusion and Future Work}{7}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{XII}{7}}
+\bibcite{zeng2016wireless}{1}
+\bibcite{zeng2019accessing}{2}
+\bibcite{mozaffari2019tutorial}{3}
+\bibcite{alhourani2014optimal}{4}
+\bibcite{3gpp36777}{5}
+\bibcite{3gpp38901}{6}
+\bibcite{weissberger1982}{7}
+\bibcite{ituP526}{8}
+\bibcite{nikaein2014oai}{9}
+\bibcite{open5gs}{10}
+\bibcite{koenig2004gazebo}{11}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Indoor O2I path loss over time (low-hovering gNB). Both robots sit at the RLF cliff throughout; the interior offers no reliably covered pocket.}}{8}{}\protected@file@percent }
+\newlabel{fig:indoor}{{12}{8}}
+\@writefile{toc}{\contentsline {section}{References}{8}{}\protected@file@percent }
+\gdef \@abspage@last{8}

@@ -45,12 +45,34 @@ declare -A DST=( [alpha]=10.0.0.200  [bravo]=10.0.0.201 )
 declare -A PORT=([alpha]=5604        [bravo]=5605 )
 ns="${NS[$ROBOT]}"; dst="${DST[$ROBOT]}"; vport="${PORT[$ROBOT]}"
 # Camera sensor has no explicit <topic>, so gz auto-scopes it to the model
-# name the world assigned (sar_ground_alpha/bravo). Override with SAR_WORLD.
-WORLD="${SAR_WORLD:-sar_urban}"
+# name the world assigned (sar_ground_alpha/bravo). The world name is part of
+# the topic path, so it must match whichever world is *actually running* — a
+# stale ghost topic from a previous world lingers in `gz topic -l` and will
+# happily accept a subscription while publishing nothing (black/frozen feed).
+# So: honour SAR_WORLD if set, else auto-detect the live world from a topic
+# that carries frames for THIS robot's camera.
+TOPICS="$(gz topic -l 2>/dev/null)"
+if [ -n "${SAR_WORLD:-}" ]; then
+  WORLD="$SAR_WORLD"
+else
+  # Candidate worlds that expose this robot's camera image topic.
+  CANDIDATES="$(printf '%s\n' "$TOPICS" \
+    | sed -n "s#^/world/\([^/]*\)/model/sar_ground_${ROBOT}/link/${LINK}/sensor/${SNAME}/image\$#\1#p")"
+  # Prefer a candidate whose model is fully loaded (has a lidar scan topic) — a
+  # stale ghost from a previous world carries only the lone camera topic.
+  WORLD=""
+  for w in $CANDIDATES; do
+    if printf '%s\n' "$TOPICS" | grep -qx "/world/$w/model/sar_ground_${ROBOT}/link/sar_lidar_link/sensor/lidar/scan"; then
+      WORLD="$w"; break
+    fi
+  done
+  WORLD="${WORLD:-$(printf '%s\n' "$CANDIDATES" | head -n1)}"
+  WORLD="${WORLD:-sar_urban}"   # fall back to the historical default
+fi
 topic="/world/${WORLD}/model/sar_ground_${ROBOT}/link/${LINK}/sensor/${SNAME}/image"
 
 # camera topic present?
-if ! gz topic -l 2>/dev/null | grep -qx "$topic"; then
+if ! printf '%s\n' "$TOPICS" | grep -qx "$topic"; then
   echo "WARNING: $topic not found. Restart the stack so the camera-equipped" >&2
   echo "         model reloads (SAR_WORLD=$WORLD ./start_full_stack.sh)." >&2
 fi
