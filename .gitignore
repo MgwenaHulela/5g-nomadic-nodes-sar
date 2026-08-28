@@ -10,8 +10,15 @@ worlds/PX4-Autopilot
 
 # LibreOffice/editor lock files
 .~lock.*#
-# local export bundles
-docs/paper/*.zip
+
+# Paper sources, figures and conference templates stay local (untracked).
+# They remain on disk; git just ignores them. To track one anyway:
+#   git add -f docs/paper/<path>
+docs/paper/
+docs/IEEE-conference-template-062824/
+docs/IEEE-conference-template-062824.pdf
+docs/IEEEtranBST2.zip
+docs/conference-latex-template.zip
 
 # local secrets / environment
 .env
