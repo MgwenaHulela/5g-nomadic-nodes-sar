@@ -32,7 +32,29 @@ OUTPUT = LOG_DIR / f"metrics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
 # Regex patterns
 RE_PBCH_RSRP = re.compile(r"pbch rx ok\. rsrp:([\d.]+) dB/RE")
+
+# Combined SS measurement line, emitted by nr-uesoftmodem every 2 NR frames
+# (20 ms / 50 Hz — measured 2026-10-16 over 4608/4608 consecutive intervals):
+#   [PHY] [UE 0] ssb 0 SS-RSRP: -42 dBm/RE (51.263523 dB/RE), SS-SINR: 51.099998 dB
+#
+# The bracketed dB/RE value is the SAME measurement at full float precision;
+# the leading dBm integer is it truncated to 1 dB. Over a 43,332-sample
+# reference capture the integer took 32 distinct values and the float 4,002,
+# so parsing only the integer throws away ~2 orders of magnitude of
+# resolution and manufactures long artificial plateaus in the series
+# (DATA_AUDIT.md 4.1b). Capture both: `ss_rsrp` stays the integer dBm for
+# backward compatibility, `ss_rsrp_dBre` carries the full-precision value.
+#
+# Empirically int(dBm) == floor(dB/RE - 92.31); the absolute calibration
+# constant is OAI-internal, so dB/RE is logged raw rather than rebased.
+RE_SS_COMBINED = re.compile(
+    r"SS-RSRP:\s*(-?\d+)\s*dBm/RE\s*\(\s*(-?[\d.]+)\s*dB/RE\s*\)\s*,\s*"
+    r"SS-SINR:\s*(-?[\d.]+)\s*dB"
+)
+# Fallbacks for builds/formats that print the fields separately (older soak
+# logs). These only fire when the combined line above does not match.
 RE_SS_RSRP = re.compile(r"SS-RSRP:\s*([-\d]+)\s*dBm/RE")
+RE_SS_RSRP_DBRE = re.compile(r"SS-RSRP:.*?\(\s*(-?[\d.]+)\s*dB/RE\s*\)")
 RE_SS_SINR = re.compile(r"SS-SINR:\s*([-\d.]+)\s*dB")
 RE_DL_HARQ = re.compile(r"DL harq:\s*([\d]+)/([\d]+)")
 RE_UL_HARQ = re.compile(
@@ -80,8 +102,10 @@ def parse_ue_metrics(lines, prev=None):
 
     Returns: {
         "pbch_rsrp": float | None,
-        "ss_rsrp": float | None,
+        "ss_rsrp": float | None,        # integer dBm, 1 dB truncation
+        "ss_rsrp_dBre": float | None,   # same measurement, full precision
         "ss_sinr": float | None,
+        "ss_samples": int,              # fresh SS lines in this chunk; 0 = stale
         "dl_harq_ok": int, "dl_harq_nok": int,
         "ul_code_rate": float, "ul_bits_per_sym": float,
         "ul_nb_rbs": float, "ul_nb_sym": float,
@@ -92,7 +116,9 @@ def parse_ue_metrics(lines, prev=None):
     m = {}
     pbch_rsrp = prev.get("pbch_rsrp")  # carry over sparse metrics
     ss_rsrp = prev.get("ss_rsrp")
+    ss_rsrp_dBre = prev.get("ss_rsrp_dBre")
     ss_sinr = prev.get("ss_sinr")
+    ss_samples = 0          # fresh SS measurements seen in THIS chunk
     dl_ok, dl_nok = 0, 0  # fresh cumulative from this chunk only
     ul_stats = []
 
@@ -102,12 +128,25 @@ def parse_ue_metrics(lines, prev=None):
         if r:
             pbch_rsrp = float(r.group(1))
 
-        # SS-RSRP (soak test format, at initial sync)
+        # Combined SS-RSRP/SS-SINR line (the 50 Hz stream) — preferred.
+        r = RE_SS_COMBINED.search(line)
+        if r:
+            ss_rsrp = float(r.group(1))
+            ss_rsrp_dBre = float(r.group(2))
+            ss_sinr = float(r.group(3))
+            ss_samples += 1
+            continue
+
+        # SS-RSRP (older split format)
         r = RE_SS_RSRP.search(line)
         if r:
             ss_rsrp = float(r.group(1))
+            ss_samples += 1
+            r2 = RE_SS_RSRP_DBRE.search(line)
+            if r2:
+                ss_rsrp_dBre = float(r2.group(1))
 
-        # SS-SINR (soak test format, at initial sync)
+        # SS-SINR (older split format)
         r = RE_SS_SINR.search(line)
         if r:
             ss_sinr = float(r.group(1))
@@ -132,7 +171,12 @@ def parse_ue_metrics(lines, prev=None):
 
     m["pbch_rsrp"] = pbch_rsrp
     m["ss_rsrp"] = ss_rsrp
+    m["ss_rsrp_dBre"] = ss_rsrp_dBre
     m["ss_sinr"] = ss_sinr
+    # How many fresh SS measurements this chunk contained. 0 means every SS
+    # field above is carried over from `prev` and is therefore STALE — the
+    # caller must not treat it as a new observation (DATA_AUDIT.md 4.3).
+    m["ss_samples"] = ss_samples
     m["dl_harq_ok"] = dl_ok
     m["dl_harq_nok"] = dl_nok
     total_dl = dl_ok + dl_nok
@@ -165,6 +209,8 @@ def main():
                         help="Run duration in seconds (0 = forever)")
     parser.add_argument("--ue-log", action="append",
                         help="Path to UE log (can be given twice: alpha + bravo)")
+    parser.add_argument("--interval", type=float, default=5.0,
+                        help="Seconds between rows (default 5)")
     args = parser.parse_args()
 
     ue_logs = {}
@@ -185,7 +231,10 @@ def main():
             header += [
                 f"{label}_pbch_rsrp",
                 f"{label}_ss_rsrp_dBm",
+                f"{label}_ss_rsrp_dBre",
                 f"{label}_ss_sinr_dB",
+                f"{label}_ss_samples",
+                f"{label}_ss_age_s",
                 f"{label}_ul_bits_per_sym",
                 f"{label}_ul_code_rate",
                 f"{label}_ul_nb_rbs", f"{label}_ul_nb_sym",
@@ -195,24 +244,37 @@ def main():
         w.writerow(header)
 
         t0 = time.time()
+        # Wall-clock of the last chunk that actually contained a fresh SS
+        # measurement, per UE. Drives the *_ss_age_s column so a consumer can
+        # tell a real observation from a carried-over one.
+        last_fresh = {label: None for label in ue_logs}
         try:
             while True:
                 if args.duration and (time.time() - t0) > args.duration:
                     break
 
+                now = time.time()
                 row = [datetime.now(timezone.utc).isoformat()]
 
                 for label, log_path in ue_logs.items():
                     lines, seen[label] = tail_file(log_path, seen[label])
-                    m = parse_ue_metrics(lines)
-                    if m:
-                        prev_metrics[label] = m
-                    m = prev_metrics[label]
+                    # Carry `prev` in so sparse fields persist; `ss_samples`
+                    # then reports whether anything in THIS chunk was fresh.
+                    m = parse_ue_metrics(lines, prev_metrics[label])
+                    prev_metrics[label] = m
+
+                    if m.get("ss_samples", 0) > 0:
+                        last_fresh[label] = now
+                    age = ("" if last_fresh[label] is None
+                           else round(now - last_fresh[label], 3))
 
                     row += [
                         m.get("pbch_rsrp", ""),
                         m.get("ss_rsrp", ""),
+                        m.get("ss_rsrp_dBre", ""),
                         m.get("ss_sinr", ""),
+                        m.get("ss_samples", 0),
+                        age,
                         m.get("ul_bits_per_sym", ""),
                         m.get("ul_code_rate", ""),
                         m.get("ul_nb_rbs", ""),
@@ -224,7 +286,7 @@ def main():
 
                 w.writerow(row)
                 f.flush()
-                time.sleep(5)
+                time.sleep(args.interval)
 
         except KeyboardInterrupt:
             print("\nStopped.")

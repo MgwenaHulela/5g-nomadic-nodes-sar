@@ -28,10 +28,15 @@ from gz.msgs10.pose_v_pb2 import Pose_V
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 NS = "sar_patrol"
-ID_BEAM_ALPHA = 100
-ID_BEAM_BRAVO = 101
-ID_ORB_ALPHA = 200
-ID_ORB_BRAVO = 201
+# Marker ids are allocated per robot from these bases, so adding a robot to
+# the roster adds its beam and orb automatically. Kept apart so the two
+# families never collide as the roster grows.
+ID_BEAM_BASE = 100
+ID_ORB_BASE = 200
+ID_BEAM_ALPHA = ID_BEAM_BASE      # retained: referenced by the clear path
+ID_BEAM_BRAVO = ID_BEAM_BASE + 1
+ID_ORB_ALPHA = ID_ORB_BASE
+ID_ORB_BRAVO = ID_ORB_BASE + 1
 
 # ── Lazy-initialised globals ──────────────────────────────────────────────────
 _node = None
@@ -169,10 +174,9 @@ def publish_metrics_json(payload):
     _publish_string("json", json.dumps(payload, separators=(",", ":")))
 
 
-def update_viz(ux, uy, uz,
-               ax, ay, az, a_ploss, a_d,
-               bx, by, bz, b_ploss, b_d,
-               t_elapsed):
+def update_viz(ux, uy, uz, robots, t_elapsed):
+    """`robots` maps robot name -> (x, y, z, ploss, d). Driven by ROBOTS so
+    the scene shows every rostered robot rather than a hardcoded pair."""
     """Update all visualisation elements in one call.
 
     Beam color encodes link health:
@@ -181,40 +185,34 @@ def update_viz(ux, uy, uz,
       red    = C2 (command/e-stop) link LOST
       neutral cyan/orange = netns inactive, C2 not measurable
     """
-    a_c2_rtt, a_c2_st = _c2_state["alpha"]
-    b_c2_rtt, b_c2_st = _c2_state["bravo"]
-    a_color = _health_color(a_ploss, a_c2_rtt, a_c2_st, COLOR_NEUTRAL_A)
-    b_color = _health_color(b_ploss, b_c2_rtt, b_c2_st, COLOR_NEUTRAL_B)
+    c2 = {r: _c2_state.get(r, (0.0, "na")) for r in robots}
+    colors = {}
+    for i, (r, (_x, _y, _z, pl, _d)) in enumerate(robots.items()):
+        neutral = COLOR_NEUTRAL_A if i % 2 == 0 else COLOR_NEUTRAL_B
+        colors[r] = _health_color(pl, c2[r][0], c2[r][1], neutral)
 
     # Beams (color = link health). NOTE: no in-scene text labels — the
     # render engines behind the GUI reject Marker type TEXT ("Invalid
     # Marker type 7" spam in OgreMarker.cc), so numeric readouts live in
     # the TopicEcho "Metrics" panel (/sar/metrics) instead.
-    m1 = _beam(ux, uy, uz, ax, ay, az, a_color)
-    m1.id = ID_BEAM_ALPHA
-    _publish_marker(m1)
-
-    m2 = _beam(ux, uy, uz, bx, by, bz, b_color)
-    m2.id = ID_BEAM_BRAVO
-    _publish_marker(m2)
-
-    # Health orb floating above each robot — visible from any zoom level
-    # where the tiny burger itself isn't.
-    m3 = _orb(ax, ay, az + 1.2, a_color)
-    m3.id = ID_ORB_ALPHA
-    _publish_marker(m3)
-
-    m4 = _orb(bx, by, bz + 1.2, b_color)
-    m4.id = ID_ORB_BRAVO
-    _publish_marker(m4)
+    # One beam and one health orb per rostered robot. The orb floats above
+    # the robot because a TurtleBot3 Burger is nearly invisible at the zoom
+    # levels used to watch a whole patrol.
+    for i, (r, (x, y, z, _pl, _d)) in enumerate(robots.items()):
+        mb = _beam(ux, uy, uz, x, y, z, colors[r])
+        mb.id = ID_BEAM_BASE + i
+        _publish_marker(mb)
+        mo = _orb(x, y, z + 1.2, colors[r])
+        mo.id = ID_ORB_BASE + i
+        _publish_marker(mo)
 
     def _c2_str(rtt, st):
         return {"ok": f"{rtt:.0f}ms", "lost": "LOST",
                 "stale": "stale?", "na": "n/a"}[st]
 
     # LoS/NLoS per robot from the same building geometry the channel uses.
-    a_los = _los_state((ux, uy, uz), (ax, ay, az))
-    b_los = _los_state((ux, uy, uz), (bx, by, bz))
+    los = {r: _los_state((ux, uy, uz), (x, y, z))
+           for r, (x, y, z, _pl, _d) in robots.items()}
 
     # One metrics dict per node — feeds both the JSON payload (the
     # SarMetricsTable GUI plugin) and the plain-text fallback below.
@@ -245,8 +243,9 @@ def update_viz(ux, uy, uz,
         }
 
     nodes = [
-        _node("ALPHA", "alpha", a_d, a_ploss, a_c2_rtt, a_c2_st, a_los),
-        _node("BRAVO", "bravo", b_d, b_ploss, b_c2_rtt, b_c2_st, b_los),
+        _node(r.upper(), r, robots[r][4], robots[r][3],
+              c2[r][0], c2[r][1], los.get(r, ""))
+        for r in robots
     ]
     publish_metrics_json({
         "t": t_elapsed,
@@ -297,7 +296,15 @@ def _detect_world():
 
 _WORLD = _detect_world()
 _POSE_TOPIC = f"/world/{_WORLD}/pose/info"
-_TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
+# Roster, matching ROBOT_SPEC in auto_patrol.py and scripts/robots.env.
+# This is the VISUALISATION layer only — beams, labels and the /sar/metrics
+# panel. It was left at two robots when the testbed went to four on
+# 2026-10-19, so the GUI drew alpha and bravo and silently omitted charlie
+# and delta even though all four were in the world and logging normally.
+ROBOTS = [r.strip() for r in
+          os.environ.get("SAR_ROBOTS", "alpha,bravo,charlie,delta").split(",")
+          if r.strip()]
+_TARGET_MODELS = {"sar_uav"} | {f"sar_ground_{r}" for r in ROBOTS}
 _positions = {}
 _bridge_log = Path("/tmp/ch_bridge.log")
 
@@ -323,9 +330,10 @@ def _los_state(uav, ue_pos):
 # ── C2 (command/downlink) live probe ─────────────────────────────────────────
 # One small ping base->robot every ~2s per UE. Only meaningful when the
 # robot netns is active (otherwise the reply path is loopback, not air).
-UE_IPS = {"alpha": "10.45.0.2", "bravo": "10.45.0.3"}
+_ALL_UE_IPS = {"alpha":"10.45.0.2","bravo":"10.45.0.3","charlie":"10.45.0.4","delta":"10.45.0.5"}
+UE_IPS = {r: _ALL_UE_IPS[r] for r in ROBOTS if r in _ALL_UE_IPS}
 # side -> (rtt_ms, status) with status in {"ok", "lost", "na"}
-_c2_state = {"alpha": (0.0, "na"), "bravo": (0.0, "na")}
+_c2_state = {r: (0.0, "na") for r in ROBOTS}
 
 # Beam colors by link health
 COLOR_HEALTHY = (0.15, 0.9, 0.25)   # green
@@ -413,14 +421,20 @@ UAV_DEFAULT_H = 40.0
 UE_HEIGHT = 0.1
 
 # ── L1 (measured RSRP/SINR) + live throughput ────────────────────────────────
-UE_LOGS   = {"alpha": "/tmp/ue_alpha.log", "bravo": "/tmp/ue_bravo.log"}
-UE_TUN    = {"alpha": "oaitun_ue1",        "bravo": "oaitun_ue1p2"}
-UE_TESTIP = {"alpha": "10.0.0.200",        "bravo": "10.0.0.201"}
-UE_NS     = {"alpha": "robot_alpha",       "bravo": "robot_bravo"}
+_ALL_UE_LOGS = {"alpha":"/tmp/ue_alpha.log","bravo":"/tmp/ue_bravo.log","charlie":"/tmp/ue_charlie.log","delta":"/tmp/ue_delta.log"}
+UE_LOGS = {r: _ALL_UE_LOGS[r] for r in ROBOTS if r in _ALL_UE_LOGS}
+_ALL_UE_TUN = {"alpha":"oaitun_ue1","bravo":"oaitun_ue1p2","charlie":"oaitun_ue1p3","delta":"oaitun_ue1p4"}
+UE_TUN = {r: _ALL_UE_TUN[r] for r in ROBOTS if r in _ALL_UE_TUN}
+_ALL_UE_TESTIP = {"alpha":"10.0.0.200","bravo":"10.0.0.201","charlie":"10.0.0.202","delta":"10.0.0.203"}
+UE_TESTIP = {r: _ALL_UE_TESTIP[r] for r in ROBOTS if r in _ALL_UE_TESTIP}
+_ALL_UE_NS = {r: f"robot_{r}" for r in ("alpha", "bravo", "charlie", "delta")}
+# Roster-driven like every other map above. This was alpha/bravo only, so
+# _measure_tp("charlie") raised KeyError and killed the monitor thread.
+UE_NS     = {r: _ALL_UE_NS[r] for r in ROBOTS if r in _ALL_UE_NS}
 SUDO_PASS = os.environ.get("SAR_SUDO_PASS", "")
 
 _l1_state = {"alpha": (None, None), "bravo": (None, None)}  # (rsrp_dBm, sinr_dB)
-_tp_state = {"alpha": None, "bravo": None}                  # TCP Mbps
+_tp_state = {r: None for r in ROBOTS}                       # TCP Mbps
 
 
 def _read_l1(ue_log):
@@ -442,14 +456,33 @@ def _read_l1(ue_log):
     return None, None
 
 
+_COL = {"alpha": "a", "bravo": "b", "charlie": "c", "delta": "d"}
+
+
+def _latest_run_csv():
+    """Newest CSV written by a running driver, patrol OR research campaign.
+
+    This used to glob patrol_*.csv only. A research campaign writes to
+    logs/campaign_*/..._research.csv, so the guard found nothing, returned
+    None, and the panel silently showed stale throughput for the whole run.
+    """
+    import glob
+    base = Path.home() / "sar_sim" / "logs"
+    cands = glob.glob(str(base / "patrol_*.csv")) + glob.glob(str(base / "campaign_*" / "*.csv"))
+    cands = [c for c in cands if not c.endswith(("_actions.csv", "_fastradio.csv", "manifest.csv"))]
+    if not cands:
+        return None
+    return max(cands, key=lambda f: Path(f).stat().st_mtime)
+
+
 def _tp_from_latest_csv():
     """When a patrol owns the iperf servers, read the last CSV row's TCP
     goodput rather than measuring (avoids a server-busy collision)."""
-    import glob
     try:
-        csvs = sorted(glob.glob(str(Path.home() / "sar_sim" / "logs" / "patrol_*.csv")))
-        if not csvs:
+        latest = _latest_run_csv()
+        if not latest:
             return None, None
+        csvs = [latest]
         hdr = subprocess.run(["head", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
         vals = subprocess.run(["tail", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
         def col(name):
@@ -458,6 +491,12 @@ def _tp_from_latest_csv():
                 return float(v) if v not in ("", None) else None
             except (ValueError, IndexError):
                 return None
+        # Returned per-robot for the whole roster; the two-value form is kept
+        # for the caller below, which still tracks alpha/bravo positionally.
+        for r in ROBOTS:
+            v = col(f"{_COL[r]}_tcp_tp_mbps")
+            if v is not None:
+                _tp_state[r] = v
         return col("a_tcp_tp_mbps"), col("b_tcp_tp_mbps")
     except Exception:
         return None, None
@@ -470,9 +509,10 @@ def _c2_from_latest_csv():
     import glob
     out = {}
     try:
-        csvs = sorted(glob.glob(str(Path.home() / "sar_sim" / "logs" / "patrol_*.csv")))
-        if not csvs:
+        latest = _latest_run_csv()
+        if not latest:
             return out
+        csvs = [latest]
         hdr = subprocess.run(["head", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
         vals = subprocess.run(["tail", "-1", csvs[-1]], capture_output=True, text=True, timeout=3).stdout.strip().split(",")
         def col(name):
@@ -481,8 +521,8 @@ def _c2_from_latest_csv():
                 return float(v) if v not in ("", None) else None
             except (ValueError, IndexError):
                 return None
-        for side, rk, lk in (("alpha", "a_c2_rtt_ms", "a_c2_loss_pct"),
-                             ("bravo", "b_c2_rtt_ms", "b_c2_loss_pct")):
+        for side, rk, lk in [(r, f"{_COL[r]}_c2_rtt_ms", f"{_COL[r]}_c2_loss_pct")
+                             for r in ROBOTS if r in _COL]:
             rtt, loss = col(rk), col(lk)
             if rtt is not None and loss is not None:
                 out[side] = (rtt, loss)
@@ -498,9 +538,13 @@ def _sweep_iperf(side):
     throughput reading stuck at 0). Empty SUDO_PASS just fails auth fast via
     -S rather than blocking on a prompt."""
     try:
+        # Match THIS probe's distinctive flag, not every iperf3 aimed at the
+        # test IP. The broad pattern also matched traffic_streams.py's
+        # persistent campaign flows (-t 86400) and any shell whose command
+        # line merely mentioned the probe, killing both.
         subprocess.run(
             ["sudo", "-S", "-p", "", "pkill", "-f",
-             f"iperf3 -c {UE_TESTIP[side]}"],
+             f"iperf3 -c {UE_TESTIP[side]} .*--connect-timeout"],
             capture_output=True, text=True, timeout=5, input=SUDO_PASS + "\n")
     except Exception:
         pass
@@ -516,7 +560,8 @@ def _measure_tp(side):
     try:
         r = subprocess.run(
             ["sudo", "-S", "-p", "", "ip", "netns", "exec", UE_NS[side],
-             "iperf3", "-c", UE_TESTIP[side], "--bind-dev", UE_TUN[side],
+             # no --bind-dev: iperf 3.9 lacks it; the netns pins the tun
+             "iperf3", "-c", UE_TESTIP[side],
              "--connect-timeout", "2000", "-t", "1", "-J"],
             capture_output=True, text=True, timeout=8, input=SUDO_PASS + "\n")
         return round(json.loads(r.stdout)["end"]["sum_received"]["bits_per_second"] / 1e6, 1)
@@ -601,29 +646,23 @@ def main():
         ux, uy, uz = uav
         uz = uz if uz > 0 else UAV_DEFAULT_H
 
-        alpha = _positions.get("sar_ground_alpha", U_MISSING)
-        ax, ay, az = alpha
-        az = az if az > 0 else UE_HEIGHT
+        robots = {}
+        for r in ROBOTS:
+            x, y, z = _positions.get(f"sar_ground_{r}", U_MISSING)
+            z = z if z > 0 else UE_HEIGHT
+            pl, d = _find_latest_ploss(r)
+            robots[r] = (x, y, z, pl, d)
 
-        bravo = _positions.get("sar_ground_bravo", U_MISSING)
-        bx, by, bz = bravo
-        bz = bz if bz > 0 else UE_HEIGHT
+        update_viz(ux, uy, uz, robots, now)
 
-        a_ploss, a_d = _find_latest_ploss("alpha")
-        b_ploss, b_d = _find_latest_ploss("bravo")
-
-        update_viz(
-            ux, uy, uz,
-            ax, ay, az, a_ploss, a_d,
-            bx, by, bz, b_ploss, b_d,
-            now,
-        )
-
-        a_c2 = _c2_state["alpha"]
-        b_c2 = _c2_state["bravo"]
-        print(f"[gazebo_viz] α({ax:.1f},{ay:.1f}) ploss={a_ploss:.1f}dB C2={a_c2[1]}:{a_c2[0]:.0f}ms  "
-              f"β({bx:.1f},{by:.1f}) ploss={b_ploss:.1f}dB C2={b_c2[1]}:{b_c2[0]:.0f}ms  t={now:.0f}s",
-              flush=True)
+        glyph = {"alpha": "\u03b1", "bravo": "\u03b2",
+                 "charlie": "\u03b3", "delta": "\u03b4"}
+        parts = []
+        for r, (x, y, _z, pl, _d) in robots.items():
+            st, rtt = _c2_state.get(r, (0.0, "na"))[1], _c2_state.get(r, (0.0, "na"))[0]
+            parts.append(f"{glyph.get(r, r[0])}({x:.0f},{y:.0f}) "
+                         f"pl={pl:.0f}dB C2={st}:{rtt:.0f}ms")
+        print(f"[gazebo_viz] {'  '.join(parts)}  t={now:.0f}s", flush=True)
 
 
 if __name__ == "__main__":

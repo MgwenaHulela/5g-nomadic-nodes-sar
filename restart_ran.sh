@@ -10,6 +10,7 @@
 set -uo pipefail
 
 OAI_DIR=/home/innocentmsc/openairinterface5g
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/robots.env"
 CONF_DIR=/home/innocentmsc/sar_sim/oai_configs
 UE_ARGS="-r 106 --numerology 1 --band 78 -C 3319680000 --ssb 516"
 
@@ -60,40 +61,39 @@ pgrep -f nr-softmodem >/dev/null || die "gNB died on startup — check /tmp/gnb.
 ss -ltn | grep -q ":4043 " || die "gNB up but rfsim port 4043 not listening"
 gate "gNB running, rfsim listening"
 
-echo "== 5. Start UE alpha =="
-nohup ./cmake_targets/ran_build/build/nr-uesoftmodem \
-  --telnetsrv --rfsim -O "$CONF_DIR/nrue_alpha.conf" $UE_ARGS \
-  > /tmp/ue_alpha.log 2>&1 &
-# wait up to 120s for PDU session (TUN appearing) — rfsim runs at ~2% realtime
-for i in $(seq 1 60); do
-  sleep 2
-  ip addr show oaitun_ue1 >/dev/null 2>&1 && break
-  [ $((i % 10)) -eq 0 ] && echo "  still waiting for alpha TUN ... (${i}s)"
+# UEs are started one at a time, each waiting for its own TUN before the
+# next begins. Attach order matters: the core assigns 10.45.0.x addresses
+# sequentially, and ROBOT_UE_IP in scripts/robots.env assumes that order.
+step=5
+for r in "${ROBOT_NAMES[@]}"; do
+  tun="${ROBOT_TUN[$r]}"; conf="${ROBOT_CONF[$r]}"; log="${ROBOT_LOG[$r]}"
+  echo "== $step. Start UE $r =="
+  nohup ./cmake_targets/ran_build/build/nr-uesoftmodem \
+    --telnetsrv --rfsim -O "$CONF_DIR/$conf" $UE_ARGS \
+    > "$log" 2>&1 &
+  # wait up to 120s for PDU session (TUN appearing) — rfsim runs at ~2% realtime
+  for i in $(seq 1 60); do
+    sleep 2
+    ip addr show "$tun" >/dev/null 2>&1 && break
+    [ $((i % 10)) -eq 0 ] && echo "  still waiting for $r TUN ... (${i}s)"
+  done
+  ip addr show "$tun" >/dev/null 2>&1 || \
+    die "$r TUN ($tun) never appeared — check $log (tail -30)"
+  gate "$r attached ($(ip -4 addr show "$tun" | grep -oP 'inet \K[\d.]+'))"
+  step=$((step + 1))
 done
-ip addr show oaitun_ue1 >/dev/null 2>&1 || die "alpha TUN never appeared — check /tmp/ue_alpha.log (tail -30)"
-gate "alpha attached ($(ip -4 addr show oaitun_ue1 | grep -oP 'inet \K[\d.]+'))"
-
-echo "== 6. Start UE bravo =="
-nohup ./cmake_targets/ran_build/build/nr-uesoftmodem \
-  --telnetsrv --rfsim -O "$CONF_DIR/nrue_bravo.conf" $UE_ARGS \
-  > /tmp/ue_bravo.log 2>&1 &
-for i in $(seq 1 60); do
-  sleep 2
-  ip addr show oaitun_ue1p2 >/dev/null 2>&1 && break
-  [ $((i % 10)) -eq 0 ] && echo "  still waiting for bravo TUN ... (${i}s)"
-done
-ip addr show oaitun_ue1p2 >/dev/null 2>&1 || die "bravo TUN never appeared — check /tmp/ue_bravo.log (tail -30)"
-gate "bravo attached ($(ip -4 addr show oaitun_ue1p2 | grep -oP 'inet \K[\d.]+'))"
 
 echo "== 7. Final process-count gate =="
 # NOTE: this OAI build forks a companion process per softmodem (observed:
 # every launch yields exactly 2 processes with consecutive PIDs). So one
-# gNB = 2 processes, two UEs = 4 processes.
+# gNB = 2 processes, and N UEs = 2N processes.
+UE_EXPECT=$((ROBOT_COUNT * 2))
 GNB_N=$(pgrep -c nr-softmodem)
 UE_N=$(pgrep -c nr-uesoftmodem)
 [[ "$GNB_N" -eq 2 ]] || die "expected 2 gNB processes (1 launch x fork pair), found $GNB_N"
-[[ "$UE_N" -eq 4 ]] || die "expected 4 UE processes (2 launches x fork pair), found $UE_N"
-gate "1 gNB launch + 2 UE launches (fork pairs accounted for), no extras"
+[[ "$UE_N" -eq "$UE_EXPECT" ]] || \
+  die "expected $UE_EXPECT UE processes ($ROBOT_COUNT launches x fork pair), found $UE_N"
+gate "1 gNB launch + $ROBOT_COUNT UE launches (fork pairs accounted for), no extras"
 
 echo "== 8. Full verification =="
 cd ~/sar_sim || die "sar_sim dir not found"
