@@ -1,0 +1,214 @@
+{
+  "_README": [
+    "Experiment configuration for the terrain-blind predictive ML layer.",
+    "Every value here is either a decision recorded with its reason, or a",
+    "number DERIVED FROM DATA with the derivation named. Nothing is a guess.",
+    "Consumed by the planner, the forecaster evaluation, and the PPO reward;",
+    "the simulator reads its own constants from scripts/auto_patrol.py.",
+    "Regenerate the derived values with: python3 scripts/derive_thresholds.py"
+  ],
+  "link_quality": {
+    "rsrp_floor_dBm": -68.0,
+    "_rsrp_floor_provenance": [
+      "DERIVED 2026-10-19 from 5854 pooled (RSRP, C2) observations across all",
+      "five archive terrains. The brief's default of -80 dBm is unusable: the",
+      "minimum RSRP ever observed is -78 dBm and ZERO rows fall below -80, so",
+      "margin = rsrp - floor is identically positive and the soft-min objective",
+      "in brief 5.3 has nothing to optimise.",
+      "C2 availability has a clear knee: <-75 dBm 13.0%, -75..-70 28.9%,",
+      "-70..-65 64.0%, -65..-60 73.8%, -60..-55 90.1%, >-55 ~96%.",
+      "At -68 dBm: 34.5% availability below vs 93.8% above (59 pp gap) with",
+      "5.6% of rows below \u2014 both discriminative and non-degenerate.",
+      "Holds per terrain: forest 65.7/90.8, hills 19.4/94.6,",
+      "open_field 18.4/92.5, urban 42.3/97.1 (below/above, % available).",
+      "CAVEAT 1: derived from the INTEGER dBm field, which is a 1 dB",
+      "truncation. ss_rsrp_dBre now logs full precision; re-derive from new",
+      "campaign data, the floor may shift ~1 dB.",
+      "CAVEAT 2: indoor does NOT separate at this floor (8.3% vs 18.2%)",
+      "because everything there was failing. Recheck after the geometry retune."
+    ],
+    "sinr_floor_dB": 22.0,
+    "_sinr_floor_provenance": [
+      "DERIVED by the same procedure as the RSRP floor: 31.4% availability",
+      "below vs 93.7% above (62.3 pp gap) with 5.1% of rows below.",
+      "Marginally the stronger discriminator of the two, but the brief",
+      "specifies RSRP for the margin, so RSRP is the default and this is",
+      "recorded as the alternative basis.",
+      "Same indoor caveat: does not separate there (10.0% vs 16.7%)."
+    ],
+    "c2_available_rule": "ping_loss_pct < 50 over the cycle window",
+    "_c2_rule_note": [
+      "Brief 5.2. Ping loss is close to the label, so every forecaster result",
+      "must be reported WITH and WITHOUT ping-loss history as an input."
+    ]
+  },
+  "forbidden_model_inputs": [
+    "ploss_dB",
+    "rsrp_computed_dBm",
+    "terrain",
+    "any terrain one-hot"
+  ],
+  "_forbidden_note": [
+    "Brief 5.1. ploss_dB is the injected simulator ground truth.",
+    "rsrp_computed_dBm is algebraically the same quantity: measured",
+    "rsrp_computed + ploss is constant at -37.0 dB with corr = -1.000",
+    "(DATA_AUDIT.md 4.5). terrain is recorded for evaluation, stratification",
+    "and the terrain-given ablation ONLY."
+  ],
+  "forecast_horizons_s": {
+    "fast": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "cycle": [
+      30,
+      60,
+      120
+    ],
+    "_note": [
+      "The fast horizons need the 10 Hz fast-radio log (scripts/",
+      "fast_radio_sampler.py). The per-cycle CSV cannot support them: its",
+      "median cadence is 22.8 s with 2 robots and roughly double with 4,",
+      "so a 30 s history window spans ~1.3 rows (DATA_AUDIT.md 4.1)."
+    ]
+  },
+  "excitation": {
+    "actions": [
+      "hold",
+      "step",
+      "climb",
+      "descend",
+      "toward_weak",
+      "away_weak"
+    ],
+    "weights": [
+      0.3,
+      0.25,
+      0.12,
+      0.12,
+      0.12,
+      0.09
+    ],
+    "dwell_long_s": [
+      30,
+      90
+    ],
+    "dwell_short_s": [
+      15,
+      35
+    ],
+    "_dwell_note": [
+      "Long dwell keeps each slow measurement cycle inside one action, which",
+      "the per-cycle throughput and C2 columns need to be attributable.",
+      "Short dwell roughly triples labelled actions per hour for the",
+      "surrogate, which trains off the 10 Hz log where action boundaries are",
+      "exact regardless of dwell. Campaign seed round 0 uses long, later",
+      "rounds short (run_research_campaign.sh)."
+    ]
+  },
+  "campaign": {
+    "terrains_validated": [
+      "sar_open_field",
+      "sar_urban",
+      "sar_forest",
+      "sar_hills"
+    ],
+    "terrains_conditional": [
+      "sar_indoor"
+    ],
+    "_indoor_note": [
+      "Indoor was coverage-dead until 2026-10-19: a +-35 m UAV wander box",
+      "around a 60x40 m building parked the node 30-35 m away at 15-35 m",
+      "altitude. The O2I model was never the limiter \u2014 it matches 3GPP",
+      "TR 38.901 and contributes only 11.5-14 dB. Geometry retuned to a",
+      "+-32 m box at 8-20 m so the node can circle the perimeter closely.",
+      "This CHANGES THE SCENARIO rather than fixing a bug, and belongs in",
+      "the paper's method section: the old setup was not wrong, it was",
+      "hopeless, and a scenario where no action helps teaches nothing."
+    ],
+    "robots": [
+      "alpha",
+      "bravo",
+      "charlie",
+      "delta"
+    ],
+    "_robot_note": [
+      "4-robot testbed built 2026-10-19. SAR_ROBOTS=alpha,bravo reproduces",
+      "the published 2-robot SATNAC configuration exactly. 4-robot data is",
+      "NOT directly comparable to the 2-robot baseline \u2014 four UEs share one",
+      "gNB, so scheduling contention differs. Treat them as separate",
+      "experiments in the paper."
+    ],
+    "seeds_per_terrain": 4,
+    "hours_per_run": 6
+  },
+  "splits": {
+    "by": [
+      "time_block",
+      "run_seed",
+      "leave_one_terrain_out"
+    ],
+    "never": "random rows",
+    "_note": "Brief 7. Random row splits leak across the history window."
+  },
+  "cell_capacity": {
+    "uplink_aggregate_mbps": 18.0,
+    "uplink_per_robot_mbps_4robots": 4.4,
+    "uplink_single_robot_mbps": 18.5,
+    "_provenance": [
+      "MEASURED 2026-10-20 with a dependency-free TCP harness, 30 s",
+      "sustained uplink, every figure confirmed at the receiver.",
+      "1 robot 18.5 Mb/s; 4 robots ~17.7 Mb/s aggregate (~4.4 each).",
+      "The cell tops out near 18 Mb/s TOTAL and shares it evenly.",
+      "NOT a 5G configuration limit: during a healthy flow the gNB runs",
+      "MCS 28 / Qm 6 (64QAM) / NPRB 106 at 23-25 dB SNR with BLER 0.",
+      "The binding constraint is the rfsimulator RU thread at 93% of one",
+      "core while the box sits near 31%. No config change moves it.",
+      "Traffic is UPLINK: the iperf3 client runs inside the robot netns,",
+      "so robots are senders. See DATA_AUDIT.md section 10."
+    ]
+  },
+  "traffic": {
+    "tcp_target_mbps_per_robot": 1.8,
+    "udp_target_mbps_per_robot": 0.7,
+    "_calibration": [
+      "CALIBRATED 2026-10-21 by running the real excitation policy at three",
+      "rates, each with fresh iperf3 servers and the 10-packet C2 ping:",
+      "  rate 1.5 -> C2 90%, TCP 1.02/1.00/1.01/0.95 across distance (FLAT)",
+      "  rate 2.5 -> C2 71%, TCP 1.89/1.72/1.62/1.19, corr(dist,TCP) -0.408",
+      "  rate 3.5 -> C2 41%, TCP 2.67/2.34/1.74/1.09, corr(dist,TCP) -0.577",
+      "Too low: throughput pinned at the cap, carries no link information.",
+      "Too high: cell saturates as the UAV roams, C2 collapses to 41%",
+      "(7-11% at long range) and the keep-connected objective is saturated",
+      "at DISCONNECTED with no headroom for the planner to improve.",
+      "2.5 keeps both alive: C2 grades 95/79/59/41% across distance bands."
+    ]
+  },
+  "known_defects_repaired": {
+    "iperf3_abi_clash": [
+      "REPAIRED 2026-10-20. /usr/bin/iperf3 (Ubuntu 3.9) was loading",
+      "/usr/local/lib/libiperf.so.0 from a source-built 3.16: same soname,",
+      "different ABI -> 'stack smashing detected' and SIGSEGV. Flows died",
+      "mid-test and were relaunched; that, NOT UE reattach, caused the",
+      "throughput restart artifacts. 3.16 backed up to",
+      "logs/archive/iperf3_local_backup_20261020/ and removed; ldconfig",
+      "re-run. --bind-dev dropped from traffic_streams.py, auto_patrol.py",
+      "and gazebo_viz.py (3.9 predates it, and it is redundant inside the",
+      "robot netns where the UE tun is the only route to the test IP)."
+    ]
+  },
+  "c2_measurement": {
+    "ping_packets": 10,
+    "ping_interval_s": 0.2,
+    "ping_timeout_s": 2,
+    "_note": [
+      "FIXED 2026-10-21. Was `ping -c 2`, so loss could only be 0/50/100%",
+      "and the label 'loss < 50%' required BOTH packets to arrive. That",
+      "biases hard toward failure: 90% per-packet delivery reads as 81%,",
+      "70% reads as 49%. Switching to 10 packets raised measured",
+      "availability from 28% to 47% on identical traffic."
+    ]
+  }
+}
