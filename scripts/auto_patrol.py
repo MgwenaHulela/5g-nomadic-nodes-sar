@@ -2363,7 +2363,11 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
         n_hold = n_act = 0
         while running.is_set():
             a_start = time.time()
-            pick = planner_holder["p"].choose()
+            # Decide from the LIVE pose, not from the last logged cycle: the
+            # planner now chooses an ABSOLUTE altitude target, and a target is
+            # only meaningful in the frame it was computed in.
+            x, y, z = current_uav()
+            pick = planner_holder["p"].choose(pose=(x, y, z))
             if pick is None:
                 # Not enough history yet, or a transient. Hold position: the
                 # planner declines to steer rather than guessing.

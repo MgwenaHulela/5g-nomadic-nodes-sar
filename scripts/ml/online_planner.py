@@ -97,14 +97,26 @@ class OnlinePlanner:
             self.log(f"[planner] ingest skipped: {type(e).__name__}: {e}")
 
     # -- decide -----------------------------------------------------------
-    def choose(self):
+    def choose(self, pose=None):
         """(dx, dy, dz, predicted_gain) or None if it cannot decide yet.
 
-        `dz` is the RATE-LIMITED step toward the chosen absolute altitude
-        target, so the caller's contract is unchanged -- it still receives a
-        relative move it can hand straight to the gNB. The target itself is
-        re-chosen from scratch every decision over the whole 20-60 m band,
-        which is what stops the ceiling ratchet of the first fly-off.
+        `pose` is the caller's LIVE (x, y, z). Pass it. The buffered CSV row
+        describes where the UAV was when that measurement cycle closed, which
+        is not where it is when the next decision is taken -- measured mean
+        gap 23.5 m in altitude over a forest run. Evaluating candidates in
+        one frame and applying the answer in another is harmless for a
+        relative "climb 10 m" but inverts the sign of a move toward an
+        ABSOLUTE target whenever the two disagree, which is what turned the
+        round-2 forest run into an oscillation between the geofence bounds
+        (57.6 % of commanded targets were clamped to 20 or 60 m, altitudes
+        this planner's own 25-55 m grid cannot produce).
+
+        So the live pose overrides the buffered UAV position before any
+        candidate is built, and the rate limit is applied against it too.
+        Robot positions necessarily remain as of the last cycle.
+
+        `dz` is the rate-limited step toward the chosen target, so the
+        caller's contract is unchanged.
         """
         try:
             if len(self.buf) < 4:
@@ -116,6 +128,11 @@ class OnlinePlanner:
             if len(block) < 2 or block[["uav_x_m", "uav_y_m",
                                         "uav_z_m"]].isna().any().any():
                 return None
+            if pose is not None:
+                # One frame for the whole decision -- see the docstring.
+                block["uav_x_m"] = float(pose[0])
+                block["uav_y_m"] = float(pose[1])
+                block["uav_z_m"] = float(pose[2])
             X = pd.concat([rebuild_geometry(block, *o) for o in self.offs],
                           ignore_index=True)
             for c in self.feats:
@@ -125,7 +142,8 @@ class OnlinePlanner:
                                                           len(block))
             j = np.array([soft_min_risk(r, self.beta) for r in p])
             i_best = int(j.argmin())
-            z_now = float(block["uav_z_m"].iloc[0])
+            z_now = float(pose[2]) if pose is not None else float(
+                block["uav_z_m"].iloc[0])
             i_hold = int(np.argmin(np.hypot(self.offs[:, 0], self.offs[:, 1])
                                    * 1e3
                                    + np.abs(self.offs[:, 2] - z_now)))
