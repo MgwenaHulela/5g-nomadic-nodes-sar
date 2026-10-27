@@ -2330,8 +2330,14 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
     PLANNER_DWELL_S = 30.0      # receding horizon: surrogate forecasts 60 s
 
     def _planner_pilot():
-        """Fly the Phase 5 planner: score 45 candidate waypoints against the
-        leave-one-terrain-out surrogate and take the best one.
+        """Fly the Phase 5 planner: score every candidate waypoint against
+        the leave-one-terrain-out surrogate and take the best one.
+
+        Candidates are ABSOLUTE altitude targets crossed with lateral
+        offsets, re-chosen from scratch each decision and approached under a
+        rate limit. The first fly-off chose a relative dz and ratcheted into
+        the altitude ceiling in every terrain; see "WHY ABSOLUTE TARGETS" in
+        scripts/ml/planner.py.
 
         The surrogate for this world was trained on the OTHER three terrains
         and never receives the terrain as an input, so the fly-off keeps the
@@ -2369,6 +2375,11 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                 action = ("climb" if dz > 0 else "descend" if dz < 0
                           else ("step" if (dx or dy) else "hold"))
                 n_act += 1
+                if n_act % 10 == 1:
+                    _zt = getattr(planner_holder["p"], "last_target", None)
+                    print(f"[planner] z={z:.0f} -> target "
+                          f"{_zt if _zt is None else f'{_zt:.0f}'} m "
+                          f"(step {dz:+.0f}), gain {gain:+.4f}", flush=True)
             tx, ty, tz = geofence_target(tx, ty, tz, gnb_xy, gnb_zmin,
                                          gnb_zmax, indoor=is_indoor)
             with action_lock:

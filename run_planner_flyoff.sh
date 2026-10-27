@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-# Phase 5 fly-off: run the planner policy on all four worlds with the SAME
-# seeds as the most recent `excite` runs, so the comparison is matched.
+# Phase 5 fly-off: run the planner policy on all four worlds.
 #
-# Baseline for comparison (already on disk, 5400 s each, excite):
+# ROUND 2 — the objective is now a global argmin over ABSOLUTE altitude targets
+# with a rate-limited move, not a relative hill-climb. Round 1 ratcheted into
+# the 60 m ceiling in every terrain (74-96 % of the time) and lost 12.0 pp in
+# forest for climbing where Phase 4 says not to. See "WHY ABSOLUTE TARGETS" in
+# scripts/ml/planner.py and CAMPAIGN_STATUS section 4.3.12.
+#
+# NOTE ON "MATCHED SEEDS": the seeds below are reused, but a replayed seed does
+# NOT replay the robot paths — the robot walk is closed-loop on the UAV
+# (auto_patrol.py:2415-2460), so changing the gNB policy changes which guard
+# fires and how far rng_bot is consumed. These are four independent runs of a
+# closed-loop system, and the analysis must control for robot geometry rather
+# than assume pairing. Round 1 measured robot-x correlation of +0.01..+0.67
+# against the matched-seed baseline.
+#
+# Comparators already on disk (5400 s each):
+#   round 1, planner with the RELATIVE objective, 2026-10-26/27:
+#     open_field campaign_20261026_222941   urban campaign_20261027_000120
+#     forest     campaign_20261027_013304   hills campaign_20261027_030546
+#   excite baseline:
 #   open_field 1792965139  campaign_20261025_235902
 #   urban      1792965140  campaign_20261026_013033
 #   forest     1792965141  campaign_20261026_030216
@@ -57,7 +74,17 @@ if ! grep -q "\[planner\] surrogate held out" "$RLOG" 2>/dev/null; then
   log "FATAL: no planner start line in $RLOG — aborting"
   exit 1
 fi
-log "confirmed: planner loaded and is steering"
+# Round 2 gate: confirm the ABSOLUTE-target objective is the one flying. Without
+# this the run would silently repeat round 1 if an import resolved to a stale
+# planner module.
+if ! grep -q "absolute z targets" "$RLOG" 2>/dev/null; then
+  log "FATAL: planner loaded but is NOT using absolute altitude targets —"
+  log "       this would repeat round 1. Start line was:"
+  grep "\[planner\] surrogate held out" "$RLOG" | tail -1 | tee -a "$LOG"
+  exit 1
+fi
+log "confirmed: planner loaded, using absolute altitude targets, and steering"
+grep "absolute z targets" "$RLOG" | tail -1 | sed 's/^/    /' | tee -a "$LOG"
 if [ "$STEER" -lt 1 ]; then
   log "FATAL: planner loaded but never steered — aborting"
   exit 1

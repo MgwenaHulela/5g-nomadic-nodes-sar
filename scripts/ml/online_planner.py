@@ -30,8 +30,9 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import dataset as ds                                  # noqa: E402
-from planner import (candidate_offsets, rebuild_geometry,   # noqa: E402
-                     soft_min_risk, Z_MIN, Z_MAX)
+from planner import (candidate_targets, rebuild_geometry,   # noqa: E402
+                     rate_limit, soft_min_risk, Z_MIN, Z_MAX,
+                     Z_TARGETS, MAX_DZ_STEP)
 
 SURR = ds.REPO / "logs" / "ml" / "surrogates"
 ROBOT_OF = {"a": "alpha", "b": "bravo", "c": "charlie", "d": "delta"}
@@ -47,14 +48,16 @@ class OnlinePlanner:
         self.hist_cols = meta["hist_cols"]
         self.model = lgb.Booster(
             model_file=str(SURR / f"surrogate_heldout_{terr}.txt"))
-        self.offs = candidate_offsets()
+        self.offs = candidate_targets()
         self.beta = beta
         self.buf: deque[pd.DataFrame] = deque(maxlen=KEEP_CYCLES)
         self.n_seen = 0
+        self.last_target = None
         self.log = log
         self.log(f"[planner] surrogate held out {terr}; "
-                 f"{len(self.feats)} features, {len(self.offs)} candidates, "
-                 f"beta={beta}")
+                 f"{len(self.feats)} features, {len(self.offs)} candidates "
+                 f"(absolute z targets {Z_TARGETS[0]:.0f}-{Z_TARGETS[-1]:.0f} m, "
+                 f"rate limit {MAX_DZ_STEP:.0f} m/decision), beta={beta}")
 
     # -- ingest -----------------------------------------------------------
     def ingest(self, header: list[str], row: list) -> None:
@@ -95,7 +98,14 @@ class OnlinePlanner:
 
     # -- decide -----------------------------------------------------------
     def choose(self):
-        """(dx, dy, dz, predicted_gain) or None if it cannot decide yet."""
+        """(dx, dy, dz, predicted_gain) or None if it cannot decide yet.
+
+        `dz` is the RATE-LIMITED step toward the chosen absolute altitude
+        target, so the caller's contract is unchanged -- it still receives a
+        relative move it can hand straight to the gNB. The target itself is
+        re-chosen from scratch every decision over the whole 20-60 m band,
+        which is what stops the ceiling ratchet of the first fly-off.
+        """
         try:
             if len(self.buf) < 4:
                 return None
@@ -115,10 +125,14 @@ class OnlinePlanner:
                                                           len(block))
             j = np.array([soft_min_risk(r, self.beta) for r in p])
             i_best = int(j.argmin())
-            i_hold = int(np.argmin(np.abs(self.offs).sum(axis=1)))
-            dx, dy, dz = self.offs[i_best]
-            return float(dx), float(dy), float(dz), float(j[i_hold]
-                                                          - j[i_best])
+            z_now = float(block["uav_z_m"].iloc[0])
+            i_hold = int(np.argmin(np.hypot(self.offs[:, 0], self.offs[:, 1])
+                                   * 1e3
+                                   + np.abs(self.offs[:, 2] - z_now)))
+            dx, dy, z_star = self.offs[i_best]
+            self.last_target = float(z_star)
+            return (float(dx), float(dy), rate_limit(z_now, float(z_star)),
+                    float(j[i_hold] - j[i_best]))
         except Exception as e:
             self.log(f"[planner] choose failed: {type(e).__name__}: {e}")
             return None
