@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Round-2 fly-off analysis: absolute-target planner vs relative planner vs
+"""Fly-off analysis: a new planner round vs the round-1 relative planner vs
 excitation, all at matched robot geometry.
 
 The three-way shape is the point. Round 1 could only contrast planner against
 excitation, which confounds "did the planner help" with "is a planner better
-than a random walk". Round 2 adds planner-vs-planner with the policy family,
+than a random walk". A later round adds planner-vs-planner with the policy family,
 the surrogate and the candidate lateral grid all held constant, so the only
 thing that differs is the objective -- which is the thing that was fixed.
 
@@ -13,8 +13,12 @@ comparator's exposure, because a replayed seed does NOT replay the robot paths
 (see run_planner_flyoff.sh). Block bootstrap over 20-cycle blocks, since C2 is
 strongly serially correlated.
 
-Usage:  python3 scripts/ml/flyoff_round2.py <v2_dir_open_field> <v2_urban> \
-                                            <v2_forest> <v2_hills>
+The round under test is passed on the command line; round 1 and the excitation
+baseline are fixed below. Used for round 2 (discarded to a reference-frame bug)
+and then round 3.
+
+Usage:  python3 scripts/ml/flyoff_round2.py <new_open_field> <new_urban> \
+                                            <new_forest> <new_hills>
 """
 import sys
 import numpy as np
@@ -92,8 +96,8 @@ def main():
     print("=" * 74)
     print("DID THE CEILING RATCHET GO AWAY?  (the thing that was fixed)")
     print("=" * 74)
-    print(f"{'terrain':11} {'round2 mean z':>13} {'%>=58m':>8} "
-          f"{'round1 mean z':>13} {'%>=58m':>8}   round2 z by quintile")
+    print(f"{'terrain':11} {'new mean z':>13} {'%>=58m':>8} "
+          f"{'round1 mean z':>13} {'%>=58m':>8}   new z by quintile")
     for t in terrs:
         a = pd.read_csv(f"logs/{v2[t]}/sar_{t}.csv", low_memory=False)
         b = pd.read_csv(f"logs/{V1[t]}/sar_{t}.csv", low_memory=False)
@@ -123,7 +127,10 @@ def main():
         res[label] = d4
 
     print("\n" + "=" * 74)
-    print("SIGN-FLIP RECOVERY: round-2 availability vs Phase 4 climb effect")
+    print("AVAILABILITY vs PHASE 4 CLIMB EFFECT")
+    print("  NOTE: the 'vs round-1' row is NOT a sign-flip test. It measures where")
+    print("  the objective fix helped, which is the INVERSE of where climbing helps,")
+    print("  so a NEGATIVE correlation there is the expected, desirable signature.")
     print("=" * 74)
     for label, d4 in res.items():
         x = [PH4[k] for k in terrs]
@@ -136,11 +143,12 @@ def main():
               f"sign agreement {sum(1 for a,b in zip(x,y) if np.sign(a)==np.sign(b))}/4")
 
     print("\n" + "=" * 74)
-    print("RAW worst-robot C2 availability (time-weighted, CONFOUNDED — context only)")
+    print("RAW worst-robot C2 availability = ALL FOUR robots up (time-weighted;")
+    print("CONFOUNDED, context only; near-zero in forest by arithmetic, not failure)")
     print("=" * 74)
     for t in terrs:
         r = []
-        for tag, d in (("round2", v2[t]), ("round1", V1[t]), ("excite", EX[t])):
+        for tag, d in (("new", v2[t]), ("round1", V1[t]), ("excite", EX[t])):
             df = pd.read_csv(f"logs/{d}/sar_{t}.csv", low_memory=False)
             dt = df["t_elapsed_s"].diff().shift(-1); dt.iloc[-1] = dt.median()
             ok = pd.concat([(df[f"{x}_c2_loss_pct"] < 50).astype(float)

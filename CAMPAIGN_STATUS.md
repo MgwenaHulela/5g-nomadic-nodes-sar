@@ -1,6 +1,6 @@
 # Campaign Status — where the project is right now
 
-**Snapshot: Tuesday 2026-10-27, 09:40 SAST — ALL ML PHASES 0–5 DONE; PHASE 5 FLY-OFF FLOWN AND ANALYSED**
+**Snapshot: Wednesday 2026-10-28, 00:45 SAST — ALL ML PHASES 0–5 DONE; PHASE 5 FLOWN THREE TIMES, OBJECTIVE FIXED**
 *(first written Sun 01:15; revised Sun 12:55, Mon 06:15 and Mon 11:10)*
 **Deadline being worked to: Monday 2026-10-26, 10:00 — start of model training**
 
@@ -1041,9 +1041,88 @@ climb here" once it is at the cap; it needs either an explicit cost on altitude,
 risk-vs-z argmax over the absolute band rather than a relative offset, or a wider Z_MAX so
 the ceiling stops binding. Until then the flown policy is weaker than the offline one.
 
+### 4.3.13 Phase 5 fly-off rounds 2 and 3 — fixing the objective
+
+**Round 2 is discarded in full.** The objective change was right (absolute altitude
+targets by global argmin, replacing the relative hill-climb) but the flight code
+carried a reference-frame defect of mine: `OnlinePlanner.choose()` rate-limited its
+step against the buffered research-CSV row while `_planner_pilot` applied that step to
+the UAV's live pose. Measured mean gap 23.5 m, 85.4 % of decisions off by >5 m. A
+relative "climb 10 m" is self-consistent in either frame, so round 1 is unaffected; a
+move toward an ABSOLUTE target inverts sign whenever the frames disagree. 57.6 % of
+forest's commanded targets were clamped to 20 or 60 m, altitudes the 25-55 m grid
+cannot produce. Fixed by threading the live pose through `choose()`
+(`scripts/ml/online_planner.py`), and guarded by `scripts/ml/test_planner_loop.py`,
+which closes the loop the pilot closes. Negative control on the old path, forest from
+60 m: 87.7 % of altitudes on a geofence bound, 85.4 % of steps moving AWAY from the
+chosen target, tracking error 17.95 m; fixed path, same data, 1.01 m. No open-loop
+replay could see this, and every one run before round 2 passed.
+
+**Round 3 (2026-10-27 18:29 -> 2026-10-28 00:37, 4 x 5400 s, all rc=0).** Zero
+commanded targets outside the grid in 697 decisions; zero time above 58 m anywhere.
+
+| terrain | mean z | sd | % at grid top (55 m) | round 1 mean z | round 1 % >= 58 m |
+|---|---|---|---|---|---|
+| hills | 53.4 | 3.25 | 74.1 % | 58.8 | 89.7 % |
+| open_field | 51.8 | 5.29 | 68.2 % | 59.2 | 95.9 % |
+| urban | 48.3 | 7.23 | 48.9 % | 56.7 | 82.6 % |
+| forest | **40.9** | **2.19** | **0.0 %** | 54.2 | 73.8 % |
+
+**The ratchet is gone** and forest holds a genuine interior set point for 90 minutes
+(quintiles 40.3, 41.0, 40.9, 40.4, 41.8 m), 7.4 m clear of the next terrain.
+
+**P(C2 up) at matched robot geometry, block bootstrap (BLOCK = 20, 600 reps):**
+
+| terrain | vs round-1 planner | vs excitation |
+|---|---|---|
+| forest | **+15.4 pp** [+8.3, +23.7] * | +2.6 pp [-10.4, +18.8] |
+| urban | **+5.3 pp** [+0.7, +10.0] * | **+23.7 pp** [+15.9, +32.4] * |
+| open_field | -3.1 pp [-8.1, +1.1] | **+12.8 pp** [+7.8, +18.5] * |
+| hills | -0.9 pp [-2.9, +0.6] | **+4.2 pp** [+1.5, +6.7] * |
+
+**The fix helped exactly where it was predicted to and nowhere else.** Against round 1
+it is significantly positive in forest (+15.4 pp, recovering round 1's -12.0 pp loss)
+and urban, and indistinguishable from zero in open_field and hills — the two terrains
+where climbing was already the right answer and the objective change should therefore
+change nothing. Against excitation, all four terrains are now positive (three
+significant), where round 1 was significantly NEGATIVE in forest.
+
+**Where the sign-flip evidence now lives — this is the subtle part.** Round 1
+reproduced the sign flip *in availability*, 4/4, by being PUNISHED in forest. Round 3
+no longer climbs in forest, so it is no longer punished there, and the availability
+agreement drops to 3/4 (forest +2.6 instead of -12.0). The two cannot both hold: a
+planner that correctly declines to climb in forest stops demonstrating the cost of
+climbing in forest. In round 3 the sign flip shows in the **chosen altitude** (forest
+40.9 m against 48-53 m elsewhere), not in an availability penalty. The script's
+"vs round-1" correlation against the Phase 4 climb effect is -0.677 / Spearman -0.800,
+and that NEGATIVE sign is the correct, desirable signature of a fix that repairs the
+terrain where climbing was wrong — it is not a sign-flip test and must not be read as
+one.
+
+**Honest weakness of round 3.** Three of four terrains spend most of the run at the TOP
+of the candidate grid (hills 74.1 %, open_field 68.2 %, urban 48.9 % at 55 m). The
+ceiling problem is therefore not eliminated, only moved from 60 m to 55 m, and for
+those three the binding constraint is now the support-based grid restriction rather
+than the surrogate's own preference. Only forest chooses an interior set point. The
+altitude ordering (hills > open_field > urban > forest) ranks hills above open_field,
+against Phase 4, giving Spearman +0.4 on mean altitude versus round 1's +0.8 on
+availability. Forest-lowest holds; a four-way ordering does not — consistent with
+Phase 4 never having supported more than open-vs-structured.
+
+**Forest detail.** Worst-robot availability (all four robots up) is ~0 % in forest for
+every policy, which is arithmetic rather than failure: per-robot availability is
+15-51 % and the joint event is vanishingly rare. On mean robots connected, round 3 is
+the best of the three — **1.49 / 4**, against round 1's 0.85 and excitation's 1.36.
+
+**Still open.** The cross-night drift caveat of §4.3.12 applies unchanged; the
+drift-free evidence remains within-run altitude behaviour. A fourth round widening the
+grid back toward 60 m, with the surrogate retrained on data that actually covers
+55-60 m, is the obvious way to test whether the three terrains at the grid top want to
+go higher — not yet run, and not proposed without more data up there first.
+
 ---
 
-*First written 2026-10-25 01:15; updated Sun 12:55, Mon 06:15, Mon 11:10 and Tue 09:40. Every figure in §2.6 and §3 is
+*First written 2026-10-25 01:15; updated Sun 12:55, Mon 06:15, Mon 11:10, Tue 09:40 and Wed 00:45. Every figure in §2.6 and §3 is
 computed directly from the campaign CSVs — nothing is estimated except the
 completion times in §2.3 and §6, which extrapolate the observed 3 h 22 m
 per-world duration, and the round-4 projections in §3.1, marked with ~.*
