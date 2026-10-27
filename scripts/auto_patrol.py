@@ -63,6 +63,17 @@ from gz.msgs10.boolean_pb2 import Boolean
 from gz.msgs10.twist_pb2 import Twist
 from gz.msgs10.pose_v_pb2 import Pose_V
 
+# Having imported the Gazebo bindings, demote dist-packages to the END of the
+# path. It ships numpy 1.21.5, which otherwise shadows the user's 1.26.4 and
+# makes any later `import pandas` fail with the thoroughly misleading
+# "C extension: None not built" -- that is what silently reduced the first
+# planner fly-off to an excitation run. gz resolves fine from the tail of the
+# path; only the shadowing is removed.
+_DIST = "/usr/lib/python3/dist-packages"
+if _DIST in sys.path:
+    sys.path.remove(_DIST)
+    sys.path.append(_DIST)
+
 def _detect_world():
     """SAR_WORLD if set, else auto-detect the running gz world from its
     pose topic (so `auto_patrol.py` works without remembering the env var
@@ -2312,8 +2323,66 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
             log_action("walk", 0.0, (x, y, z), (tx, ty, tz))
             x, y, z = _glide_to(tx, ty, tz, (x, y, z))
 
+    # ── Phase 5 planner in the loop ──────────────────────────────────────
+    # Shared with the research writer below, which feeds each completed cycle
+    # row into the planner's history buffer.
+    planner_holder = {}
+    PLANNER_DWELL_S = 30.0      # receding horizon: surrogate forecasts 60 s
+
+    def _planner_pilot():
+        """Fly the Phase 5 planner: score 45 candidate waypoints against the
+        leave-one-terrain-out surrogate and take the best one.
+
+        The surrogate for this world was trained on the OTHER three terrains
+        and never receives the terrain as an input, so the fly-off keeps the
+        terrain blindness the offline results were built on.
+
+        Any planner failure degrades to the excitation policy rather than
+        stopping the run — a campaign that dies at 03:00 because a model file
+        moved is a worse outcome than one that falls back and says so.
+        """
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent / "ml"))
+            from online_planner import OnlinePlanner
+            planner_holder["p"] = OnlinePlanner(
+                WORLD, beta=float(os.environ.get("SAR_PLANNER_BETA", 10.0)),
+                log=lambda m: print(m, flush=True))
+        except Exception as e:
+            print(f"[gnb] planner unavailable ({type(e).__name__}: {e}) — "
+                  f"falling back to excitation policy", flush=True)
+            _excite_pilot()
+            return
+
+        x, y, z = current_uav()
+        n_hold = n_act = 0
+        while running.is_set():
+            a_start = time.time()
+            pick = planner_holder["p"].choose()
+            if pick is None:
+                # Not enough history yet, or a transient. Hold position: the
+                # planner declines to steer rather than guessing.
+                action, (tx, ty, tz) = "hold", (x, y, z)
+                n_hold += 1
+            else:
+                dx, dy, dz, gain = pick
+                tx, ty, tz = x + dx, y + dy, z + dz
+                action = ("climb" if dz > 0 else "descend" if dz < 0
+                          else ("step" if (dx or dy) else "hold"))
+                n_act += 1
+            tx, ty, tz = geofence_target(tx, ty, tz, gnb_xy, gnb_zmin,
+                                         gnb_zmax, indoor=is_indoor)
+            with action_lock:
+                gnb_action.update(action=action, tx=round(tx, 1),
+                                  ty=round(ty, 1), tz=round(tz, 1))
+            log_action(action, PLANNER_DWELL_S, (x, y, z), (tx, ty, tz))
+            x, y, z = _glide_to(tx, ty, tz, (x, y, z))
+            while running.is_set() and time.time() - a_start < PLANNER_DWELL_S:
+                time.sleep(min(0.5, tick_s * 5))
+
     def gnb_pilot():
-        if policy == "excite":
+        if policy == "planner":
+            _planner_pilot()
+        elif policy == "excite":
             _excite_pilot()
         else:
             _two_phase_pilot()
@@ -2791,7 +2860,9 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                 t_elapsed = time.time() - t0
                 # Under "excite" there is no static/nomadic split to report,
                 # so phase is written as 0 rather than inventing one.
-                phase = (0 if policy == "excite"
+                # Neither "excite" nor "planner" has a static/nomadic split
+                # to report, so phase is written as 0 rather than invented.
+                phase = (0 if policy in ("excite", "planner")
                          else (1 if t_elapsed < phase1_s else 2))
                 dz = abs(uz - GROUND_Z)
                 ploss, dist, slant, rsrp_c = {}, {}, {}, {}
@@ -2845,6 +2916,16 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
 
                 w.writerow(row)
                 f.flush()
+
+                # Feed the completed cycle to the planner's history buffer.
+                # Guarded: the planner must never be able to stop the run.
+                _pl = planner_holder.get("p")
+                if _pl is not None:
+                    try:
+                        _pl.ingest(research_header(ROBOTS), row)
+                    except Exception as _e:
+                        print(f"[planner] ingest error: {type(_e).__name__}",
+                              flush=True)
 
                 hh = int(t_elapsed // 3600)
                 mm = int((t_elapsed % 3600) // 60)
@@ -2928,6 +3009,12 @@ if __name__ == "__main__":
             # and same CSV schema as --research, different gNB behaviour.
             mode = "research"
             policy = "excite"
+        elif arg == "--planner":
+            # Phase 5 fly-off: same measurement loop and CSV schema again,
+            # but the gNB waypoint is chosen by the leave-one-terrain-out
+            # surrogate instead of sampled.
+            mode = "research"
+            policy = "planner"
         elif arg == "--vary-uav":
             vary_uav = True
         elif arg.startswith("--duration="):

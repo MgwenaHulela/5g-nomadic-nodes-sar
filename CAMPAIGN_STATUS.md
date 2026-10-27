@@ -1,6 +1,6 @@
 # Campaign Status — where the project is right now
 
-**Snapshot: Monday 2026-10-26, 22:20 SAST — DATA COLLECTION COMPLETE, ALL ML PHASES 0–5 DONE**
+**Snapshot: Tuesday 2026-10-27, 09:40 SAST — ALL ML PHASES 0–5 DONE; PHASE 5 FLY-OFF FLOWN AND ANALYSED**
 *(first written Sun 01:15; revised Sun 12:55, Mon 06:15 and Mon 11:10)*
 **Deadline being worked to: Monday 2026-10-26, 10:00 — start of model training**
 
@@ -974,9 +974,76 @@ judgement call, not a correction. Either way the archive-derived value is
 
 Nothing is outstanding before 10:00. §4.3 is the work that starts then.
 
+### 4.3.12 Phase 5 fly-off — the planner flown live against the excitation baseline
+
+**Run.** `run_planner_flyoff.sh`, 4 worlds x 5400 s, 2026-10-26 22:29 -> 2026-10-27 04:37, all
+`rc=0`. Seeds 1792965139-142 reused from the `excite` campaigns of the night before
+(20261025_235902, 20261026_013033, 20261026_030216, 20261026_043517). Each world flew a
+surrogate **trained on the other three terrains only** — confirmed in every run log
+(`[planner] surrogate held out <terrain>; 79 features, 45 candidates`), zero
+`planner unavailable`, zero ingest errors. The planner is never told the terrain.
+
+**Raw availability is CONFOUNDED — do not quote it.** Time-weighted worst-robot C2
+(all four robots up): open_field 41.5 vs 41.9, urban 54.0 vs 12.5, forest 1.4 vs 2.7,
+hills 93.2 vs 72.9. Two confounds make these uninterpretable as a causal effect:
+
+1. **Altitude-ceiling saturation.** The planner pins to the `Z_MAX = 60 m` cap inside the
+   first quintile of every run and stays there 74-96 % of the time (mean z 54-59 m vs the
+   baseline's 34-42 m). The offline per-decision preference was terrain-differentiated
+   (mean dz open_field +6.28 m vs forest +3.35 m, §4.3.11) but **positive everywhere**, so
+   integrated over ~180 decisions it reaches the cap in all four terrains and the
+   differentiation is destroyed. The flown policy degenerates to "climb to the ceiling".
+2. **The robot walk is closed-loop on the UAV, so a replayed seed does NOT replay the
+   robot paths.** `scripts/auto_patrol.py:2415-2460`: the hard teleport guard
+   (`ploss >= PLOSS_TP_DB`), the far-guard (`r > r_max + 5`, measured from the *UAV*) and
+   the soft steer-to-gNB guard all branch on link state, and the first two draw from
+   `rng_bot` and `continue`. Changing the gNB policy changes ploss, changes which branch
+   fires, changes how far the shared stream is consumed. Measured guard teleports
+   planner vs excite: forest 400 vs 219, hills 6 vs 54, urban 16 vs 18, open_field 0 vs 0.
+   Robot-x correlation against the matched-seed baseline is +0.01 to +0.67 — i.e. not
+   matched. **The docstring at `auto_patrol.py:2049-2053` claims a replayed seed
+   reproduces the same robot motion under two policies; that is true only while no guard
+   fires, which is exactly not the stressed case.** Treat these as two independent runs of
+   a closed-loop system, never as a paired comparison.
+
+**The defensible result: P(C2 up) at matched robot geometry.** Binning on `d_horiz` and
+reweighting the planner onto the baseline's exposure removes the "robots happened to be
+nearer" confound. Block bootstrap, BLOCK = 20 cycles, 600 reps:
+
+| terrain | matched delta | 95 % CI | Phase 4 10 m-climb effect |
+|---|---|---|---|
+| open_field | **+17.3 pp** | [+12.3, +22.1] * | +0.1641 |
+| urban | **+17.4 pp** | [+8.3, +26.1] * | +0.0370 |
+| hills | +3.5 pp | [-0.5, +7.3] | +0.0085 |
+| forest | **-12.0 pp** | [-21.5, +1.6] | -0.0120 |
+
+**Sign agreement with Phase 4 is 4/4; Spearman +0.800, Pearson +0.712.** This is an
+independent, live, closed-loop reproduction of the sign flip: the ordering
+open_field ~ urban > hills > forest recovered from a policy that was never told the
+terrain and whose surrogate never saw it. open_field and urban exclude zero; hills and
+forest do not.
+
+**Forest is the honest negative, and it is the predicted one.** The planner climbed to the
+ceiling in forest too — exactly the move Phase 4 says is harmful there — and was punished
+for it, -12.0 pp. The sign is right; the policy did not act on it. This is the clearest
+statement of what Phase 5 did and did not achieve: **the surrogate learned the sign flip,
+the planner failed to exploit it**, because a uniformly positive dz saturates the box.
+
+**Overlap caveats.** Geometry overlap is partial: hills compares mostly in 25-50 m
+(planner) against a baseline spread over 0-150 m; forest overlaps only below 50 m. Channel
+drift between the two nights was checked at matched (z, d_horiz) cells — urban 9.66 vs
+11.23 dB, hills 8.94 vs 8.56 dB; open_field and forest had no cell with >= 30 samples on
+both sides. Urban's 1.6 dB gap is the weakest link in the biggest claimed win.
+
+**What this implies for the next iteration.** The fix is not a better surrogate — it is the
+objective. A planner whose per-decision dz is positive everywhere cannot express "do not
+climb here" once it is at the cap; it needs either an explicit cost on altitude, a
+risk-vs-z argmax over the absolute band rather than a relative offset, or a wider Z_MAX so
+the ceiling stops binding. Until then the flown policy is weaker than the offline one.
+
 ---
 
-*First written 2026-10-25 01:15; updated Sun 12:55, Mon 06:15 and Mon 11:10. Every figure in §2.6 and §3 is
+*First written 2026-10-25 01:15; updated Sun 12:55, Mon 06:15, Mon 11:10 and Tue 09:40. Every figure in §2.6 and §3 is
 computed directly from the campaign CSVs — nothing is estimated except the
 completion times in §2.3 and §6, which extrapolate the observed 3 h 22 m
 per-world duration, and the round-4 projections in §3.1, marked with ~.*

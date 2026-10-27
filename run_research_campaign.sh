@@ -62,7 +62,8 @@ DWELL_SHORT="${SAR_DWELL_SHORT:-15,35}"
 case "$POLICY" in
   two_phase) PATROL_MODE="--research" ;;
   excite)    PATROL_MODE="--excite" ;;
-  *) echo "FATAL: SAR_POLICY must be two_phase or excite (got '$POLICY')"; exit 1 ;;
+  planner)   PATROL_MODE="--planner" ;;
+  *) echo "FATAL: SAR_POLICY must be two_phase, excite or planner (got '$POLICY')"; exit 1 ;;
 esac
 
 if [ -z "${SAR_SUDO_PASS:-}" ] && ! sudo -n true 2>/dev/null; then
