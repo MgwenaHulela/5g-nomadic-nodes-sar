@@ -54,7 +54,7 @@ PATROL_LOG = LOG_DIR / f"patrol_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
 sys.path.insert(0, str(Path.home() / "sar_sim" / "scripts"))
 from metrics_collector import tail_file, parse_ue_metrics
-from traffic_streams import TrafficStreams
+from traffic_streams import TrafficStreams, TCP_TARGET_MBPS
 
 sys.path.insert(0, "/usr/lib/python3/dist-packages")
 from gz.transport13 import Node as GzNode
@@ -578,7 +578,12 @@ UE_CONF = {ROBOT_SPEC[r]["model"]: f"nrue_{r}.conf" for r in ROBOTS}
 # Roster-driven. These were alpha/bravo only, so the watchdog would KeyError
 # on sar_ground_charlie/delta the moment it tried to corroborate an RLF.
 UE_TUN_OF = {ROBOT_SPEC[r]["model"]: ROBOT_SPEC[r]["tun"] for r in ROBOTS}
-UE_LOG_OF = {ALPHA_MODEL: ALPHA_UE_LOG, BRAVO_MODEL: BRAVO_UE_LOG}
+# Roster-driven (fixed 2026-11-09). This line was still alpha/bravo-only
+# even though the comment below says otherwise, so reattach_ue() raised
+# KeyError: 'sar_ground_charlie'|'sar_ground_delta' the first time either
+# needed a relaunch, and the watchdog THREAD died with the run carrying on.
+# It killed the watchdog in 20 of the 24 October research runs.
+UE_LOG_OF = {ROBOT_SPEC[r]["model"]: f"/tmp/ue_{r}.log" for r in ROBOTS}
 # Roster-driven. This was {ALPHA_MODEL, BRAVO_MODEL} only, so the RLF
 # watchdog hit KeyError on sar_ground_charlie/delta and its THREAD died
 # without stopping the run — charlie and delta had no watchdog at all.
@@ -605,7 +610,26 @@ WATCHDOG_PERIOD_S = 20.0        # how often the watchdog probes each robot's C2
 # calling it a failure. Generous on purpose: see reattach_ue() step 6.
 REATTACH_VERIFY_S = 75.0
 RLF_MAX_FAILURES = 3
-REATTACH_TIMEOUT_S = 150.0      # max wait for the fresh TUN (rfsim PDU is slow)
+# A reattach whose modem came up (TUN re-homed, both directions verified by
+# setup_robot_netns.sh) but whose C2 then failed the 75 s check is a SOFT
+# failure. Forensics from the 2026-11-10 forest run: after such a reattach
+# the forest link flapped -- RA, two RRC re-establishments, an RRC Release,
+# IDLE -- and C2 came back ON ITS OWN ~2 min after the check gave up. 16 of
+# round 4's 31 failures were this kind. They count against a separate,
+# larger budget so slow radio recovery cannot abort a run; a modem that
+# genuinely cannot come back still trips it.
+RLF_MAX_SOFT_FAILURES = 6
+# Max wait for the fresh TUN. Was 150 s. Round 4 (2026-11-09/10) logged ten
+# "TUN never reappeared" failures, and the SMF log shows several of those UEs
+# DID attach -- 216-334 s after teardown -- by which time the watchdog had
+# given up, and on its next tick found the TUN outside the robot netns and
+# killed the modem again. A slow attach is not a failed one.
+REATTACH_TIMEOUT_S = 360.0
+# Per-failure evidence (UE/gNB log tails, netns state, uplink test) goes here,
+# so the next failed reattach can be diagnosed instead of guessed at.
+REATTACH_FORENSICS_DIR = LOG_DIR / "reattach_forensics"
+# Crash relaunches allowed inside one reattach (see reattach_ue step 4).
+REATTACH_MAX_RELAUNCH = 2
 
 # ── Coverage guard (prevention, NLoS-aware) ──────────────────────────────────
 # safe_radius is a DISTANCE bound from the open-field A2G model — blind to
@@ -866,8 +890,18 @@ def run_ping(tun, test_ip, ns=NS_ALPHA):
         return 0.0, 0.0, 0.0, 100.0
 
 
-def _rehome_tuns(reason=""):
-    """Move every UE TUN back into its robot namespace. Returns (ok, detail).
+_last_rehome_out = ""
+
+
+def _rehome_tuns(reason="", robots=None):
+    """Move UE TUNs back into their robot namespaces. Returns (ok, detail).
+
+    `robots` limits the move to those robots (default: the whole roster).
+    The watchdog passes ONLY the robot it is reattaching. setup_robot_netns.sh
+    aborts on the first TUN it cannot find, so re-homing the whole roster made
+    one robot's recovery depend on every other robot being attached: in round
+    4 all five "re-home rc=1: oaitun_ue1pN not found" failures were a robot
+    being refused because a DIFFERENT robot was down at that moment.
 
     Two traps this exists to avoid, both of which silently broke a run on
     2026-10-21:
@@ -885,20 +919,88 @@ def _rehome_tuns(reason=""):
        carries no traffic at all for the rest of the run. Here the exit code
        is checked AND each TUN is confirmed to have actually landed.
     """
+    global _last_rehome_out
+    robots = list(robots or ROBOTS)
     setup_script = str(Path(__file__).resolve().parent / "setup_robot_netns.sh")
     try:
-        r = sudo_run(["env", f"SAR_ROBOTS={','.join(ROBOTS)}",
+        r = sudo_run(["env", f"SAR_ROBOTS={','.join(robots)}",
                       "bash", setup_script, "setup"], 120)
     except Exception as e:
         return False, f"re-home raised {e.__class__.__name__}"
+    _last_rehome_out = (r.stdout or "") + (r.stderr or "")
     if r.returncode != 0:
         tail = (r.stderr or r.stdout or "").strip().splitlines()
         return False, f"re-home rc={r.returncode}: {tail[-1] if tail else '?'}"
-    missing = [x for x in ROBOTS
+    missing = [x for x in robots
                if not _tun_present(ROBOT_SPEC[x]["tun"], ROBOT_SPEC[x]["ns"])]
     if missing:
         return False, f"re-home ran but TUN still absent for: {','.join(missing)}"
+    # A single-robot setup cannot run the script's cross-robot duplicate-IP
+    # check, so assert the address directly: it must be this robot's own.
+    for x in robots:
+        sp = ROBOT_SPEC[x]
+        try:
+            out = ns_run(sp["ns"], ["ip", "-4", "-o", "addr", "show", sp["tun"]],
+                         timeout=5).stdout
+        except Exception:
+            out = ""
+        if f"inet {sp['ue_ip']}/" not in out:
+            return False, (f"re-home: {sp['tun']} in {sp['ns']} does not carry "
+                           f"{sp['ue_ip']} ({out.strip()[:80] or 'no address'})")
     return True, f"TUNs re-homed{(' (' + reason + ')') if reason else ''}"
+
+
+def _tun_in_root(tun):
+    """True if this TUN exists in the ROOT namespace: the modem is alive and
+    attached, but its interface was never moved into the robot netns."""
+    return subprocess.run(["ip", "link", "show", tun],
+                          capture_output=True).returncode == 0
+
+
+def _reattach_forensics(model, detail):
+    """Save what a failed reattach looked like. Never raises."""
+    try:
+        sp = SPEC_OF[model]
+        REATTACH_FORENSICS_DIR.mkdir(parents=True, exist_ok=True)
+        path = REATTACH_FORENSICS_DIR / (
+            f"{WORLD}_{KEY_OF[model]}_"
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+
+        def sh(cmd, t=10):
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True,
+                                   timeout=t)
+                return (r.stdout + r.stderr).strip()
+            except Exception as e:
+                return f"<{e.__class__.__name__}>"
+
+        def nsx(cmd):
+            try:
+                r = ns_run(sp["ns"], cmd, timeout=6)
+                return (r.stdout + r.stderr).strip()
+            except Exception as e:
+                return f"<{e.__class__.__name__}>"
+
+        parts = [
+            f"model {model}  detail: {detail}",
+            f"time {datetime.now().isoformat()}",
+            "== UE process", sh(["pgrep", "-af", UE_CONF[model]]),
+            "== TUN in root ns", sh(["ip", "-o", "addr", "show", sp["tun"]]),
+            f"== {sp['ns']} addr", nsx(["ip", "-o", "addr"]),
+            f"== {sp['ns']} route", nsx(["ip", "route"]),
+            "== uplink ping from robot ns -> 10.45.0.1",
+            nsx(["ping", "-c", "3", "-W", "1", "10.45.0.1"]),
+            f"== downlink ping root -> {sp['ue_ip']}",
+            sh(["ping", "-c", "3", "-W", "1", sp["ue_ip"]]),
+            "== last re-home output", _last_rehome_out[-3000:],
+            f"== tail {sp['log']}", sh(["tail", "-n", "250", sp["log"]]),
+            "== tail /tmp/gnb.log", sh(["tail", "-n", "250", "/tmp/gnb.log"]),
+        ]
+        path.write_text("\n".join(parts) + "\n")
+        print(f"[watchdog] {model}: forensics -> {path}", flush=True)
+    except Exception as e:
+        print(f"[watchdog] {model}: forensics failed ({e.__class__.__name__})",
+              flush=True)
 
 
 # Set by a background thread that has decided the run cannot continue. The
@@ -1008,21 +1110,44 @@ def reattach_ue(model):
     subprocess.run(["bash", "-c", launch])
 
     # 4. wait for the fresh TUN to appear in the root ns (PDU session up)
+    #
+    # Watch the PROCESS too. The relaunched UE sometimes segfaults in an OAI
+    # thread-pool worker during cell search (dmesg: "Tpool*: segfault ... in
+    # libc.so.6", same offset every time -- 5x in round-4 run 4, again
+    # 2026-11-10 15:28). It dies without a line in its log, and the old loop
+    # then waited out the whole timeout on a process that no longer existed.
+    # Relaunch on death instead, a bounded number of times.
     deadline = time.time() + REATTACH_TIMEOUT_S
     got_tun = False
+    relaunches = 0
     while time.time() < deadline:
         if subprocess.run(["ip", "addr", "show", tun],
                           capture_output=True).returncode == 0:
             got_tun = True
             break
+        if (subprocess.run(["pgrep", "-f", conf],
+                           capture_output=True).returncode != 0
+                and relaunches < REATTACH_MAX_RELAUNCH):
+            relaunches += 1
+            print(f"[reattach] {model}: UE process died during attach "
+                  f"(crash) — relaunch {relaunches}/{REATTACH_MAX_RELAUNCH}",
+                  flush=True)
+            time.sleep(2)
+            subprocess.run(["bash", "-c", launch])
         time.sleep(3)
     if not got_tun:
-        return False, "TUN never reappeared (check the UE log)"
+        alive = subprocess.run(["pgrep", "-f", conf],
+                               capture_output=True).returncode == 0
+        return False, (f"TUN never reappeared within "
+                       f"{REATTACH_TIMEOUT_S:.0f}s (UE "
+                       f"{'still searching' if alive else 'process dead'}, "
+                       f"{relaunches} crash relaunches)")
 
     # 5. re-home the fresh TUN into the robot netns so the C2/downlink path is
     #    honest again. setup is idempotent: the healthy UE stays in its own netns.
     if NETNS_MODE:
-        ok_rh, detail_rh = _rehome_tuns("after reattach")
+        ok_rh, detail_rh = _rehome_tuns("after reattach",
+                                        robots=[KEY_OF[model]])
         if not ok_rh:
             # Do NOT report success here. The modem is up but the robot
             # cannot use it, which is worse than a clean failure: every
@@ -1045,8 +1170,16 @@ def reattach_ue(model):
         _, loss = run_c2(ue_ip)
         if loss < 100.0:
             return True, f"post-reattach C2 loss {loss:.0f}%"
+    # Say WHICH direction is broken: the 16 round-4 failures of this kind
+    # had a registered UE and a clean UPF session, so the core is not the
+    # problem, and the uplink result narrows down the rest.
+    try:
+        ul = run_ping(tun, UE_TEST_IP_OF[model], ns)[3]
+        ul_txt = f"uplink {ul:.0f}% loss"
+    except Exception:
+        ul_txt = "uplink untested"
     return False, (f"post-reattach C2 still {loss:.0f}% after "
-                   f"{REATTACH_VERIFY_S:.0f}s")
+                   f"{REATTACH_VERIFY_S:.0f}s; {ul_txt}")
 
 
 def random_step(x, y, step_m, min_r, max_r):
@@ -1125,7 +1258,34 @@ def research_header(robots):
     # input, like ploss_dB and rsrp_computed_dBm.
     h += ["run_id", "seed", "terrain", "policy",
           "action", "action_tx_m", "action_ty_m", "action_tz_m"]
+    # TCP shortfall label (multitask TCP head; see tcp_label). Appended LAST
+    # so every column before it keeps the position older readers expect.
+    for r in robots:
+        c = ROBOT_SPEC[r]["col"]
+        h += [f"{c}_tcp_target_mbps", f"{c}_tcp_shortfall"]
     return h
+
+
+# A cycle is a TCP shortfall when the persistent rate-limited flow delivered
+# less than this fraction of its target. The flow is paced at the target, so
+# a healthy link sits just under 1.0 (iperf pacing and interval edges);
+# 0.8 leaves room for that jitter without calling a real squeeze healthy.
+TCP_SHORTFALL_FRAC = float(os.environ.get("SAR_TCP_SHORTFALL_FRAC", "0.8"))
+
+
+def tcp_label(tcp_tp, measuring):
+    """(target_mbps, shortfall) cells for one robot-cycle.
+
+    Both are EMPTY unless a persistent TCP flow was actually sampled: video
+    mode runs no TCP, and a flow that has just been relaunched has no
+    interval lines yet (tcp_tp == ""). A label is never invented for a
+    cycle that measured nothing -- that is the rule the TCP head's training
+    data depends on. A sampled 0.0 is a real measurement and labels 1.
+    """
+    if not measuring or not isinstance(tcp_tp, (int, float)):
+        return ["", ""]
+    return [TCP_TARGET_MBPS,
+            int(tcp_tp < TCP_SHORTFALL_FRAC * TCP_TARGET_MBPS)]
 
 
 def fresh_l1(ue_log):
@@ -1735,6 +1895,9 @@ def free_roam_both(speed_ms=1.0, duration_s=180, tick_s=0.1, vary_uav=False):
                 for r in ROBOTS:
                     row += ["", ""]           # event / outage_s: free roam has none
                 row += ["free_roam", "", WORLD, "free", "", "", "", ""]
+                for r in ROBOTS:
+                    row += tcp_label(vals[r][0], streams is not None
+                                     and video is None)
 
                 w.writerow(row)
                 f.flush()
@@ -2125,6 +2288,10 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
 
     def log_action(action, dwell, frm, to):
         with action_log_lock:
+            if action_log.closed:
+                # The pilot thread can finish its last dwell after the run has
+                # closed this file (round 4 run 3 died on exactly that).
+                return
             action_w.writerow([
                 datetime.now(timezone.utc).isoformat(),
                 round(time.time() - t0, 2), run_id, seed_used, WORLD, policy,
@@ -2624,6 +2791,7 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
         """
         bad_since = {m: None for m in MODELS}
         failures = {m: 0 for m in MODELS}
+        soft_failures = {m: 0 for m in MODELS}
         stood_down = {m: False for m in MODELS}
         while running.is_set():
             for model in MODELS:
@@ -2676,6 +2844,21 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                 # and looped. tun_gone therefore BYPASSES both the C2 test and
                 # the corroboration step below.
                 tun_gone = not _tun_present(UE_TUN_OF[model], NS_OF[model])
+                if tun_gone and _tun_in_root(UE_TUN_OF[model]):
+                    # The modem is alive and attached; only its interface is
+                    # in the wrong namespace (typically a slow attach that
+                    # finished after reattach_ue gave up). Move it. Killing it
+                    # here is what turned slow attaches into a restart loop.
+                    ok_rh, d_rh = _rehome_tuns("stranded TUN",
+                                               robots=[KEY_OF[model]])
+                    print(f"[watchdog] {model}: TUN {UE_TUN_OF[model]} was "
+                          f"stranded in the root ns — "
+                          f"{'re-homed, no reattach' if ok_rh else d_rh}",
+                          flush=True)
+                    if ok_rh:
+                        bad_since[model] = None
+                        failures[model] = 0
+                        continue
                 if tun_gone:
                     print(f"[watchdog] {model}: TUN {UE_TUN_OF[model]} missing "
                           f"from {NS_OF[model]} — modem is gone, reattaching",
@@ -2711,6 +2894,8 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                               f"targeted UE reattach (gNB/other UE untouched)",
                               flush=True)
                         ok, detail = reattach_ue(model)
+                        if not ok:
+                            _reattach_forensics(model, detail)
                         outage = round(time.time() - start, 1)
                         ev = "rlf_recovered" if ok else "reattach_failed"
                         with link_lock:
@@ -2720,8 +2905,15 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                         print(f"[watchdog] {model}: {ev} after {outage:.0f}s "
                               f"({detail})", flush=True)
                         # (3) stand down after repeated failures
-                        failures[model] = 0 if ok else failures[model] + 1
-                        if failures[model] >= RLF_MAX_FAILURES:
+                        soft = (not ok) and detail.startswith("post-reattach C2")
+                        if ok:
+                            failures[model] = soft_failures[model] = 0
+                        elif soft:
+                            soft_failures[model] += 1
+                        else:
+                            failures[model] += 1
+                        if (failures[model] >= RLF_MAX_FAILURES
+                                or soft_failures[model] >= RLF_MAX_SOFT_FAILURES):
                             stood_down[model] = True
                             # Do NOT quietly carry on a robot short.
                             #
@@ -2742,7 +2934,8 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                             # run failed and starts the next world from a
                             # clean stack, which is the only thing that
                             # reliably recovers a dead UE.
-                            print(f"[watchdog] {model}: {failures[model]} "
+                            print(f"[watchdog] {model}: {failures[model]} hard + "
+                                  f"{soft_failures[model]} soft "
                                   f"consecutive failed reattaches — this UE "
                                   f"cannot be recovered in-run. ABORTING so "
                                   f"the campaign does not record an "
@@ -2750,7 +2943,8 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                                   f"{len(ROBOTS) - 1} robots.", flush=True)
                             global _abort_reason
                             _abort_reason = (
-                                f"{model}: {failures[model]} consecutive "
+                                f"{model}: {failures[model]} hard + "
+                                f"{soft_failures[model]} soft consecutive "
                                 f"failed reattaches — UE unrecoverable in-run")
                             running.clear()
                             return
@@ -2759,6 +2953,11 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                         print(f"[watchdog] {model}: C2 recovered on its own — "
                               f"disarming timer", flush=True)
                     bad_since[model] = None
+                    # "Consecutive" means with no working link in between.
+                    # Without this reset, three slow recoveries spread over
+                    # an hour aborted the run (round 4 run 4, alpha).
+                    if loss < 50.0:
+                        failures[model] = soft_failures[model] = 0
             end = time.time() + WATCHDOG_PERIOD_S
             while running.is_set() and time.time() < end:
                 time.sleep(0.5)
@@ -2928,6 +3127,9 @@ def research_run(speed_ms=1.0, duration_s=RESEARCH_DURATION_S,
                     act = dict(gnb_action)
                 row += [run_id, seed_used, WORLD, policy,
                         act["action"], act["tx"], act["ty"], act["tz"]]
+                for r in ROBOTS:
+                    row += tcp_label(vals[r][0], streams is not None
+                                     and video is None)
 
                 w.writerow(row)
                 f.flush()

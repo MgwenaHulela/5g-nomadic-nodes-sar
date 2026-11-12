@@ -66,6 +66,18 @@ case "$POLICY" in
   *) echo "FATAL: SAR_POLICY must be two_phase, excite or planner (got '$POLICY')"; exit 1 ;;
 esac
 
+# Uplink cap (scripts/adaptive_uplink_cap.py). "off" (default) leaves the
+# robots' TUNs untouched, exactly as every campaign before 2026-11-12. With
+# "adaptive" each robot's uplink is shaped in the kernel to what its link can
+# drain, so the 1.5 Mb/s video cannot back up minutes of traffic inside the OAI
+# UE (docs/CONGESTION_TEST_REPORT.md). C2/ICMP keep priority over video.
+#   SAR_UL_CAP=adaptive ./run_research_campaign.sh 5400 0 sar_forest
+UL_CAP="${SAR_UL_CAP:-off}"
+case "$UL_CAP" in
+  off|adaptive) ;;
+  *) echo "FATAL: SAR_UL_CAP must be off or adaptive (got '$UL_CAP')"; exit 1 ;;
+esac
+
 if [ -z "${SAR_SUDO_PASS:-}" ] && ! sudo -n true 2>/dev/null; then
   echo "FATAL: export SAR_SUDO_PASS (start_full_stack.sh needs root)"; exit 1
 fi
@@ -96,7 +108,7 @@ CLOG="$OUT/campaign.log"
 log(){ echo "[$(date +%F_%T)] $*" | tee -a "$CLOG"; }
 
 log "campaign start: dur=${DUR}s phase1=${P1}s worlds=[${WORLDS[*]}] -> $OUT"
-log "policy=$POLICY base_seed=$BASE_SEED fast_rate=${FAST_RATE}Hz (replay with SAR_SEED=$BASE_SEED)"
+log "policy=$POLICY base_seed=$BASE_SEED fast_rate=${FAST_RATE}Hz ul_cap=$UL_CAP (replay with SAR_SEED=$BASE_SEED)"
 
 IDX=0
 SEED_ROUND="${SAR_SEED_ROUND:-0}"   # 0 = first seed of a campaign (long dwell)
@@ -139,6 +151,19 @@ for W in "${WORLDS[@]}"; do
       > "$OUT/${W}_fastradio.log" 2>&1 &
   FAST_PID=$!
 
+  # Uplink cap controller, outliving the patrol's own timeout; it re-finds and
+  # re-shapes TUNs that a watchdog reattach recreates.
+  if [ "$UL_CAP" = "adaptive" ]; then
+    if [ -n "${SAR_SUDO_PASS:-}" ]; then
+      echo "$SAR_SUDO_PASS" | sudo -S -p '' python3 scripts/adaptive_uplink_cap.py \
+          $((DUR + 700)) "$OUT/${W}_ulcap.csv" > "$OUT/${W}_ulcap.log" 2>&1 &
+    else
+      sudo -n python3 scripts/adaptive_uplink_cap.py \
+          $((DUR + 700)) "$OUT/${W}_ulcap.csv" > "$OUT/${W}_ulcap.log" 2>&1 &
+    fi
+    log "  $W uplink cap: adaptive -> ${W}_ulcap.csv"
+  fi
+
   timeout $((DUR + 600)) env SAR_WORLD="$W" \
       python3 scripts/auto_patrol.py "$PATROL_MODE" --duration="$DUR" --phase1="$P1" \
       --seed="$SEED" --run-id="$RUN_ID" ${EXTRA_ARGS} \
@@ -146,6 +171,13 @@ for W in "${WORLDS[@]}"; do
   rc=$?
   ended=$(date +%F_%T)
 
+  if [ "$UL_CAP" = "adaptive" ]; then
+    if [ -n "${SAR_SUDO_PASS:-}" ]; then
+      echo "$SAR_SUDO_PASS" | sudo -S -p '' pkill -f "adaptive_uplink_cap.py .*${W}_ulcap.csv"
+    else
+      sudo -n pkill -f "adaptive_uplink_cap.py .*${W}_ulcap.csv"
+    fi
+  fi
   # SIGTERM so the sampler flushes and writes its closing summary.
   kill -TERM "$FAST_PID" 2>/dev/null
   wait "$FAST_PID" 2>/dev/null

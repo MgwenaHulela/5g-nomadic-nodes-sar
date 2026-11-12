@@ -39,6 +39,22 @@ Per tick, per UE, over the lines that arrived since the previous tick:
 `n_samples == 0` means nothing fresh arrived in that window and every value is
 carried over — always filter on it before training.
 
+SS LINES NEED PHY DEBUG LOGGING. The SS-RSRP/SS-SINR line is LOG_D(PHY) in
+openair1/PHY/NR_UE_ESTIMATION/nr_ue_measurements.c. The UE configs were moved
+from phy_log_level "debug" to "error" on 2026-10-23 (~2 GB/h per UE, and it
+slowed watchdog reattaches), and from then on every SS column of this CSV --
+and auto_patrol's ss_rsrp/ss_sinr columns -- stayed EMPTY. Nothing failed
+loudly; the stall warnings just repeated.
+
+So the sampler also records the CSI-RS report, which is LOG_I and still
+printed (openair1/PHY/NR_UE_TRANSPORT/csi_rx.c):
+    RI = 1 i1 = 0.0.0, i2 = 0, SINR = 36 dB, CQI = 15
+It is a DIFFERENT measurement -- CSI-RS based, after precoding, integer dB --
+so it goes in its own `csi_*` columns, appended after every original column,
+never into `sinr_dB`. Mixing the two would make October and November data mean
+different things under one name. SINR = -90 is OAI's "no estimate" value and
+is dropped.
+
 USAGE
 -----
   python3 scripts/fast_radio_sampler.py --run-id r001 --terrain sar_forest \\
@@ -60,7 +76,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import re                                              # noqa: E402
 from metrics_collector import tail_file, parse_ue_metrics, RE_SS_COMBINED
+
+# CSI-RS report (bitmap 26) and its RSRP-prefixed form (bitmap 27).
+RE_CSI = re.compile(
+    r"(?:RSRP = (-?\d+) dBm, )?RI = (\d+) i1 = [\d.]+, i2 = \d+, "
+    r"SINR = (-?\d+) dB, CQI = (\d+)")
+CSI_INVALID_SINR = -90
 
 LOG_DIR = Path.home() / "sar_sim" / "logs"
 
@@ -93,6 +116,36 @@ UE_COLS = [
     "n_samples",      # fresh SS lines in this window; 0 => everything is stale
     "age_s",          # seconds since the newest fresh measurement
 ]
+# Appended after ALL robots' UE_COLS, so every original column keeps its
+# position. See the module docstring for why these are separate.
+CSI_COLS = [
+    "csi_sinr_dB",       # last valid CSI-RS precoded SINR in the window
+    "csi_sinr_mean",
+    "csi_sinr_min",
+    "csi_cqi",           # last CQI (0-15)
+    "csi_ri",            # last rank indicator
+    "csi_n",             # valid CSI reports in this window; 0 => carried
+    "csi_age_s",
+]
+
+
+def parse_csi(lines):
+    """(last_sinr, mean, min, last_cqi, last_ri, n) over valid CSI reports."""
+    sinr = []
+    cqi = ri = None
+    for line in lines:
+        m = RE_CSI.search(line)
+        if not m:
+            continue
+        v = int(m.group(3))
+        if v == CSI_INVALID_SINR:
+            continue
+        sinr.append(v)
+        ri, cqi = int(m.group(2)), int(m.group(4))
+    if not sinr:
+        return (None, None, None, None, None, 0)
+    return (sinr[-1], round(sum(sinr) / len(sinr), 2), min(sinr), cqi, ri,
+            len(sinr))
 
 
 def parse_window(lines):
@@ -170,6 +223,8 @@ def main():
     header = ["timestamp", "t_elapsed_s", "run_id", "seed", "terrain"]
     for label in ue_logs:
         header += [f"{label}_{c}" for c in UE_COLS]
+    for label in ue_logs:
+        header += [f"{label}_{c}" for c in CSI_COLS]
 
     running = [True]
 
@@ -178,8 +233,11 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
 
-    last_fresh = {label: None for label in ue_logs}
+    last_fresh = {label: None for label in ue_logs}      # SS lines
     carried = {label: (None,) * 6 for label in ue_logs}
+    csi_fresh = {label: None for label in ue_logs}
+    csi_carried = {label: (None,) * 5 for label in ue_logs}
+    told_no_ss = set()
     # A UE log that never appears, or a modem that stops printing, otherwise
     # produces a CSV of empty rows that only looks wrong hours later. Warn on
     # a rising schedule (5s, 30s, 60s, then every 60s) per UE.
@@ -213,6 +271,7 @@ def main():
 
                 row = [datetime.now(timezone.utc).isoformat(),
                        round(now - t0, 3), run_id, args.seed, args.terrain]
+                csi_part = []
 
                 for label, path in ue_logs.items():
                     # max_read caps a catch-up burst; max_backlog (inherited)
@@ -227,20 +286,39 @@ def main():
                         carried[label] = vals[:6]
                     else:
                         vals = carried[label] + (0,)
+                    cv = parse_csi(lines)
+                    if cv[5] > 0:
+                        csi_fresh[label] = now
+                        csi_carried[label] = cv[:5]
+                    else:
+                        cv = csi_carried[label] + (0,)
+                    csi_part += ["" if x is None else x for x in cv] + [
+                        "" if csi_fresh[label] is None
+                        else round(now - csi_fresh[label], 3)]
+                    if (label not in told_no_ss and last_fresh[label] is None
+                            and csi_fresh[label] is not None
+                            and now - t0 > 30):
+                        told_no_ss.add(label)
+                        print(f"[fastradio] {label}: no SS-RSRP lines (UE "
+                              f"phy_log_level is not debug) — recording "
+                              f"CSI-RS SINR/CQI only", flush=True)
 
-                    # Stall detection: nothing fresh since start, or since
-                    # the last measurement, for longer than expected.
-                    quiet_for = now - (last_fresh[label] or t0)
+                    # Stall detection: nothing fresh from EITHER source since
+                    # start, or since the last measurement.
+                    newest = max((x for x in (last_fresh[label],
+                                              csi_fresh[label]) if x),
+                                 default=None)
+                    quiet_for = now - (newest or t0)
                     nxt = next((w for w in STALL_WARN_S if w > warned[label]),
                                warned[label] + 60.0)
                     if quiet_for >= nxt:
                         warned[label] = quiet_for
-                        why = ("no data yet" if last_fresh[label] is None
+                        why = ("no data yet" if newest is None
                                else "stream stopped")
                         print(f"[fastradio] WARNING: {label} {why} — "
                               f"{quiet_for:.0f}s without a fresh sample "
                               f"({path})", flush=True)
-                    elif n > 0:
+                    elif n > 0 or cv[5] > 0:
                         warned[label] = 0.0
 
                     age = ("" if last_fresh[label] is None
@@ -256,7 +334,7 @@ def main():
                         age,
                     ]
 
-                w.writerow(row)
+                w.writerow(row + csi_part)
                 nrows += 1
                 if nrows % 200 == 0:
                     f.flush()
@@ -267,9 +345,12 @@ def main():
     print(f"[fastradio] {nrows} rows in {dur:.1f}s "
           f"({nrows / dur if dur else 0:.1f} rows/s) -> {out}", flush=True)
     for label in ue_logs:
-        if last_fresh[label] is None:
+        if last_fresh[label] is None and csi_fresh[label] is None:
             print(f"[fastradio] WARNING: {label} produced NO fresh samples "
                   f"for the whole run — check the UE log path", flush=True)
+        elif last_fresh[label] is None:
+            print(f"[fastradio] NOTE: {label} had no SS-RSRP lines; only the "
+                  f"csi_* columns hold data", flush=True)
 
 
 def replay(args):
@@ -300,11 +381,16 @@ def replay(args):
                 if fm:
                     frames.append(int(fm.group(1)))
                     pend = False
+    with opener(path, "rt", errors="ignore") as f:
+        csi = parse_csi(f)
     print(f"replay: {path}")
     print(f"  SS measurements parsed : {n}")
+    print(f"  CSI reports (valid)    : {csi[5]}"
+          + (f"  SINR mean {csi[1]} dB, min {csi[2]} dB" if csi[5] else ""))
     if not n:
-        print("  NO MATCHES — the log format has changed; fix RE_SS_COMBINED")
-        return 1
+        print("  NO SS MATCHES — UE phy_log_level is not debug, or the format "
+              "changed (RE_SS_COMBINED)")
+        return 0 if csi[5] else 1
     print(f"  rsrp dB/RE unique      : {len(set(dbre))}")
     print(f"  rsrp dB/RE range       : {min(dbre):.4f} .. {max(dbre):.4f}")
     if len(frames) > 1:

@@ -14,8 +14,19 @@ pose exactly as `_planner_pilot` does, and assert the loop converges and stays
 inside the grid.
 
 Usage:  python3 scripts/ml/test_planner_loop.py sar_forest <research.csv> [z0]
+
+Multitask regression: run the same replay with SAR_PLANNER_MODEL=multitask.
+The test then also requires that the planner really loaded the Phase 7
+bundle (a flag that silently falls back to the single-head model would
+otherwise pass every control check), that every decision produced a finite
+per-robot risk in [0, 1], and it reports how often no candidate kept all
+robots under the calibrated threshold -- the infeasible-constraint count.
+
+    SAR_PLANNER_MODEL=multitask python3 scripts/ml/test_planner_loop.py \
+        sar_forest <research.csv> 60
 """
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -34,6 +45,12 @@ def main():
     rows = list(csv.reader(open(path)))
     header = rows[0]
     p = OnlinePlanner(world, log=lambda m: print("   " + m))
+    want = os.environ.get("SAR_PLANNER_MODEL", "single")
+    got = getattr(p, "model_kind", "single")
+    if want != got:
+        print(f"\n  FAIL: SAR_PLANNER_MODEL={want} but the planner loaded "
+              f"'{got}' (multitask integration not present?)")
+        return 1
 
     x = y = 0.0
     traj, targets, steps = [], [], []
@@ -58,6 +75,18 @@ def main():
     print(f"    tracking err |z - target|: mean {np.abs(t-tg).mean():5.2f} m")
 
     fails = []
+    if got == "multitask":
+        n_dec = getattr(p, "n_decisions", 0)
+        n_inf = getattr(p, "n_infeasible", 0)
+        r = np.asarray(getattr(p, "last_risk", []), float)
+        print(f"    multitask : {n_inf}/{n_dec} decisions infeasible "
+              f"(no candidate kept every robot under the threshold)")
+        if r.size == 0 or not np.all(np.isfinite(r)) \
+                or np.any((r < 0) | (r > 1)):
+            fails.append(f"last per-robot risk not a probability vector: {r}")
+        if n_dec != len(t):
+            fails.append(f"planner counted {n_dec} decisions, loop saw "
+                         f"{len(t)}")
     # 1. the loop must not park on a geofence bound the grid cannot ask for
     at_bound = np.mean((t <= GEO_LO + .01) | (t >= GEO_HI - .01))
     if at_bound > 0.05:
