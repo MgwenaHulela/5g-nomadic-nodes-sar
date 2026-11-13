@@ -4,7 +4,8 @@ Runs are read from the runner logs (never edited):
   forest seed 1794000001: capped A/B (logs/capped_forest_flyoff_20261112_002402_runs.csv)
                           cautious C/D (logs/cautious_forest_flyoff_20261112_102709_runs.csv)
   all other seeds/worlds: logs/final_repeats_*_runs.csv (run_final_repeats.sh)
-Only runs with rc == 0 are used. Metric as scripts/ml/flyoff_forest_cautious_analyse.py
+Only runs with rc == 0 and at least 50 cycles are used (a failed start-up
+or a run killed before it wrote its cycle CSV is skipped, never imputed). Metric as scripts/ml/flyoff_forest_cautious_analyse.py
 (time-weighted, C2 up = loss < 50 %). Writes fig_arms_seeds.pdf and
 fig_arms_seeds.csv (one row per run). Prints how many runs each cell has, so a
 partial figure is never mistaken for the final one."""
@@ -23,7 +24,7 @@ cau = pd.read_csv("logs/cautious_forest_flyoff_20261112_102709_runs.csv", header
 fr = [pd.read_csv(f, header=None, names=["i", "arm", "world", "seed", "dir", "rc", "rows"])
       for f in sorted(glob.glob("logs/final_repeats_*_runs.csv"))]
 runs = pd.concat([cap, cau] + fr, ignore_index=True)
-runs = runs[runs.rc == 0]
+runs = runs[(runs.rc == 0) & (runs.rows >= 50)]
 
 
 def all4(d, world):
@@ -45,6 +46,9 @@ for ax, w, title in zip(axes, ["sar_forest", "sar_open_field"], ["(a) forest", "
             ax.plot(np.full(len(v), i) + np.linspace(-0.12, 0.12, len(v)), v, MARKERS[0], ms=3,
                     mfc="white", mec="0", mew=0.7)
         ax.text(i, 2, f"n={len(v)}", ha="center", fontsize=6)
+    h = runs[(runs.world == w) & (runs.arm == "A")].all4
+    if len(h):
+        ax.axhline(h.mean(), color="0.4", lw=0.6, ls=(0, (3, 2)), zorder=0)
     ax.set_xticks(range(4)); ax.set_xticklabels(["A", "B", "C", "D"]); ax.set_title(title, fontsize=8)
     ax.set_ylim(0, 100)
 axes[0].set_ylabel("all 4 robots C2 up (%)")

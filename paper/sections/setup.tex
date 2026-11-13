@@ -47,6 +47,10 @@ large as the effect; and the uplink cap
 for any forest outcome. Confidence intervals are 95\,\% block bootstraps over
 contiguous stretches (10-min blocks for missions), because consecutive cycles
 are strongly correlated; an effect whose interval includes zero is reported as
-not established. Per-arm placement comparisons use one 90-min run per arm and
-within-run intervals, which do not capture run-to-run variation.
-\todo{update: three seeds per arm in forest and open field from the repeat campaign}
+not established. Placement arms are flown on several seeds per world and
+compared by a two-stage bootstrap that resamples runs and then blocks within
+each run, so the interval includes run-to-run variation. Before these runs we
+fixed the rule that a learned arm beats a baseline only if that interval
+excludes 0. We call an arm equivalent to hover when the 90\,\% interval of the
+difference lies within $\pm$5 points; this margin was set after the first two
+seeds were seen.

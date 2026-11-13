@@ -79,6 +79,12 @@ Claim 1 is the headline. Claims 2–4 state what learning can and cannot add on 
 - A learned arm "beats" a baseline only if its all-4-up CI excludes 0.
 - Exploring-learner arms are not in D8: those runs flew only the cautious learner. The exploring-learner loss stays a single-run result.
 
+**D8 interim (13 Nov, 17 usable runs; `scripts/ml/final_repeats_deep.py`):** no learned arm beats hover under the rule above.
+- Open field: B − A +0.8 [−1.4, +3.1], C − A −0.1 [−5.9, +4.4], D − A +1.8 [−1.6, +5.2] (one run). All within ±5 (equivalence margin set after seeds 1–2, stated as such).
+- Forest: B − A −9.5 [−22.4, +3.7], C − A −7.0 [−19.9, +4.6], D − A −6.3 [−22.1, +9.0]. None established.
+- Safety part not falsified: cautious C − A interval includes 0. Its worst run (52.1 %) spent 59 % of the mission at ≥ 45 m.
+- Pending: forest seed 3 for B and D (flying 13 Nov), open-field seed 3.
+
 ## Supporting results (not claims)
 
 - **Dead-process detector (A4):** the precondition for Claim 2; described in Method.

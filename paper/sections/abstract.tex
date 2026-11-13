@@ -16,8 +16,9 @@ silent failure, dead UE processes, had contaminated 12.4\,\% of the training
 data. With both handled, the learning layer forecasts C2 failure 20\,s ahead
 with modest skill that falls as model capacity grows, and neither a linear nor
 a gradient-boosted model recovers how terrain changes the effect of altitude.
-In closed loop, no learned placement beat fixed hover or the robot centroid,
-and a cautious altitude learner behaved like hover. For autonomous management
+Over repeated missions with the cap, no learned placement beat fixed hover:
+in open field every arm was within 5 points of it, and in forest the arms that
+moved the UAV trailed it. For autonomous management
 of such cells, sound inner loops, with bounded queues and verified liveness,
 must come before learned placement.
 \end{abstract}

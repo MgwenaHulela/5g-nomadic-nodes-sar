@@ -10,8 +10,9 @@ outages from minutes to single measurement cycles, and improved both placement
 arms flown with and without it (C1). The learning layer forecasts
 link-failure onset 20\,s ahead with modest skill that falls as model capacity
 grows (C2), does not recover how terrain changes the effect of altitude (C3),
-and, in closed loop, does not beat fixed hover or the robot centroid; made
-cautious, it behaves like hover (C4). For autonomous management of such
+and, over repeated closed-loop missions, does not beat fixed hover; in forest
+every arm that moved the UAV trailed it, and a cautious learner helped only by
+staying near hover (C4). For autonomous management of such
 cells, the lesson is to verify that the managed system is measured and loaded
 soundly, bounding its queues and checking that its processes are alive, before
 learning where to fly it. The next steps are a hardware trial of the cap and

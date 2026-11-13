@@ -22,7 +22,7 @@ rates of tens of Mb/s even in forest, far above 1.5\,Mb/s, and the emulator's
 radio thread ran near one full core. Whether the limit is scheduling or
 emulation is under measurement.
 \todo{capacity sweep 0--35\,dB and 1/2/4-robot saturation, with gNB MAC
-statistics and per-thread CPU (scheduled 15 Nov)} After the video stopped, C2 stayed dead for 14 to more than 18\,min,
+statistics and per-thread CPU} After the video stopped, C2 stayed dead for 14 to more than 18\,min,
 consistent with each link slowly draining its backlog.
 
 % E1: tab_static_load (analyse.py), ul_*.txt max RTT, CONGESTION_TEST_REPORT.md (qdisc); 79 MB figure removed (untraceable, review K6)
@@ -67,8 +67,16 @@ the same policy with and without the cap: there, the time with no robot
 connected fell from 25.4 and 25.9\,\% to 0.3 and 0.0\,\%, and mean C2 rose from
 66.6 and 58.0\,\% to 89.1 and 88.9\,\%. Arms C and D also changed altitude
 learner between the two conditions, so their improvement cannot be attributed
-to the cap alone. Each comparison is one run per condition on different
-nights, with no null control for those nights.
+to the cap alone. The repeat campaign (Section~\ref{sec:r-place}) adds capped
+runs of A and B. All four robots were up 84.8 and 85.6\,\% of the time in open
+field (two runs each) against 50.2 and 57.0\,\% uncapped, and 70.6\,\% (three
+runs) and 61.1\,\% (two runs) in forest against 58.4 and 42.8\,\%. The
+uncapped side is still one run per arm on another night. In open field every
+capped run (82.5--87.1\,\%, all arms) lies above the upper end of both
+uncapped runs' intervals (61 and 65\,\%), and the same-policy null control
+there is $-0.5$ [$-4.3$, $+3.0$] (Table~\ref{tab:a3}), so a gain of about 30
+points is not a night-to-night swing. In forest the null control is too wide
+to rule out the gain's size.
 
 \textit{The cap turns minute-long outages into single missed cycles.} For the
 same like-for-like runs, Fig.~\ref{fig:outage} gives the length of every C2
@@ -193,10 +201,10 @@ mission.
 \subsection{C4: Learned Placement Under the Cap}
 \label{sec:r-place}
 
-\textit{An exploring altitude learner did worse than the baselines in single runs.} With the cap on,
-hover (A) and centroid (B) kept all four robots connected 70.5\,\% and
-67.0\,\% of the time in forest, indistinguishable from each other (B$-$A
-$-4.0$ [$-20.4$, $+11.2$] points). The two arms with an exploring learner were
+\textit{An exploring altitude learner did worse than the baselines in single runs.} In the
+first capped forest fly-off (seed 1), hover (A) and centroid (B) kept all four
+robots connected 70.5\,\% and 67.0\,\% of the time, indistinguishable from each
+other (B$-$A $-4.0$ [$-20.4$, $+11.2$] points). The two arms with an exploring learner were
 worse within their runs: C$-$A $-18.1$ [$-34.1$, $-2.6$] and D$-$A $-27.4$
 [$-43.0$, $-10.7$]. These are single runs on different nights, and the
 night-to-night swings of a same-policy null control reach about 20 points
@@ -222,26 +230,49 @@ learner keeps 40\,m as its incumbent and leaves it only for short probes.}
 \label{fig:alt}
 \end{figure*}
 
-\textit{A cautious learner behaves like hover.} Homed at 40\,m and requiring 1.5 standard
-errors plus 0.02 of reward to move away, the learner kept 40\,m as its
-incumbent in both arms and spent 83--84\,\% of each mission there. All four
-robots were connected 65.2\,\% (C) and 72.0\,\% (D) of the time, not
-distinguishable from the baselines, though the intervals are wide (C$-$A
-$-5.1$ [$-17.9$, $+6.8$]; D$-$A $+1.6$ [$-13.4$, $+17.7$]),
-and arm D scored $+28.8$ [$+11.9$, $+45.1$] points above its exploring version,
-again a cross-night single-run comparison. In effect the cautious learner is
-hover with short probes: it gave no benefit over hover. No learned arm beat a
-baseline. \todo{replace with the 3-seed forest and
-open-field results of the repeat campaign (Fig.~\ref{fig:seeds}); decision rule
-fixed in CLAIMS.md}
-% D7: cautious_forest_flyoff summary; time at 40 m: flyoff_forest_cautious_analyse.py
+\textit{Repeated missions: no learned arm beats hover.} We flew every arm
+with the cap, and the cautious learner for C and D, on three seeds in forest
+and two in open field; 17 missions are usable at the time of writing
+(Fig.~\ref{fig:seeds}).\todo{add forest seed 3 for B and D, flying now, and
+open-field seed 3} Because the runs fall on different nights and a seed does
+not reproduce the robots' paths, arms are compared by a two-stage bootstrap
+(resample runs, then 10-min blocks within each run). The rule was fixed before
+these runs: a learned arm beats a baseline only if its interval excludes 0. No
+arm does. In open field every arm stays within 5 points of hover, which keeps
+all four robots up 84.8\,\% of the time: B$-$A $+0.8$ [$-1.4$, $+3.1$],
+C$-$A $-0.1$ [$-5.9$, $+4.4$], D$-$A $+1.8$ [$-1.6$, $+5.2$] (one run).
+Placement has nothing left to win there once the queue is bounded. In
+forest, hover is the steadiest arm (67.9--73.2\,\%, mean 70.6\,\%) and the
+arms that move the UAV trail it: B$-$A $-9.5$ [$-22.4$, $+3.7$], C$-$A $-7.0$
+[$-19.9$, $+4.6$], D$-$A $-6.3$ [$-22.1$, $+9.0$]. None of these gaps is
+established. Each moving arm had one run 16--18 points below hover's run on
+the same seed, and others close to it.
+% D8: scripts/ml/final_repeats_deep.py -> logs/ml/final_repeats_deep_a_arms.csv; fig_arms_seeds.py
+
+\textit{Climbing and moving cost the links in forest.} The cautious learner's
+lowest run (52.1\,\%) is the one that left its 40-m home for long: it spent
+59\,\% of the mission at 45\,m or higher, against 7--11\,\% in its other two
+runs, and in that run the number of robots connected fell as altitude rose
+(correlation $-0.17$). This fits the negative capped slope above but does not
+establish it. Moving the UAV also made the cap work harder. Averaged over
+forest runs, the cap cut a robot's rate 266 times per hour under hover and 371
+under the planner, video goodput fell from 1.03 to 0.85\,Mb/s, and
+90th-percentile video latency rose from 1.5 to 2.4\,s. Each move changes the
+robots' paths through the canopy, and the cap has to find their new rates.
+Horizontal UAV--robot distance does not explain a robot's C2 in forest
+(correlation 0.06 over robot-runs): what matters is where a robot stands
+relative to the trees, which the geometry features cannot see (C3). In effect
+the cautious learner is hover with short probes: it gave no benefit over
+hover, and when it did leave 40\,m for long, it lost.
+% D8 mechanism: final_repeats_deep_c_altitude.csv, _f_cap_video.csv, _e_geometry.csv
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_arms_seeds.pdf}
 \caption{All four robots C2 up per arm with the cap, cautious learner for C
-and D; bar = mean over runs, dots = individual 90-min runs. \todo{partial:
-forest seed 1 only; regenerate after the repeat campaign}}
+and D: bar = mean over runs, dots = individual 90-min runs, dashed line =
+hover's mean. Open field is tight; forest varies from run to run.
+\todo{regenerate when forest seed 3 for B and D and open-field seed 3 are in}}
 \label{fig:seeds}
 \end{figure}
 
