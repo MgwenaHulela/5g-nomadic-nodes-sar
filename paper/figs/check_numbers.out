@@ -1,0 +1,23 @@
+PASS      E1 UL ping loss lo (no cap)                                    quoted       64  actual 64.4
+PASS      E1 UL ping loss hi (no cap)                                    quoted       91  actual 90.8
+PASS      E1 goodput lo                                                  quoted     0.13  actual 0.13
+PASS      E1 goodput hi                                                  quoted     0.49  actual 0.49
+MISMATCH  E3 adaptive RTT hi (claimed 109, UL-only table)                quoted      109  actual 108.0
+MISMATCH  E3 adaptive video latency hi (claimed 0.42 excl. delta)        quoted     0.42  actual 1.081
+PASS      D5 capped all4 A                                               quoted     70.5  actual 70.54
+PASS      D5 capped all4 B                                               quoted     67.0  actual 66.96
+MISMATCH  D5 capped all4 C                                               quoted     53.1  actual 53.05
+PASS      D5 capped all4 D                                               quoted     43.3  actual 43.27
+PASS      E6 none-up uncapped max (claimed 57, includes prober D)        quoted       57  actual 56.57
+PASS      E6 none-up uncapped min                                        quoted       25  actual 25.36
+PASS      A6 L1 lift                                                     quoted     1.79  actual 1.792
+PASS      A6 L1 ROC                                                      quoted    0.667  actual 0.6671
+PASS      A6 L1 worst                                                    quoted    0.538  actual 0.5384
+PASS      A6 MLP-large worst                                             quoted    0.404  actual 0.4036
+PASS      B3 recovered open-forest per cycle                             quoted    0.006  actual 0.0057
+PASS      B2 measured open-forest 60 s                                   quoted    0.167  actual 0.1674
+MISMATCH  B4 claim 'recovered open-forest n.s. at every bin' (raw, 120 s) quoted     n.s.  actual +0.0210 [+0.0032,+0.0383]
+PASS      D7/D5 forest seed-1 all4 A                                     quoted     70.5  actual 70.5404
+PASS      D7/D5 forest seed-1 all4 B                                     quoted     67.0  actual 66.9621
+PASS      D7/D5 forest seed-1 all4 C                                     quoted     65.2  actual 65.2294
+PASS      D7/D5 forest seed-1 all4 D                                     quoted     72.0  actual 71.9979

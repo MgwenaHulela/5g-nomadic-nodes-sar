@@ -1,0 +1,22 @@
+% Limitations (0.4 p); full version in Appendix C. Sources: docs/CHANNEL_MODEL_LIMITATIONS.md, EVIDENCE.md
+\section{Limitations and Threats to Validity}
+\label{sec:limits}
+
+The radio is real 5G software, but propagation is injected: the channel has
+large-scale loss and correlated shadowing but no multipath, terminal height is
+fixed at 0.5\,m, and absolute availability is internally consistent rather than
+externally calibrated. The OAI UE may buffer uplink data differently from a
+commercial modem, and constant-rate video is a worst case for the queue;
+whether C1 transfers is the first question for hardware. Every
+between-terrain claim rests on four terrains. The forecasting and
+altitude-effect data predate the cap, so their forest labels are partly queue
+backlog, and the dead-process rule removes only about half of the dead cycles
+the monitor recorded. Throughput was not measured with active probes during the
+campaigns, because they would have congested the links under test; the
+emulator's radio thread, near one full core, may cap the cell's total uplink
+\todo{measured capacity from the capacity sweep}.
+Placement comparisons rest on one to three 90-min runs per arm and world, so
+forest gaps of up to about 10 points are not established, and the capped and
+uncapped runs of the same arm were flown on different nights. The robots'
+safety guards react to link state, so the same seed does not give identical
+patrols across arms. Appendix~\ref{app:threats} gives the full list.

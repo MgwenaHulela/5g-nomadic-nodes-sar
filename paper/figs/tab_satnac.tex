@@ -1,0 +1,20 @@
+% Draft table: what is new over SATNAC 2026 (sources: published SATNAC text,
+% pasted by the author 2026-11-12; this paper's Sections III-V).
+\begin{table}[t]
+\caption{This Paper Versus Our Earlier Study~\cite{makhubela2026satnac}}
+\label{tab:satnac}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.2\columnwidth}p{0.36\columnwidth}p{0.38\columnwidth}@{}}
+\toprule
+ & SATNAC 2026 & This paper \\
+\midrule
+Robots & 2 & 4 \\
+UAV control & fixed hover vs.\ random walk & forecaster, planner, altitude learners vs.\ hover and centroid \\
+Management loops & rule-based coverage guard & uplink cap, liveness monitor, learned x--y--z placement \\
+Traffic & 2-s 8\,Mb/s bursts per cycle & continuous 1.5\,Mb/s video per robot \\
+C2 available & $\geq$1 of 5 echoes answered & ping loss $<$\,50\,\% \\
+Validation & static vs.\ roaming phase, one run per terrain & held-out terrain, null controls, repeated seeds \\
+Main finding & mobility helps in open field, hurts in forest & bound queues and check liveness first; learning ties simple rules \\
+\bottomrule
+\end{tabular}
+\end{table}

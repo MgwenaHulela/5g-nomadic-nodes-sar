@@ -1,0 +1,4 @@
+test,ul_loss_lo,ul_loss_hi,rtt_lo_ms,rtt_hi_ms,all_lost_on,all_lost_off,gp_lo,gp_hi,lat_lo_s,lat_hi_s
+No cap,64.4,90.8,180661.0,249185.0,64.4,100.0,0.13,0.49,130.693,167.539
+Fixed 100 kb/s,0.0,0.0,69.0,87.0,0.0,0.0,0.1,0.1,1.08,1.106
+Adaptive,0.0,0.0,76.0,108.0,0.0,0.0,0.1,0.42,0.3,1.081

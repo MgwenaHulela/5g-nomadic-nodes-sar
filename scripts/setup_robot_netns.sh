@@ -25,9 +25,37 @@
 set -uo pipefail
 
 # tun-in-root-ns -> namespace name
-declare -A NS_OF=( [oaitun_ue1]=robot_alpha [oaitun_ue1p2]=robot_bravo )
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/robots.env"
+# Built from the shared roster so adding a robot needs no edit here.
+declare -A NS_OF=()
+for _r in "${ROBOT_NAMES[@]}"; do NS_OF[${ROBOT_TUN[$_r]}]=${ROBOT_NS[$_r]}; done
 # fallback IPs if detection fails (SMF assigns these to the 2 subscribers)
-declare -A FALLBACK_IP=( [oaitun_ue1]=10.45.0.2/16 [oaitun_ue1p2]=10.45.0.3/16 )
+# Duplicate-IP guard. Open5GS allocates from session.subnet WITHOUT checking
+# statically-assigned subscriber addresses (slice.session.ue.ipv4), so a
+# subscriber missing a static IP silently gets a pool address that can collide
+# with another robot's static one. Both TUNs then carry the same address in
+# different namespaces, every reachability check still passes, and every
+# per-robot measurement for the colliding pair is quietly wrong. Observed
+# 2026-10-19: charlie and delta duplicated alpha and bravo.
+check_unique_ips() {
+  local dupes
+  dupes=$(for _r in "${ROBOT_NAMES[@]}"; do
+            ip netns exec "${ROBOT_NS[$_r]}" ip -4 -o addr show "${ROBOT_TUN[$_r]}" 2>/dev/null \
+              | grep -oP 'inet \K[\d.]+'
+          done | sort | uniq -d)
+  if [[ -n "$dupes" ]]; then
+    echo "  FATAL: duplicate UE IPs across robots: $dupes"
+    echo "         Every robot needs a distinct slice.session.ue.ipv4 in its"
+    echo "         Open5GS subscriber record. Check with:"
+    echo "           mongosh open5gs --eval 'db.subscribers.find({},{imsi:1,\"slice.session.ue.ipv4\":1})'"
+    return 1
+  fi
+  echo "  UE IPs unique across ${#ROBOT_NAMES[@]} robots"
+  return 0
+}
+
+declare -A FALLBACK_IP=()
+for _r in "${ROBOT_NAMES[@]}"; do FALLBACK_IP[${ROBOT_TUN[$_r]}]=${ROBOT_UE_IP[$_r]}/16; done
 
 die() { echo "FATAL: $1"; exit 1; }
 
@@ -75,6 +103,9 @@ setup() {
       echo "  WARNING: root ns cannot reach $ue_ip (downlink broken)"
     fi
   done
+  # Run AFTER the reachability checks: a duplicate address passes every one
+  # of them, so uniqueness has to be asserted separately.
+  check_unique_ips || return 1
 }
 
 teardown() {

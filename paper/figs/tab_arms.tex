@@ -1,0 +1,12 @@
+% Table 1 (hand-written: definitions, no numbers). Source: run_xyz_flyoff.sh,
+% scripts/ml/online_planner.py (SAR_PLANNER_XY / _ALT / _ALT_LEARNER).
+\begin{tabular}{@{}llll@{}}
+\toprule
+Arm & x--y & Altitude & Role \\
+\midrule
+A & held & fixed 40\,m & baseline (hover) \\
+B & robot centroid & fixed 40\,m & baseline (proposal) \\
+C & robot centroid & learned on the spot & learned altitude \\
+D & risk model & learned on the spot & learned x--y--z \\
+\bottomrule
+\end{tabular}

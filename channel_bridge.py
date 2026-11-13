@@ -132,10 +132,24 @@ MODEL_MAP = {
     # the link is healthy at 0 dB attenuation and dies at ~35 dB.
     # Alpha UL 8 + distance delta (0..~27 dB over 10-190 m) spans
     # healthy -> cliff like the original design; bravo +5 dB weaker.
-    "gnb_ue0_alpha_ul": (9091, 1, 8.0),
-    "gnb_ue1_bravo_ul": (9091, 2, 13.0),
-    "ue_alpha_dl":      (9092, 0, 3.0),
-    "ue_bravo_dl":      (9093, 0, 8.0),
+    # 4-robot testbed (2026-10-19). gNB-side index is the modellist_sar
+    # position in gnb.sa.band78.rfsim.conf: 1=ue0, 2=ue1, 3=ue2, 4=ue3.
+    # Each UE's DL model lives in its own process, so index is always 0 and
+    # the telnet PORT distinguishes them (9092..9095, matching each
+    # nrue_*.conf listenport).
+    #
+    # Baselines give four distinct link qualities so that a soft-min over
+    # robots (brief 5.3) is a meaningful objective rather than a near-tie:
+    # alpha strongest, then charlie, bravo, delta weakest. DL sits 5 dB
+    # below UL throughout, matching DL_UL_OFFSET in auto_patrol.py.
+    "gnb_ue0_alpha_ul":   (9091, 1,  8.0),
+    "gnb_ue1_bravo_ul":   (9091, 2, 13.0),
+    "gnb_ue2_charlie_ul": (9091, 3, 10.0),
+    "gnb_ue3_delta_ul":   (9091, 4, 15.0),
+    "ue_alpha_dl":        (9092, 0,  3.0),
+    "ue_bravo_dl":        (9093, 0,  8.0),
+    "ue_charlie_dl":      (9094, 0,  5.0),
+    "ue_delta_dl":        (9095, 0, 10.0),
 }
 
 PLOSS_MIN, PLOSS_MAX = 0.0, 45.0
@@ -285,7 +299,32 @@ prev_types = {}      # track last channel type sent to avoid redundant type chan
 # Models spawned via EntityFactory with an explicit name: override, so
 # pose/info reports them under exactly these names (nested x500_base /
 # turtlebot3_burger entities are merged into the wrapper and don't appear).
-TARGET_MODELS = {"sar_uav", "sar_ground_alpha", "sar_ground_bravo"}
+# Robot roster. Order matters: it fixes the per-UE column order in the CSV
+# and the order ue_data is built. SAR_ROBOTS overrides it, so a 2-robot run
+# (the published SATNAC configuration) is still reproducible:
+#   SAR_ROBOTS=alpha,bravo python3 channel_bridge.py
+ROBOTS = [r.strip() for r in
+          os.environ.get("SAR_ROBOTS", "alpha,bravo,charlie,delta").split(",")
+          if r.strip()]
+GROUND_MODEL = {r: f"sar_ground_{r}" for r in ROBOTS}
+TARGET_MODELS = {"sar_uav"} | set(GROUND_MODEL.values())
+
+# Keep only the channel models for robots that are actually running.
+#
+# MODEL_MAP is a fixed four-robot table, and the startup verify loop opens a
+# telnet session to EVERY port in it. Under SAR_ROBOTS=alpha,bravo that meant
+# dialling charlie (9094) and delta (9095), whose UEs were never launched:
+# the probe failed and the bridge exited with
+#   FATAL: telnet :9094 never became responsive
+# Nothing else notices. The stack comes up, the UEs attach, the patrol logs
+# happily — and ploss_dB stays 0.00 on every row forever, so there is no
+# pathloss, no terrain and no distance effect at all. A whole run looks
+# pristine and teaches nothing. Observed 2026-10-21 on a 2-robot validation:
+# 41 cycles, ploss 0.0 dB throughout, RSRP pinned at 51.3 from 43 m to 153 m.
+MODEL_MAP = {k: v for k, v in MODEL_MAP.items()
+             if any(f"_{r}_" in k for r in ROBOTS)}
+if not MODEL_MAP:
+    raise SystemExit(f"FATAL: no channel models match SAR_ROBOTS={ROBOTS}")
 
 
 def pose_cb(msg):
@@ -425,14 +464,19 @@ def main():
     csv_file = open(CSV_PATH, "a", newline="")
     writer = csv.writer(csv_file)
     if csv_new:
-        writer.writerow(["timestamp", "uav_x", "uav_y", "uav_z",
-                          "alpha_d_horiz", "bravo_d_horiz",
-                          "alpha_delta_db", "bravo_delta_db",
-                          "alpha_speed_ms", "bravo_speed_ms",
-                          "alpha_ch_type", "bravo_ch_type",
-                          "alpha_forgetfact", "bravo_forgetfact",
-                          "ploss_gnb_ue0", "ploss_gnb_ue1",
-                          "ploss_ue_alpha_dl", "ploss_ue_bravo_dl"])
+        # Header built from ROBOTS in the SAME order the row is assembled
+        # below. The previous header was hand-written and had drifted out of
+        # sync with the writer — it listed the per-UE fields grouped by field
+        # while the rows emit them grouped by UE, so anything loading the file
+        # by header silently mis-assigned every column (DATA_AUDIT.md 5.2).
+        # Deriving both from one list is what stops that recurring.
+        hdr = ["timestamp", "uav_x", "uav_y", "uav_z"]
+        for r in ROBOTS:
+            hdr += [f"{r}_d_horiz", f"{r}_delta_db"]
+        for r in ROBOTS:
+            hdr += [f"{r}_speed_ms", f"{r}_ch_type", f"{r}_forgetfact"]
+        hdr += list(MODEL_MAP.keys())
+        writer.writerow(hdr)
 
     last_sent = {name: base for name, (_p, _i, base) in MODEL_MAP.items()}
     smoothed = {name: base for name, (_p, _i, base) in MODEL_MAP.items()}
@@ -459,7 +503,8 @@ def main():
 
             # Compute per-UE metrics
             ue_data = {}
-            for ue_name, key in [("sar_ground_alpha", "alpha"), ("sar_ground_bravo", "bravo")]:
+            for key in ROBOTS:
+                ue_name = GROUND_MODEL[key]
                 if ue_name not in positions:
                     ue_data[key] = None
                     continue
@@ -492,13 +537,13 @@ def main():
                     "forgetfact": forgetfact, "offset": offset,
                 }
 
-            for key in ["alpha", "bravo"]:
+            for key in ROBOTS:
                 if ue_data[key]:
                     row += [ue_data[key]["d_horiz"], ue_data[key]["delta"]]
                 else:
                     row += ["", ""]
 
-            for key in ["alpha", "bravo"]:
+            for key in ROBOTS:
                 if ue_data[key]:
                     row += [ue_data[key]["speed"], ue_data[key]["ch_type"],
                             f"{ue_data[key]['forgetfact']:.3f}"]
@@ -507,7 +552,9 @@ def main():
 
             # Send telnet commands per model
             for name, (port, idx, baseline) in MODEL_MAP.items():
-                ue_key = "alpha" if "alpha" in name else "bravo"
+                ue_key = next((r for r in ROBOTS if r in name), None)
+                if ue_key is None:
+                    continue
                 data = ue_data.get(ue_key)
                 if data is None:
                     continue
@@ -563,12 +610,9 @@ def main():
                 # Note: type, forgetfact, ds_tdl, noise_power_dB are set in config
                 # files at startup (not changeable via telnet at runtime in this OAI version)
 
-            row.extend([
-                f"{last_sent.get('gnb_ue0_alpha_ul', ''):.2f}",
-                f"{last_sent.get('gnb_ue1_bravo_ul', ''):.2f}",
-                f"{last_sent.get('ue_alpha_dl', ''):.2f}",
-                f"{last_sent.get('ue_bravo_dl', ''):.2f}",
-            ])
+            # Same iteration order as the header's MODEL_MAP tail.
+            row.extend(f"{last_sent[k]:.2f}" if k in last_sent else ""
+                       for k in MODEL_MAP)
             writer.writerow(row)
             csv_file.flush()
 

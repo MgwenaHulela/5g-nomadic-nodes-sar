@@ -1,0 +1,102 @@
+% Appendix: extra tables (generated), reproducibility, full threats. Drafted after main text.
+\section{Extra Tables}
+\label{app:tables}
+
+\begin{table}[h]
+\caption{Dead-Process Contamination by Terrain (6,760 of 54,572 rows, 12.4\,\%)}
+\label{tab:a1}
+\centering\small
+\input{figs/tab_a1_dead.tex}
+\end{table}
+
+\begin{table}[h]
+\caption{Forecast Horizon Sweep, Censored Onset Population, Pooled Over Held-Out Terrains}
+\label{tab:a2}
+\centering\small
+\input{figs/tab_a2_horizon.tex}
+\end{table}
+
+\begin{table}[h]
+\caption{Risk Planner Versus the Repositioning Baseline of~\cite{makhubela2026satnac}, With a Same-Policy Null Control (Geometry-Matched, 95\,\% CI)}
+\label{tab:a3}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\input{figs/tab_a3_nullctl.tex}
+\end{table}
+
+\begin{table}[h]
+\caption{Offline Altitude Bench, Fresh Seeds: Learner Minus Fixed 40\,m (Reward Points)}
+\label{tab:a4}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\input{figs/tab_a4_bench.tex}
+\end{table}
+
+\begin{table}[h]
+\caption{Forest Patrol, First 30\,min, Hover at 40\,m, Same Seed}
+\label{tab:a5}
+\centering\small
+\input{figs/tab_a5_patrol.tex}
+\end{table}
+
+\begin{table}[h]
+\caption{C2 Outage Lengths, Like-for-Like Arms Without and With the Cap (One 90-min Run Each)}
+\label{tab:a6}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\input{figs/tab_outage.tex}
+\end{table}
+
+\textit{Dead-process rule against the liveness monitor.} Over C2-down cycles in
+the 29 robot series where the monitor wrote events, the rule flagged 2,583
+cycles, the monitor recorded 3,878 dead or relaunching ones, and 2,189 were
+both: precision 0.85, recall 0.56. The other 4,177 flags lie in series where the
+monitor had stopped and cannot be checked (\texttt{dead\_process\_validation.csv}).
+
+\textit{Recovered contrasts on uniform time bases.} For the 60-s-horizon model,
+the open-field-minus-forest contrast on 30-, 60- and 120-s bins is $-0.001$,
+$+0.010$ and $+0.021$ (the last significant, $p = 0.017$), against measured
+$+0.184$, $+0.167$ and $+0.117$.
+
+\section{Reproducibility}
+\label{app:repro}
+\todo{Step 9: map every result to script, data file and command}
+
+\section{Threats to Validity in Full}
+\label{app:threats}
+% Sources: docs/CHANNEL_MODEL_LIMITATIONS.md; EVIDENCE.md status column
+\textit{Channel.} Every run uses an additive white Gaussian noise channel in the
+OAI radio simulator; the bridge injects large-scale loss and distance-correlated
+shadowing only, so there is no small-scale fading, Doppler or frequency
+selectivity. Terminal height is a constant 0.5\,m, there is no two-ray, Fresnel
+or rubble term, the line-of-sight sigmoid uses the urban coefficients in every
+world, and the applied attenuation is clamped at 45\,dB. The smooth channel may
+itself limit what a short-horizon forecaster can learn.
+
+\textit{Sampling.} Each measurement cycle waits for its probes, which block when
+the link fails, so cycle length depends on the outcome (longer when C2 is down,
+and longest in forest). Altitude effects are therefore also reported on uniform
+time bases (Table~\ref{tab:contrasts}); the model-recovered contrast at 120\,s
+is significant but small, and we report it.
+
+\textit{Labels.} Dead-process cycles are censored by a rule, not by ground truth;
+the forecasting and altitude-effect data predate the uplink cap, so forest
+failure labels are partly queue backlog, which the 20-s forecaster cannot see.
+
+\textit{Sample size.} Four terrains bound every between-terrain claim; the
+indoor world produced no usable runs. The 10\,Hz radio traces give 3,115
+independent labelled cycles over three folds.
+
+\textit{Closed-loop comparisons.} The exploring-learner and uncapped runs are
+one 90-min run per arm on different nights, with within-run block-bootstrap
+intervals. The repeat campaign has one to three runs per arm and world, and
+its intervals resample runs as well as blocks, which with so few runs gives
+only a rough interval. The robots'
+safety guards react to link state and consume the random stream, so a shared
+seed gives similar but not identical patrols. Comparisons across nights are
+accepted only where a same-policy null control's interval rules out a swing
+as large as the effect (Table~\ref{tab:a3}); the fly-off arms have no null
+control, so their cross-night differences are not treated as established.
+
+\textit{Generality of C1.} The UE buffering behaviour is that of the OAI UE; a
+commercial modem may bound or drop uplink data. Constant-rate video is a worst
+case; an adaptive encoder would congest less but reacts more slowly than the
+cap. The relevance to the forest result of~\cite{makhubela2026satnac} is
+untested.

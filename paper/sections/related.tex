@@ -1,0 +1,41 @@
+% Related work (0.5 p). Refs: SATNAC list (author-supplied) + web-verified (refs.bib verify_note)
+\section{Background and Related Work}
+\label{sec:related}
+
+\textit{Aerial base stations and their testbeds.} The elevation-dependent
+line-of-sight model~\cite{alhourani2014modeling} underlies most work on where
+to place a UAV base station, from 3-D placement~\cite{boryaliniz2016efficient,
+kalantari2016number} and trajectory design~\cite{wu2018common} to deep
+reinforcement learning~\cite{qiu2020placement}; surveys cover the wider
+field~\cite{zeng2016wireless,mozaffari2019tutorial}. These works optimise
+coverage or rate under an analytic or simulated channel. Testbeds now run
+OpenAirInterface on UAVs with O-RAN control~\cite{moore2024aerpaw} or emulate
+5G mobility with ray tracing~\cite{iye2025owdt}. Our earlier
+study~\cite{makhubela2026satnac} coupled a real 5G stack to a terrain
+simulator and found that terrain decides whether moving the node helps.
+
+\textit{Learning-based and autonomous management.} Zero-touch management aims
+at fully autonomous operation under human oversight~\cite{coronado2022zsm}, and
+O-RAN exposes closed control loops at sub-second to minute time scales in which
+learned controllers can run~\cite{polese2023oran}; our three loops sit at the
+same three scales, but outside the RAN.
+Machine learning for link-quality estimation~\cite{cerar2021lqe}, fault
+management~\cite{mulvey2019fault} and failure prediction in 5G RANs, with deep
+and transformer models~\cite{islam2023dnn,hasan2024gentrap}, learns from the
+history of a deployed network. A UAV arriving at a disaster site has no such
+history for its terrain, so we test on an unseen terrain and in closed loop.
+
+\textit{Buffering in cellular links.} Buffers that hold rather than drop
+packets inflate delay~\cite{gettys2012bufferbloat}, and per-user cellular
+buffers are a known source~\cite{jiang2012tackling}. Remedies range from active
+queue management~\cite{nichols2012codel} and delay-aware rate
+control~\cite{winstein2013sprout} to, recently, RAN-side congestion marking:
+in 5G, time spent in the radio link control (RLC) buffer dominates one-way
+delay~\cite{wan2025l4span}, retransmission and uplink-scheduling buffers can
+add delay comparable to congestion~\cite{liu2025fog}, and sizing the RLC buffer
+dynamically cuts that delay~\cite{irazabal2022buffer}. Those remedies change
+network queues, the RAN or the transport protocol. Our cap applies the classic additive-increase,
+multiplicative-decrease (AIMD) rule~\cite{chiu1989aimd} to a delay signal at the robot, because constant-rate
+robot video does not back off and the UE's buffer is not ours to change.
+
+\input{figs/tab_satnac.tex}

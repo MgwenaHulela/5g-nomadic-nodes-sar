@@ -1,0 +1,22 @@
+# Memory Index
+
+- [SAR sim stack operation](sar-sim-stack-operation.md) — start_full_stack.sh owns Gazebo; verify via teleport+ch_bridge.log; 45dB RLF cliff; pkill self-match quirk
+- [SAR terrain worlds](sar-terrain-worlds.md) — forest/hills/indoor worlds + world_channel dispatch coupling geometry to channel model
+- [Coverage RLF kills UE process](coverage-rlf-kills-ue-process.md) — real coverage RLF exits nr-uesoftmodem; only relaunch recovers C2 (soft-clamp can't); 200m glitch filter when inducing RLF
+- [Research campaign tooling](research-campaign-tooling.md) — --research mode + run_research_campaign.sh orchestrator; NEVER run two campaigns (shared stack corrupts data; flock guard added)
+- [Nomadic gNB terrain results](nomadic-gnb-terrain-results.md) — 5-terrain static-vs-nomadic experiment; nomadic helps LoS, neutral urban, hurts forest/hills, indoor coverage-limited
+- [Field test follows sim](field-test-follows-sim.md) — emulation is phase 1; real-hardware UAV+robot field test is the planned next phase; frame sim as to-be-validated
+- [Stack dead Sept-Oct 2026](stack-dead-sept-2026-core-drift.md) — core slice drift + NVIDIA driver mismatch; layered "TUN never appeared" diagnosis chain
+- [iperf3 ABI clash + cell capacity](iperf3-abi-clash-and-cell-capacity.md) — ~18 Mb/s UL aggregate is RU-thread bound, not 5G config; iperf3 3.16/3.9 clash crashed flows
+- [Watchdog reattach + sudo traps](watchdog-reattach-and-sudo-killpg-traps.md) — probe_busy starved the watchdog; reattach strands TUNs in default netns; sudo env_reset/use_pty break roster + killpg
+- [SAR silent failure checks](sar-silent-failure-checks.md) — ploss==0 voids a run; verify TUN-in-netns, UE count, gNB alive before trusting data
+- [MOCN multi-tenant experiment](mocn-multi-tenant-experiment.md) — 21 Sep two-PLMN shared gNB/core, smf2+upf2 tenant B; USRP B200 + SDR OAI UEs; NOT SAR — goes in UCT 5g-multi-tenant-testbed repo (mocn/)
+- [Watchdog roster KeyError](watchdog-roster-keyerror.md) — UE_LOG_OF alpha/bravo-only killed the RLF watchdog in 20/24 October runs + round-4 runs 1-2; inflates dead-UE stats
+- [Reattach failure causes](reattach-failure-causes.md) — round-4 failed reattaches: whole-roster re-home, 150 s timeout + stranded-TUN kill loop (fixed); post-reattach C2 loss = forest link flapping after a good reattach (soft-failure budget + strike reset)
+- [MSc proposal status](msc-proposal-status.md) — RQ1-RQ5 status 2026-11-10; CU/DU split DONE on Pi 5 + B210 (outside repo); RQ4 hardware is the critical path
+- [Surrogate cannot learn altitude](surrogate-cannot-learn-altitude.md) — no terrain-blind surrogate learns where to stop climbing; altitude via on-the-spot bandit; surrogate x-y ≈ centroid follower
+- [x-y-z fly-off result](xyz-flyoff-result.md) — no learned arm beat centroid (open) or hover (forest); holds with uplink cap too (capped forest: A 70.5 B 67.0 C 53.1 D 43.3 all-4-up)
+- [Altitude prober fix](altitude-prober-fix.md) — prober no gain; `cautious` (home 40 m) planner default; flown live capped forest: C 65.2 / D 72.0 all-4-up = ties baselines
+- [Forest outages = UE queue congestion](forest-outages-are-ue-queue-congestion.md) — 1.5 Mb/s CBR video overflows weak NLoS uplinks; OAI UE queues minutes; recovery 14-18+ min; TUN cap removes outages; delay-adaptive AIMD cap keeps 85-94% of video too
+- [SATNAC 2026 published](satnac-2026-published.md) — exact citation; published setup differs from local satnac_final.tex (2-s 8 Mb/s bursts, C2 = ≥1/5 echoes)
+- [Slicing plan](slicing-plan.md) — approved eMBB/URLLC/IoT slice design on 10.47.x/ogstun3-5, all 4 robots; build only after campaign ends

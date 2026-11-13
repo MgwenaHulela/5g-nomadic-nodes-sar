@@ -1,0 +1,66 @@
+% Introduction. Claims: paper/CLAIMS.md; novelty: paper/NOVELTY.md
+\section{Introduction}
+\label{sec:intro}
+
+After an earthquake, flood or fire, the ground robots sent to search a
+disaster site need a mission-critical link for command and control (C2) and
+video, and the terrestrial network they would use is often gone or
+overloaded~\cite{murphy2014disaster}. A 5G base station (gNB) carried by an
+unmanned aerial vehicle (UAV) can bring a private cell to the
+robots~\cite{zeng2016wireless,mozaffari2019tutorial}. Such a cell has to be
+managed: something must decide where to fly it, notice when a robot is about
+to lose its link, and keep the links usable under the load the robots put on
+them. On site there is no operator to tune it and no reliable map of terrain
+that may have just changed, so the management has to be autonomous, proactive
+and blind to the terrain, which is the setting of zero-touch
+management~\cite{coronado2022zsm}.
+
+Our earlier testbed study~\cite{makhubela2026satnac} showed that terrain decides
+whether moving such a node helps: an uninformed roaming node raised a weak
+robot's C2 availability in open field and cost about 22 points in forest. The
+natural next step is a learning-based management layer that forecasts link
+failures and places the UAV in three dimensions without being told the terrain.
+This paper builds that layer as part of a three-loop management stack
+(Fig.~\ref{fig:arch}), flies it in closed loop over real 5G software, and asks
+what each loop delivers. The answer turned out to depend less on the learning
+than on whether the managed system was measured and loaded soundly.
+
+We test four claims, each against an explicit control (Section~\ref{sec:setup}):
+\begin{itemize}
+\item[\textbf{C1}] Long forest outages under robot video are caused by uplink
+queuing inside the user equipment (UE), not by coverage, and a delay-adaptive
+uplink cap at each robot removes them without starving strong links.
+\item[\textbf{C2}] A terrain-blind model forecasts the onset of C2 failure
+20\,s ahead on an unseen terrain better than chance, and higher-capacity models
+do worse.
+\item[\textbf{C3}] Terrain-blind models do not recover how terrain changes the
+effect of altitude, so they cannot choose altitude.
+\item[\textbf{C4}] Learned placement does not beat fixed hover, over repeated
+missions in two terrains.
+\end{itemize}
+C1 holds; C2 and C4 hold weakly; C3 holds as a negative result.
+
+\textit{Contributions.} The work falls under wireless and 5G networks,
+mission-critical networks, proactive and autonomic management, artificial
+intelligence (AI)-based management, monitoring and measurement, and testbed
+experimentation. Beyond the testbed and terrain comparison
+of~\cite{makhubela2026satnac} (Table~\ref{tab:satnac}), it contributes:
+\begin{enumerate}
+\item \emph{A diagnosis and an autonomic fix.} The forest outages are a silent
+queueing failure of the managed system. A per-robot cap driven only by
+round-trip time and bytes sent, with no change to the radio access network
+(RAN), shortens outages from minutes to seconds and lifts both placement arms
+flown with and without it (Section~\ref{sec:r-cap}).
+\item \emph{A liveness monitor with a measurement-integrity check.} A second
+silent failure, the UE process dying after radio-link failure, contaminated
+12.4\,\% of training observations; we give a mechanistic detection rule and
+validate it against the monitor's own record (Section~\ref{sec:dead}).
+\item \emph{An evaluation of terrain-blind learning for proactive management}
+on held-out terrain and in closed loop, with the negative results stated
+(Sections~\ref{sec:r-forecast} and~\ref{sec:r-flip}).
+\item \emph{A closed-loop account of learned placement}, showing why a single
+mission is too short to learn the forest's altitude effect and why a cautious
+learner reduces to hover (Section~\ref{sec:r-place}).
+\end{enumerate}
+All results come from emulation over real 5G software; a hardware trial is the
+next step.

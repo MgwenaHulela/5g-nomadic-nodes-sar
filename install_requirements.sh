@@ -109,16 +109,29 @@ install_oai() {
 }
 
 install_iperf() {
-  say "iperf3 $IPERF_VERSION from source (--bind-dev support)"
-  if iperf3 --version 2>/dev/null | grep -q "$IPERF_VERSION"; then
-    skip "iperf3 $IPERF_VERSION already installed"; return
+  # DO NOT build iperf3 from source here any more.
+  #
+  # This used to install $IPERF_VERSION (3.16) into /usr/local for its
+  # --bind-dev flag. That left the box with TWO iperf3 installs sharing one
+  # soname: Ubuntu's 3.9 binary at /usr/bin and the source-built 3.16
+  # libiperf.so.0 at /usr/local/lib. Different ABI, so /usr/bin/iperf3 loaded
+  # the wrong library and died with "*** stack smashing detected ***" /
+  # SIGSEGV. Flows crashed mid-measurement and were silently relaunched,
+  # corrupting the throughput column (DATA_AUDIT.md section 10.3).
+  #
+  # --bind-dev is no longer needed: every iperf3 client in this project runs
+  # inside the robot's network namespace, where the UE tun is the only route
+  # to the test IP, so the bind was redundant. The distro package is enough.
+  say "iperf3 (distro package; source build deliberately NOT used)"
+  if ! command -v iperf3 >/dev/null 2>&1; then
+    sudo apt-get install -y iperf3
   fi
-  [ -d "$IPERF_DIR/.git" ] || git clone https://github.com/esnet/iperf.git "$IPERF_DIR"
-  cd "$IPERF_DIR"
-  git checkout "$IPERF_VERSION"
-  ./configure && make -j"$(nproc)" && sudo make install && sudo ldconfig
-  cd "$REPO_DIR"
-  ok "iperf3 $(iperf3 --version | head -1)"
+  if [ -e /usr/local/lib/libiperf.so.0 ] || [ -e /usr/local/bin/iperf3 ]; then
+    say "WARNING: a source-built iperf3 exists in /usr/local. It will shadow"
+    say "         the distro package and can reintroduce the ABI clash above."
+    say "         Remove /usr/local/{bin/iperf3,lib/libiperf*} and run ldconfig."
+  fi
+  ok "iperf3 $(iperf3 --version 2>/dev/null | head -1)"
 }
 
 install_models() {

@@ -42,6 +42,7 @@ OAI_DIR="$HOME/openairinterface5g"
 # If a generated world's SDF is missing, (re)generate it from its module.
 WORLD="${SAR_WORLD:-sar_open_field}"
 export SAR_WORLD="$WORLD"
+source "$SELF_DIR/scripts/robots.env"
 declare -A WORLD_GEN=(
   [sar_urban]=make_urban_world.py
   [sar_forest]=make_forest_world.py
@@ -136,6 +137,14 @@ if pgrep -f "gz sim" >/dev/null 2>&1; then
   sleep 2
 fi
 
+# NOTE (2026-10-16): forcing software GL here (LIBGL_ALWAYS_SOFTWARE=1) does
+# NOT rescue a broken driver. The worlds load gz-sim-sensors-system with
+# ogre2 and sar_burger carries a camera, so even the headless `-s` server
+# initialises OGRE. With a usable X display that fails as a GLX BadValue;
+# with DISPLAY unset it segfaults inside OGRE resource setup instead. Both
+# are fatal, and Mesa cannot help because the X server's GLX extension is
+# itself supplied by the mismatched NVIDIA driver. The fix is to repair the
+# driver (reboot after the update), not to re-route GL.
 gz sim -r -s "$SELF_DIR/worlds/$WORLD.sdf" -v 1 &>/tmp/gz_sim.log &
 GZ_PID=$!
 for i in $(seq 1 15); do
@@ -145,6 +154,11 @@ done
 if gz topic -l 2>/dev/null | grep -q "/clock"; then
   ok "Gazebo started (PID $GZ_PID)"
 else
+  if grep -qE 'X Error|GLX' /tmp/gz_sim.log 2>/dev/null; then
+    echo "  HINT: GLX failed. Check 'nvidia-smi' — a driver/library version"
+    echo "        mismatch (update without reboot) breaks GL context creation."
+    echo "        This script already forces software GL unless SAR_GPU=1."
+  fi
   die "Gazebo failed to start — check /tmp/gz_sim.log"
 fi
 
@@ -154,10 +168,17 @@ info "Spawning 3D models..."
 # The EntityFactory `name:` field overrides whatever <model name> is inside
 # the SDF file, so all three land on pose/info under the sar_* names the
 # channel bridge and viz expect (same pattern as worlds/spawn_ground_robot.sh).
-# Stock burger (no TrajectoryFollower) — auto_patrol.py moves robots via
-# set_pose, which would fight a baked-in waypoint follower.
+# Robots MUST come from the repo-local sar_burger wrapper, not the stock
+# TurtleBot3 model. The wrapper adds gz-sim-diff-drive-system, whose cmd_vel
+# topic auto-scopes to /model/<name>/cmd_vel — which is how auto_patrol's
+# driver moves them. The stock model has no DiffDrive at all, so a robot
+# spawned from it appears in the world and publishes poses but can never be
+# driven: its cmd_vel topic simply has no subscriber. (alpha/bravo are
+# <include>d from model://sar_burger in each world SDF and so were always
+# fine; charlie/delta, spawned dynamically here, sat motionless at spawn
+# until this was fixed on 2026-10-19.)
 UAV_SDF="$SELF_DIR/worlds/x500_static_hold.sdf"
-BURGER_SDF="$TB3_MODELS/turtlebot3_burger/model.sdf"
+BURGER_SDF="$SELF_DIR/models/sar_burger/model.sdf"
 [[ -f "$UAV_SDF" ]] || die "missing $UAV_SDF"
 [[ -f "$BURGER_SDF" ]] || die "missing $BURGER_SDF"
 
@@ -176,18 +197,50 @@ spawn_model() {
   echo "  $name spawned"
 }
 
-spawn_model sar_uav          "$UAV_SDF"    0 0 40
+spawn_model sar_uav "$UAV_SDF" 0 0 40
 sleep 1
-spawn_model sar_ground_alpha "$BURGER_SDF" 15 0 0.1
-sleep 1
-spawn_model sar_ground_bravo "$BURGER_SDF" 30 0 0.1
-sleep 1
+EXPECT_MODELS=(sar_uav)
+for r in "${ROBOT_NAMES[@]}"; do
+  read -r sx sy <<< "${ROBOT_SPAWN[$r]}"
+  spawn_model "sar_ground_$r" "$BURGER_SDF" "$sx" "$sy" 0.1
+  EXPECT_MODELS+=("sar_ground_$r")
+  sleep 1
+done
 
-for m in sar_uav sar_ground_alpha sar_ground_bravo; do
+# Drivability gate. A robot spawned from an SDF without a DiffDrive plugin
+# still appears in `gz model --list` and still publishes poses — it simply
+# never moves, because nothing subscribes to its cmd_vel. That is invisible
+# in every existing check and shows up only as "this robot's position never
+# changes" buried in a finished CSV. Assert a subscriber exists instead.
+check_drivable() {
+  local missing=()
+  for r in "${ROBOT_NAMES[@]}"; do
+    local t="/model/sar_ground_$r/cmd_vel"
+    if ! timeout 6 gz topic -i -t "$t" 2>/dev/null | grep -q "Subscribers"; then
+      missing+=("sar_ground_$r")
+    fi
+  done
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "  FATAL: no cmd_vel subscriber for: ${missing[*]}"
+    echo "         These robots will appear in the world and publish poses but"
+    echo "         will NEVER move. Spawn them from models/sar_burger (which"
+    echo "         adds gz-sim-diff-drive-system), not the stock TurtleBot3 SDF."
+    return 1
+  fi
+  echo "  All $ROBOT_COUNT robots drivable (cmd_vel subscriber present)"
+  return 0
+}
+
+for m in "${EXPECT_MODELS[@]}"; do
   gz model --list 2>/dev/null | grep -q "$m" || \
     die "$m failed to spawn — check /tmp/gz_sim.log"
 done
 ok "All models spawned"
+
+# Poses take a moment to start flowing after a dynamic spawn; give the
+# DiffDrive systems a beat to attach before asserting they are listening.
+sleep 2
+check_drivable || die "robot spawn produced undrivable models"
 
 # ── 6. Start channel bridge (background) ─────────────────────────────────────
 info "Starting channel bridge..."
@@ -232,9 +285,17 @@ ok "Log janitor running (5GB cap per OAI log)"
 # radio. Must run AFTER the UEs attach and AFTER the root-ns connectivity
 # checks above (which need the TUNs still in the root namespace).
 info "Isolating robot networks (C2/downlink over-air)..."
-NS_OUT=$(echo "${SAR_SUDO_PASS:-}" | sudo -S bash "$SELF_DIR/scripts/setup_robot_netns.sh" setup 2>/dev/null)
+# `sudo` runs with env_reset, which DROPS SAR_ROBOTS. Without it the script
+# falls back to the default four-robot roster, demands a TUN for a robot that
+# was never launched (e.g. oaitun_ue1p4 under SAR_ROBOTS=alpha,bravo), dies,
+# and leaves EVERY TUN in the root namespace. The stack then looks healthy —
+# UEs attached, host pings fine — while the robots have no namespace
+# connectivity at all, and the C2 watchdog cannot tell the difference because
+# a root-ns TUN still answers a host ping. Pass the roster through explicitly.
+NS_OUT=$(echo "${SAR_SUDO_PASS:-}" | sudo -S env SAR_ROBOTS="$SAR_ROBOTS" \
+  bash "$SELF_DIR/scripts/setup_robot_netns.sh" setup 2>/dev/null)
 echo "$NS_OUT" | sed 's/^/  /'
-[[ $(echo "$NS_OUT" | grep -c "downlink OK") -eq 2 ]] || \
+[[ $(echo "$NS_OUT" | grep -c "downlink OK") -eq "$ROBOT_COUNT" ]] || \
   die "robot netns setup failed — downlink not verified"
 ok "Robot namespaces active (uplink + downlink both over air)"
 

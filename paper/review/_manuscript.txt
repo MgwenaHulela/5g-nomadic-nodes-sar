@@ -1,0 +1,559 @@
+
+abstract
+A UAV-borne 5G base station can serve search-and-rescue robots, but it must be
+managed autonomously, without knowing the terrain. We
+built a terrain-blind, learning-based management layer for such a cell, which
+forecasts link failure and places the UAV in three dimensions, and flew it in
+closed loop on an OpenAirInterface testbed serving four robots.
+Validated on held-out terrain and against null controls, the largest gain
+came not from learning but from fixing a silent failure of the managed system. Long forest outages turned
+out to be unbounded uplink queuing inside the user equipment, not coverage
+loss: constant-rate video exceeded weak links, and command-and-control (C2)
+traffic waited minutes behind it. A per-robot uplink cap driven only by
+round-trip time and bytes sent removed these outages: in a forest patrol it raised C2 availability from
+66.8% to 91.8% and cut the time with no robot connected from 17.4% to
+0.9%, and it improved every placement policy. After censoring a second
+silent failure, dead UE processes that contaminated 12.4% of observations, a linear
+model forecasts C2 failure 20s ahead with modest skill (ROC-AUC 0.667) that
+falls as model capacity grows, and it does not recover how terrain changes the
+effect of altitude. In closed loop, no learned placement beat fixed hover or the
+robot centroid; an exploring altitude learner lost 18-27 points of the time
+with all robots connected, and a cautious one was not distinguishable from them. Bounding
+queues and checking liveness should precede learning where to fly.
+abstract
+
+Introduction
+sec:intro
+
+After an earthquake, flood or fire, the ground robots sent to search a
+disaster site need a mission-critical link for command and control (C2) and
+video, and the terrestrial network they would use is often gone or
+overloaded murphy2014disaster. A 5G base station (gNB) carried by an
+unmanned aerial vehicle (UAV) can bring a private cell to the
+robots zeng2016wireless,mozaffari2019tutorial, but someone, or
+something, must manage it: decide where to fly it, notice when a robot is
+about to lose its link, and keep the links usable under the load the robots
+put on them. On site there is no operator to tune it and no map of a terrain
+that may have just been changed, so this management has to be autonomous,
+proactive and blind to the terrain.
+
+Our earlier testbed study makhubela2026satnac showed that terrain
+decides whether moving such a node helps: a roaming node raised a weak robot's
+C2 availability in open field and cost about 22 points in forest. A natural next
+step is a learning-based management layer that predicts link failures and
+places the UAV in three dimensions, without being told the terrain. This paper
+builds that layer, flies it in closed loop over a real 5G stack, and asks what
+it can and cannot deliver. The answer turned out to depend less on the learning
+than on whether the managed system itself was measured and loaded soundly.
+
+We test four claims, each against an explicit control (Section sec:setup):
+itemize
+[C1] Long forest outages under robot video are caused by
+unbounded uplink queuing inside the UE, not by coverage, and a delay-adaptive
+uplink cap at each robot removes them without starving strong links.
+[C2] A terrain-blind model forecasts the onset of C2 failure
+20s ahead on an unseen terrain better than chance, and higher-capacity models
+do worse.
+[C3] The same model does not recover how terrain changes the
+effect of altitude, so it cannot choose altitude.
+[C4] Learned placement does not beat fixed hover or the robot
+centroid; an exploring altitude learner loses to them and a cautious one does
+not.
+itemize
+C1 holds; C2 and C4 hold weakly; C3 holds as a negative result.
+
+Contributions. The work falls under wireless and 5G networks,
+mission-critical networks, proactive and autonomic management, AI-based
+management, monitoring and measurement, and testbed experimentation. Beyond
+the testbed and terrain comparison of makhubela2026satnac, it
+contributes:
+enumerate
+A diagnosis and an autonomic fix. We show that the forest
+outages are a silent queueing failure of the managed system. A per-robot cap
+driven only by round-trip time and bytes sent, with no change to the radio
+access network, raised forest C2 availability from 66.8% to 91.8% and improved each of
+four placement policies, one run each (Section sec:r-cap).
+A measurement-integrity detector. A second silent failure, the
+UE process dying after radio-link failure, contaminated 12.4% of training
+observations; we give a mechanistic rule that removes it
+(Section sec:dead).
+An evaluation of terrain-blind learning for proactive management,
+on held-out terrain and in closed loop, with the negative results stated:
+modest forecasting skill, worse with capacity, and no recovery of the
+terrain-dependent altitude effect (Sections sec:r-forecast
+and sec:r-flip).
+A closed-loop account of learned placement, showing why a single
+mission is too short to learn the forest's altitude effect and how a cautious
+learner avoids the resulting loss (Section sec:r-place).
+enumerate
+All results come from emulation over real 5G software; a hardware trial is the
+next step.
+
+Background and Related Work
+sec:related
+
+Aerial base stations and their testbeds. The elevation-dependent
+line-of-sight model alhourani2014modeling underlies most work on where
+to place a UAV base station, from 3-D placement boryaliniz2016efficient,
+kalantari2016number and trajectory design wu2018common to deep
+reinforcement learning qiu2020placement; surveys cover the wider
+field zeng2016wireless,mozaffari2019tutorial. These works optimise
+coverage or rate under an analytic or simulated channel. Testbeds now run
+OpenAirInterface on UAVs with O-RAN control moore2024aerpaw or emulate
+5G mobility with ray tracing iye2025owdt. Our earlier
+study makhubela2026satnac coupled a real 5G stack to a terrain
+simulator and found that terrain decides whether moving the node helps.
+
+Learning-based and autonomous management. Zero-touch management aims
+at fully autonomous operation under human oversight coronado2022zsm.
+Machine learning for link-quality estimation cerar2021lqe, fault
+management mulvey2019fault and failure prediction in 5G RANs, with deep
+and transformer models islam2023dnn,hasan2024gentrap, learns from the
+history of a deployed network. A UAV arriving at a disaster site has no such
+history for its terrain, so we test on an unseen terrain and in closed loop.
+
+Buffering in cellular links. Buffers that hold rather than drop
+packets inflate delay gettys2012bufferbloat, and per-user cellular
+buffers are a known source jiang2012tackling. Remedies range from active
+queue management nichols2012codel and delay-aware rate
+control winstein2013sprout to, recently, RAN-side congestion marking:
+in 5G, time spent in the RLC buffer dominates one-way
+delay wan2025l4span, and retransmission and uplink-scheduling buffers can
+add delay comparable to congestion liu2025fog. Those remedies change
+network queues, the RAN or the transport protocol. Our cap applies the classic AIMD
+rule chiu1989aimd to a delay signal at the robot, because constant-rate
+robot video does not back off and the UE's buffer is not ours to change.
+
+
+System and Method
+sec:method
+
+Platform
+sec:platform
+The managed system is the protocol-in-the-loop testbed
+of makhubela2026satnac, extended from two to four robots
+(Fig. fig:loop). An OpenAirInterface (OAI) nikaein2014oai gNB and
+four OAI UEs run over the OAI radio simulator and register to an
+Open5GS open5gs core. Each UE's TUN interface sits in its own Linux
+network namespace, so robot traffic crosses the real 5G user plane. Gazebo
+moves the UAV and four ground robots; a bridge reads their poses every 0.5s
+and writes a terrain-specific air-to-ground path loss into each UE's channel:
+free-space loss with an elevation-dependent line-of-sight
+term alhourani2014modeling, plus foliage weissberger1982,
+diffraction itup526 or building loss by terrain, and correlated
+shadowing gudmundson1991 (details in makhubela2026satnac). A
+watchdog relaunches a UE whose process exits after radio-link failure.
+
+figure[t]
+fig_loop.pdf
+The closed management loop. Shaded boxes are the management
+functions studied here: a per-robot uplink cap and a terrain-blind
+forecaster, planner and altitude learner.
+fig:loop
+figure
+
+Measurement Integrity: Dead-Process Detection
+sec:dead
+In OAI, a radio-link failure terminates the UE process. Before the watchdog
+existed, the robot's C2 then stayed down for the rest of the run, and the gNB's
+per-UE counters froze. Those cycles are labelled as link failures, but they
+record a dead process, and a model with lagged features detects them trivially
+(the first difference of the block error rate is exactly zero). We flag a cycle
+as dead when, for at least three consecutive cycles, the gNB counters
+dlbler, ulnbrbs and ulbitspersym are
+bit-identical to the previous cycle and C2 is down. The conjunction
+matters: frozen counters on a working link are a quiet cycle, and a failed
+cycle with moving counters is a real degradation. The rule flags 12.4% of
+all cycles and 72.2% of hills failure labels (Table tab:a1); flagged
+cycles are censored from training and evaluation.
+
+
+Terrain-Blind Learning Layer
+sec:layer
+Forecaster. The label is the onset of C2 failure: for a robot whose C2
+is up at time , is it down at s? C2 is up when fewer than 50% of
+its probes are lost. Features are UAV-robot geometry, gNB-side link
+adaptation and error statistics, and the last commanded move, each with lags,
+differences and rolling statistics within one robot's series (65 features).
+Three inputs are forbidden: the simulator's injected path loss, the computed
+received power (algebraically equivalent to it), and any terrain label. A guard
+function checks every feature matrix before it reaches an estimator. Models are
+trained leave-one-terrain-out, with thresholds and calibration chosen on an
+inner time split of the training terrains.
+
+Planner. Each 30-s decision, the planner scores candidate UAV
+positions (absolute altitudes 25-55m in 5m steps, crossed with lateral
+offsets of 0 or 15m) by a soft minimum over the robots' predicted risks,
+ with , so the
+worst-served robot dominates. It moves toward the minimiser at most 10m in
+altitude per decision. The planner's risk model is the same logistic
+regression with spline terms on altitude, distances and elevation angle and
+Platt calibration (pooled held-out ROC-AUC 0.659).
+
+Altitude learner. Because the model cannot choose altitude
+(Section sec:r-flip), altitude is learned during the mission. The learner
+holds an incumbent altitude and rewards each altitude by the fraction of robots
+with C2 up. Its estimates are time-blocked (240s blocks), so only comparisons
+made close in time count. Every few decisions it probes a neighbouring altitude
+(5 or 10m), and it moves when the lower confidence bound of the
+neighbour-minus-incumbent difference is above zero (). The
+cautious variant adds a home altitude, the hover altitude of 40m: a
+move further from home must clear 1.5 standard errors and a 0.02 gain,
+a move back toward home only the normal bar, and probes are rarer (every 4th
+decision, every 20th once all neighbours are worse).
+
+
+Delay-Adaptive Uplink Cap
+sec:cap
+The cap moves the bottleneck from the UE into the robot's kernel, where it can
+be bounded and prioritised, and lets its rate follow the link. It needs no
+change to the RAN or core. On each robot's TUN interface, an HTB shaper has a
+ceiling equal to the cap . C2 and ICMP use a high-priority class with a
+20-packet queue; video uses a low-priority class with a 10-packet queue, so
+excess video is dropped rather than buffered. Each robot pings the core every
+0.2s. ICMP bypasses the kernel video queue, so its RTT rises only when the
+UE's own buffer backs up. With  the minimum RTT over 60s and 
+the median over the last second, Algorithm alg:cap runs every 0.2s.
+The "in use" test keeps an idle robot's cap from rising and then overloading
+the link when video resumes. The controller re-creates the shaper when a UE
+reattaches with a new TUN. Its only inputs, RTT and bytes sent, are available
+on real hardware.
+
+algorithm[t]
+Per-Robot Uplink Cap (Every 0.2s)
+alg:cap
+algorithmic[1]
+initially kb/s,  true
+ms no reply for 1s
+  ;  false; hold 2s
+ms sent  2s since last raise
+  
+algorithmic
+algorithm
+
+
+Experimental Setup
+sec:setup
+
+Traffic and metrics. Each robot sends constant-rate UDP video at
+1.5Mb/s to the core and is probed for C2 by ping; a robot's C2 is up when
+fewer than 50% of its probes are lost. These definitions differ from those
+of makhubela2026satnac (two robots, 8Mb/s video bursts, C2 up when
+any of five echoes returns), so numbers are not comparable across the two
+papers. Placement runs are reported as the time-weighted share of a mission
+with mean C2 up, with all four robots up, and with no robot up, and the
+90th-percentile video latency. Forecasts are scored by PR-AUC relative to the
+no-skill rate (lift) and by ROC-AUC, pooled over held-out terrains and on the
+worst held-out terrain.
+
+Data. The forecasting and altitude-effect results use 54,572
+robot-cycles from 20 missions of 90-200min over four terrains (open field,
+urban, forest, hills), all flown before the cap existed. The cap was tested in
+a static load test in forest and open field (6min of video between 2-min
+no-load phases), in a 30-min forest patrol, and in the placement fly-offs.
+
+Placement arms. Every arm flies the same pilot, seed and 90-min
+mission and differs only in how x-y and altitude are chosen
+(Table tab:arms): the pilot decides every 30s, changes altitude by at
+most 10m per decision, and stays within a 20-60m geofence. Arm B, the
+robot centroid at fixed altitude, is the baseline of our research proposal; arm
+A, fixed hover, is the simplest policy; the repositioning policy
+of makhubela2026satnac is a further baseline for the risk planner.
+
+table[t]
+Placement Arms
+tab:arms
+
+
+tabular@llll@
+Arm & x-y & Altitude & Role 
+
+A & held & fixed 40m & baseline (hover) 
+
+B & robot centroid & fixed 40m & baseline (proposal) 
+
+C & robot centroid & learned on the spot & learned altitude 
+
+D & risk model & learned on the spot & learned x-y-z 
+
+tabular
+
+table
+
+Validation protocol. A result is accepted only after it survives the
+control that matches its threat: leave-one-terrain-out evaluation with
+worst-fold reporting for forecasting; censoring of dead-process cycles for every
+label; a same-policy null control (the same comparison applied to two nights of
+one policy) for closed-loop comparisons made across nights; and the uplink cap
+for any forest outcome. Confidence intervals are 95% block bootstraps over
+contiguous stretches (10-min blocks for missions), because consecutive cycles
+are strongly correlated; an effect whose interval includes zero is reported as
+not established. Per-arm placement comparisons use one 90-min run per arm and
+within-run intervals, which do not capture run-to-run variation.
+update: three seeds per arm in forest and open field from the repeat campaign
+
+Results
+sec:results
+
+C1: Uplink Queuing, Not Coverage, and an Autonomic Cap
+sec:r-cap
+
+The long forest outages are a queue inside the UE. With the four
+robots parked under canopy (24-30dB uplink attenuation) and the UAV at
+40m, C2 was clean without load. Once the four 1.5Mb/s video feeds started,
+uplink ping RTT grew from about 60ms to minutes within the first seconds and
+kept rising for the whole load period, peaking at 350-444s
+(Fig. fig:rtt(a)); 64-91% of pings were lost and, for 64% of the
+time, all eight probes were lost at once (Table tab:static). Probes were
+delayed rather than dropped, and the links drained only 0.13-0.49Mb/s of the
+1.5Mb/s offered. The kernel queue on each TUN held no backlog and dropped
+nothing, so the excess, about 79MB per robot, was accepted and held by the OAI
+UE (E1). After the video stopped, C2 stayed dead for 14 to more than 18min,
+consistent with each link slowly draining its backlog.
+
+
+figure*[t]
+fig_rtt.pdf
+Uplink C2 ping RTT per robot in the static forest load test (log
+scale; video on in the shaded interval). (a) Without a cap, RTT grows to
+minutes; traces end where replies stop before the test ends. (b) With the
+adaptive cap, RTT stays near its unloaded level.
+fig:rtt
+figure*
+
+table[t]
+Static Forest Load Test, Four Robots, 6min of Video
+tab:static
+
+
+tabular@lccc@
+ & No cap & Fixed 100kb/s & Adaptive 
+
+UL ping loss, video on & 64-91% & 0% & 0% 
+
+UL ping RTT, median & 3-4min & 69-87ms & 76-108ms 
+
+All probes lost (on / off) & 64 / 100% & 0 / 0% & 0 / 0% 
+
+Recovery after video & 14-18+min & none & none 
+
+Video goodput (Mb/s) & 0.13-0.49 & 0.10 & 0.10-0.42 
+
+Video latency, median & 2.2-2.8min & 1.08-1.11s & 0.30-1.08s 
+
+tabular
+
+table
+
+Bounding the queue removes the outages. A fixed 100kb/s cap below
+every link's drain rate, applied at the same placement, removed all C2 loss and
+the recovery tail, but discarded most of the video (Table tab:static).
+The adaptive cap of Section sec:cap also gave zero C2 loss while settling
+at a different rate on each link (medians 105-429kb/s, 32-40 cuts per robot
+in 6min), delivering 0.10-0.42Mb/s of video at a median latency of
+0.30-0.42s on three robots; the fourth, with the weakest link, ran at
+1.08s, the time its 10-packet video queue takes to drain at about 100kb/s
+(Fig. fig:rtt(b)). In open field, with 2-9dB of attenuation, every cap
+rose to its 1.6Mb/s ceiling, made no cuts, and carried the full 1.55Mb/s
+per robot at 82-89ms median latency (E4): in this test, where links were
+strong, the cap stayed out of the way.
+
+
+The cap lifts every placement policy. In a 30-min forest patrol with
+the UAV hovering at 40m, the cap raised mean C2 availability from 66.8% to
+91.8% against the same seed uncapped, cut the time with no robot connected
+from 17.4% to 0.9%, and the 90th-percentile video latency from 73s to
+1.6s (Table tab:a5). Across the four placement arms of the forest
+fly-off (Fig. fig:caparms), the time with no robot connected fell from
+25-35% to 0-0.3% and mean C2 rose from 51-67% to 82-89% in
+every arm. Each comparison is one run per arm on different nights, but the
+direction is the same in all four.
+
+
+figure[t]
+fig_cap_arms.pdf
+Forest fly-off, each placement arm without and with the adaptive cap
+(one 90-min run per bar; whiskers: 95% block-bootstrap CI). Arms C and D
+used a UCB altitude bandit uncapped and the prober learner capped.
+fig:caparms
+figure
+
+The same mechanism may bear on the forest result of our earlier
+study makhubela2026satnac, where a roaming node drove 8Mb/s video
+bursts to over 70% loss; its traffic pattern differed, and we have not
+tested this.
+
+C2: Terrain-Blind Forecasting Has Modest Skill, and Capacity Hurts
+sec:r-forecast
+
+A linear model forecasts failure onset 20s ahead on unseen terrain,
+weakly. After dead-process censoring (Section sec:dead), the best
+model, an L1-regularised logistic regression on 65 terrain-blind features,
+reaches a pooled PR-AUC 1.79 times the no-skill rate and ROC-AUC 0.667, and no
+held-out terrain falls below ROC-AUC 0.538 (Fig. fig:capacity). Skill
+peaks at a 20-s horizon: a six-feature trend model scores ROC-AUC 0.650 at
+20s and 0.552 at 60s (Table tab:a2). Forest labels in this data
+predate the cap and are partly queue backlog (Section sec:r-cap).
+
+
+figure[t]
+fig_capacity.pdf
+Forecasting skill by model class: pooled PR-AUC lift over no skill
+on held-out terrains, and the worst held-out-terrain ROC-AUC (65 features,
+20-s onset horizon, 38,303 onset observations, leave-one-terrain-out).
+fig:capacity
+figure
+
+More capacity is worse. On identical folds and features the ordering
+is monotone in capacity: three linear models lead, tree ensembles follow, and
+three multilayer perceptrons trail. The largest network scores ROC-AUC 0.503,
+and 0.404 on its worst terrain, below chance. One exception should be stated:
+on six trend features at a 60-s horizon, the medium network beats the linear
+models on pooled lift (1.55 against 1.21-1.22) but not on its worst terrain (ROC
+0.456 against 0.550). Sequence models on 10Hz radio traces add nothing: on
+3,115 labelled cycles over three folds, a TCN and a GRU average ROC-AUC 0.493
+and 0.523 against 0.540 for a logistic regression on window summaries (A7).
+Under leave-one-terrain-out validation with four terrains, we take worst-fold
+skill, not pooled skill, as the figure of merit; our reading is that it rewards
+models that learn a direction rather than thresholds tied to the training
+terrains.
+
+
+C3: The Model Does Not Recover How Terrain Changes the Altitude Effect
+sec:r-flip
+
+The measured effect of climbing differs strongly between terrains: per +10m,
+C2 availability gains 0.208 more in open field than in forest per cycle, and
+0.167 more on a uniform 60-s time base that removes the outcome-dependent
+cycle length (Table tab:contrasts). This terrain dependence was reported
+in makhubela2026satnac; the question here is whether a terrain-blind
+model recovers it. It does not. The same contrast computed from the model's
+risk estimates is  () per cycle and  on the 60-s
+base, both indistinguishable from zero; at 120s it reaches , which is
+significant but about one sixth of the measured . Two of the other
+three contrasts are significantly inverted per cycle.
+
+
+table[t]
+Altitude Effect Contrasts (C2 Availability per +10m): Measured
+Versus Recovered From the Model. : 95% CI Excludes 0
+tab:contrasts
+tabular@c@
+per cycle  60-s time base
+
+
+tabular@lcccc@
+Contrast & Meas. & Recov. & Meas. & Recov. 
+
+Open  forest &  &  &  &  
+
+Open  hills &  &  &  &  
+
+Urban  forest &  &  &  &  
+
+Hills  forest &  &  &  &  
+
+tabular
+
+
+tabular
+table
+
+The consequence for control is direct. Replayed through the planner on each
+held-out terrain, no surrogate chooses altitude sensibly: linear models choose
+about 55m in every terrain, and a gradient-boosted model chooses about 47m in both
+forest and open field (D1). Altitude therefore has to be learned during the
+mission.
+
+
+C4: Learned Placement Under the Cap
+sec:r-place
+
+An exploring altitude learner loses to the baselines. With the cap on,
+hover (A) and centroid (B) kept all four robots connected 70.5% and
+67.0% of the time in forest, indistinguishable from each other (BA
+ [, ] points). The two arms with an exploring learner were
+worse: CA  [, ] and DA  [, ].
+They lost by climbing to 45-55m (Fig. fig:alt).
+
+
+One mission cannot determine the sign of the forest altitude effect.
+Comparing arm C with arm B at matched times, with the same x-y rule and robot
+paths, gives  points of C2 per +10m (): probably harmful,
+not established. The slope the learner itself can estimate within one 90-min
+run is  () in arm C and  () in arm
+D. Its interval spans both signs, so the learner moved on noise.
+
+
+figure*[t]
+fig_altitude.pdf
+UAV altitude during the capped forest missions for the two
+learned-altitude arms. The exploring learner drifts to 45-55m; the cautious
+learner keeps 40m as its incumbent and leaves it only for short probes.
+fig:alt
+figure*
+
+A cautious learner avoids that loss. Homed at 40m and requiring 1.5 standard
+errors plus 0.02 of reward to move away, the learner kept 40m as its
+incumbent in both arms and spent 83-84% of each mission there. All four
+robots were connected 65.2% (C) and 72.0% (D) of the time, not
+distinguishable from the baselines, though the intervals are wide (CA
+ [, ]; DA  [, ]),
+and arm D gained  [, ] points over its exploring version.
+D's earlier deficit therefore came from altitude, not from the model's x-y.
+No learned arm beat a baseline. replace with the 3-seed forest and
+open-field results of the repeat campaign (Fig. fig:seeds); decision rule
+fixed in CLAIMS.md
+
+
+figure[t]
+fig_arms_seeds.pdf
+All four robots C2 up per arm with the cap, cautious learner for C
+and D; bar = mean over runs, dots = individual 90-min runs. partial:
+forest seed 1 only; regenerate after the repeat campaign
+fig:seeds
+figure
+
+The risk planner survives its null control in two terrains only.
+Against the repositioning policy of makhubela2026satnac, matched on
+geometry, the planner gained  [, ] points in open field and
+lost  [, ] in forest; the same comparison between two
+nights of the same baseline policy gave  and , both not
+significant. In urban and hills that null was as large as the effect (
+and ), so those comparisons are uninterpretable
+(Table tab:a3).
+
+
+Limitations and Threats to Validity
+sec:limits
+
+The radio is real 5G software, but propagation is injected: the channel has
+large-scale loss and correlated shadowing but no multipath, terminal height is
+fixed at 0.5m, and absolute availability is internally consistent rather than
+externally calibrated. The OAI UE may buffer uplink data differently from a
+commercial modem, and constant-rate video is a worst case for the queue;
+whether C1 transfers is the first question for hardware. Every
+between-terrain claim rests on four terrains. The forecasting and
+altitude-effect data predate the cap, so their forest labels are partly queue
+backlog. Placement comparisons use one 90-min run per arm with within-run
+intervals, and the robots' safety guards react to link state, so the same seed
+does not give identical patrols across arms. Appendix app:threats gives
+the full list.
+revise the last-but-one sentence once the three-seed repeats are in
+
+Conclusion
+sec:conclusion
+
+We built a terrain-blind, learning-based management layer for a UAV-borne 5G
+cell serving four search-and-rescue robots and flew it in closed loop over real
+5G software. The most effective management action was not learned: a per-robot
+uplink cap driven by round-trip time removed a silent queueing failure inside
+the UE and improved each of four placement policies, one run each (C1). The learning layer forecasts
+link-failure onset 20s ahead with modest skill that falls as model capacity
+grows (C2), does not recover how terrain changes the effect of altitude (C3),
+and, in closed loop, does not beat fixed hover or the robot centroid; made
+cautious, it is not distinguishable from them within wide intervals (C4). For autonomous management of such
+cells, the lesson is to verify that the managed system is measured and loaded
+soundly, bounding its queues and checking that its processes are alive, before
+learning where to fly it. The next steps are a hardware trial of the cap and
+retraining the layer on capped, watchdog-protected data.
