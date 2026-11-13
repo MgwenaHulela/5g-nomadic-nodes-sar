@@ -1,0 +1,52 @@
+% Experimental setup. Sources: EVIDENCE.md A-E, run_*_flyoff.sh, video_streams.py
+\section{Experimental Setup}
+\label{sec:setup}
+
+\textit{Traffic and metrics.} Each robot sends constant-rate UDP (User Datagram Protocol) video at
+1.5\,Mb/s to the core and is probed for C2 by ping; a robot's C2 is up when
+fewer than 50\,\% of its probes are lost. These definitions differ from those
+of~\cite{makhubela2026satnac} (two robots, 8\,Mb/s video bursts, C2 up when
+any of five echoes returns), so numbers are not comparable across the two
+papers. Placement runs are reported as the time-weighted share of a mission
+with mean C2 up, with all four robots up, and with no robot up, and the
+90th-percentile video latency. Forecasts are scored by the area under the
+precision--recall curve (PR-AUC) relative to the no-skill rate (lift) and by ROC-AUC, pooled over held-out terrains and on the
+worst held-out terrain.
+
+\textit{Data.} The forecasting and altitude-effect results use 54,572
+robot-cycles from 20 missions of 90--200\,min over four terrains (open field,
+urban, forest, hills), all flown before the cap existed. The cap was tested in
+a static load test in forest and open field (6\,min of video between 2-min
+no-load phases), in a 30-min forest patrol, and in the placement fly-offs.
+
+\textit{Placement arms.} Every arm flies the same pilot, seed and 90-min
+mission and differs only in how x--y and altitude are chosen
+(Table~\ref{tab:arms}): the pilot decides every 30\,s, changes altitude by at
+most 10\,m per decision, and stays within a 20--60\,m geofence. The 40-m hover altitude and the
+20--60\,m band are those of~\cite{makhubela2026satnac}: 40\,m is the middle of
+the band and clears every obstacle in the outdoor worlds. Arm B, the
+robot centroid at fixed altitude, is the baseline of our research proposal; arm
+A, fixed hover, is the simplest policy; the repositioning policy
+of~\cite{makhubela2026satnac} is a further baseline for the risk planner.
+
+\begin{table}[t]
+\caption{Placement Arms}
+\label{tab:arms}
+\centering
+\small
+\input{figs/tab_arms.tex}
+\end{table}
+
+\textit{Validation protocol.} A result is accepted only after it survives the
+control that matches its threat: leave-one-terrain-out evaluation with
+worst-fold reporting for forecasting; censoring of dead-process cycles for every
+label; a same-policy null control (the same comparison applied to two nights of
+one policy) for closed-loop comparisons made across nights, where a
+comparison counts only if the null control's interval rules out a swing as
+large as the effect; and the uplink cap
+for any forest outcome. Confidence intervals are 95\,\% block bootstraps over
+contiguous stretches (10-min blocks for missions), because consecutive cycles
+are strongly correlated; an effect whose interval includes zero is reported as
+not established. Per-arm placement comparisons use one 90-min run per arm and
+within-run intervals, which do not capture run-to-run variation.
+\todo{update: three seeds per arm in forest and open field from the repeat campaign}

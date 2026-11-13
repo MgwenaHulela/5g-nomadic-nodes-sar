@@ -1,0 +1,23 @@
+% Abstract (<= 250 words; count with: detex sections/abstract.tex | wc -w)
+\begin{abstract}
+Autonomous management of a 5G cell carried by an unmanned aerial vehicle (UAV)
+must keep search-and-rescue robots commandable without an operator and without
+knowing the terrain. Over an OpenAirInterface and Open5GS testbed serving four
+robots, we built and flew a three-loop management stack: a per-robot uplink cap
+(every 0.2\,s), a liveness monitor (every 20\,s), and a terrain-blind learning
+layer that forecasts link failure and places the UAV in three dimensions (every
+30\,s). The decisive loop was the simplest. Long forest outages were not
+coverage loss but uplink queuing inside the user equipment (UE): constant-rate
+video exceeded what the links drained and held command-and-control (C2) traffic
+minutes behind it. The cap, driven only by round-trip time and bytes sent,
+raised forest C2 availability from 66.8\,\% to 91.8\,\% in a patrol test and
+cut the median C2 outage from 143\,s to 17\,s in a placement run. A second
+silent failure, dead UE processes, had contaminated 12.4\,\% of the training
+data. With both handled, the learning layer forecasts C2 failure 20\,s ahead
+with modest skill that falls as model capacity grows, and neither a linear nor
+a gradient-boosted model recovers how terrain changes the effect of altitude.
+In closed loop, no learned placement beat fixed hover or the robot centroid,
+and a cautious altitude learner behaved like hover. For autonomous management
+of such cells, sound inner loops, with bounded queues and verified liveness,
+must come before learned placement.
+\end{abstract}

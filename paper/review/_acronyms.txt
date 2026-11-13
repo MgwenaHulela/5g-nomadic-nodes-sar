@@ -1,0 +1,30 @@
+### Acronym check (advisory; no reply needed)
+Coverage: body (partial)
+Not in this input: English abstract, Chinese abstract.
+Not checked:
+- Body, line 31: gNB (the initials before its parentheses do not spell it)
+- Body, line 135: OAI (the initials before its parentheses do not spell it)
+
+| Scope | Line | Rule | Acronym | Uses |
+|---|---|---|---|---|
+| Body | 3 | Defined after first use | UAV | 14 |
+| Body | 16 | Not defined | UE | 17 |
+| Body | 17 | Not defined | AUC | 12 |
+| Body | 17 | Not defined | ROC | 10 |
+| Body | 66 | Not defined | AI | 1 |
+| Body | 102 | Not defined | RAN | 5 |
+| Body | 120 | Not defined | RLC | 1 |
+| Body | 123 | Not defined | AIMD | 1 |
+| Body | 137 | Not defined | TUN | 4 |
+| Body | 210 | Not defined | HTB | 1 |
+| Body | 211 | Not defined | ICMP | 2 |
+| Body | 214 | Not defined | RTT | 8 |
+| Body | 238 | Not defined | UDP | 1 |
+| Body | 245 | Not defined | PR | 3 |
+| Body | 332 | Not defined | UL | 2 |
+| Body | 377 | Not defined | UCB | 1 |
+| Body | 414 | Not defined | GRU | 1 |
+| Body | 414 | Not defined | TCN | 1 |
+| Body | 476 | Not defined | CA | 2 |
+| Body | 476 | Not defined | DA | 2 |
+| Body | 506 | Not defined | CLAIMS | 1 |

@@ -1,0 +1,28 @@
+Suggested-reference check (script output, not a reviewer finding; #1001)
+Seats read: R2, R3 (complete).
+
+| Seat | # | Reference | Result |
+|---|---|---|---|
+| R2 | 1 | Y. Zeng, Q. Wu, R. Zhang (2019) "Accessing From the Sky: A Tutorial on UAV Communications for 5G and Beyond" | Found in an index |
+| R2 | 2 | H. Bayerlein, P. De Kerret, D. Gesbert (2018) "Trajectory Optimization for Autonomous Flying Base Station via Reinforcement Learning" | Found in an index |
+| R2 | 3 | X. Liu, Y. Liu, Y. Chen (2019) "Reinforcement Learning in Multiple-UAV Networks: Deployment and Movement Design" | Found in an index |
+| R2 | 4 | J. Chen, D. Gesbert (2017) "Learning Radio Maps for UAV-Aided Wireless Networks: A Segmented Regression Approach" | Found in an index |
+| R2 | 5 | 3GPP (2017) "Enhanced LTE Support for Aerial Vehicles" | Title not matched; no DOI or arXiv ID to check |
+| R2 | 6 | I. Johansson, Z. Sarker (2017) "Self-Clocked Rate Adaptation for Multimedia (SCReAM)" | Title not matched; no DOI or arXiv ID to check |
+| R2 | 7 | G. Carlucci, L. De Cicco, S. Holmer, S. Mascolo (2016) "Analysis and Design of the Google Congestion Control for Web Real-time Communication (WebRTC)" | Found in an index |
+| R2 | 8 | Y. Zaki, T. Poetzsch, L. Subramanian, et al. (2015) "Adaptive Congestion Control for Unpredictable Cellular Networks (Verus)" | Title not matched; no DOI or arXiv ID to check |
+| R2 | 9 | Y. Xie, F. Yi, K. Jamieson (2020) "PBE-CC: Congestion Control via Endpoint-Centric, Physical-Layer Bandwidth Measurements" | Found in an index |
+| R2 | 10 | P. Goyal, A. Agarwal, R. Netravali, M. Alizadeh, H. Balakrishnan (2020) "ABC: A Simple Explicit Congestion Controller for Wireless Networks" | Found in an index |
+| R2 | 11 | M. Irazabal, E. Lopez-Aguilera, I. Demirkol, R. Schmidt, N. Nikaein (2020) "Dynamic Buffer Sizing and Pacing as Enablers of 5G Low-Latency Services" | Found in an index |
+| R2 | 12 | 3GPP (2024) "NR; Packet Data Convergence Protocol (PDCP) specification" | Title not matched; no DOI or arXiv ID to check |
+| R2 | 13 | M. Polese, L. Bonati, S. D'Oro, S. Basagni, T. Melodia (2023) "Understanding O-RAN: Architecture, Interfaces, Algorithms, Security, and Research Challenges" | Found in an index |
+| R2 | 14 | L. Bonati, M. Polese, S. D'Oro, S. Basagni, T. Melodia (2023) "OpenRAN Gym: AI/ML Development, Data Collection, and Testing for O-RAN on PAWR Platforms" | Found in an index |
+| R2 | 15 | N. Cardwell, Y. Cheng, C. S. Gunn, S. H. Yeganeh, V. Jacobson (2016) "BBR: Congestion-Based Congestion Control" | Found in an index |
+| R3 | 1 | Robin R. Murphy (2014) "Disaster Robotics" | Found in an index |
+| R3 | 2 | S. Shalunov, G. Hazel, J. Iyengar, M. Kuehlewind (2012) "Low Extra Delay Background Transport (LEDBAT)" | Found in an index |
+| R3 | 3 | Gaetano Carlucci, Luca De Cicco, Stefan Holmer, Saverio Mascolo (2016) "Analysis and Design of the Google Congestion Control for Web Real-time Communication (WebRTC)" | Found in an index |
+| R3 | 4 | I. Johansson, Z. Sarker (2017) "Self-Clocked Rate Adaptation for Multimedia (SCReAM)" | Title not matched; no DOI or arXiv ID to check |
+| R3 | 5 | 3GPP (2023) "System architecture for the 5G System (5GS) — QoS model (clause 5.7)" | Title not matched; no DOI or arXiv ID to check |
+| R3 | 6 | Jessie Y. C. Chen, Ellen C. Haas, Michael J. Barnes (2007) "Human Performance Issues and User Interface Design for Teleoperated Robots" | Found in an index |
+
+"Found" means an index holds a record with this DOI or arXiv ID and title, or with this title. It does not show that the work supports the recommendation, or that the authors and year are right.

@@ -1,0 +1,18 @@
+% Conclusion (0.35 p)
+\section{Conclusion}
+\label{sec:conclusion}
+
+We built a three-loop management stack for a UAV-borne 5G cell serving four
+search-and-rescue robots and flew it in closed loop over real 5G software. The
+most effective loop was not learned: a per-robot uplink cap driven by
+round-trip time removed a silent queueing failure inside the UE, shortened C2
+outages from minutes to single measurement cycles, and improved both placement
+arms flown with and without it (C1). The learning layer forecasts
+link-failure onset 20\,s ahead with modest skill that falls as model capacity
+grows (C2), does not recover how terrain changes the effect of altitude (C3),
+and, in closed loop, does not beat fixed hover or the robot centroid; made
+cautious, it behaves like hover (C4). For autonomous management of such
+cells, the lesson is to verify that the managed system is measured and loaded
+soundly, bounding its queues and checking that its processes are alive, before
+learning where to fly it. The next steps are a hardware trial of the cap and
+retraining the layer on capped, watchdog-protected data.
