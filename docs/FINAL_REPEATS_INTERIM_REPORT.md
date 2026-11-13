@@ -105,3 +105,64 @@ same-policy null swing measured earlier (−0.5, 95 % range −4.3 to +3.0;
 
 Before restarting, free host memory: at the crash only about 0.9 GB of 32 GB
 was available, with browsers holding 6+ GB and `open5gs-amfd` 1.4 GB after 27 days of uptime.
+
+## Deeper analysis (`scripts/ml/final_repeats_deep.py`)
+
+Outputs are in `logs/ml/final_repeats_deep_*.csv`.
+
+**A. Arm against hover, two-stage bootstrap.** Runs are resampled, then 10-min
+blocks within each run. The margin for "equivalent" (±5 points, 90 % interval
+inside it) was set on 13 Nov after seeds 1–2 were seen, so it is not pre-registered.
+
+| World | Arm | Runs | All 4 up, mean (95 %) | Arm − hover (95 %) | Verdict |
+|---|---|---|---|---|---|
+| open | A | 2 | 84.8 (82.8–86.6) | — | — |
+| open | B | 2 | 85.6 (84.5–86.7) | +0.8 (−1.4, +3.1) | equivalent within ±5 |
+| open | C | 2 | 84.8 (79.5–88.6) | −0.1 (−5.9, +4.5) | equivalent within ±5 |
+| open | D | 1 | 86.6 (83.8–89.3) | +1.8 (−1.6, +5.2) | equivalent within ±5 (1 run) |
+| forest | A | 3 | 70.5 (63.9–76.8) | — | — |
+| forest | B | 2 | 61.1 (50.2–72.2) | −9.5 (−22.4, +3.7) | not established |
+| forest | C | 3 | 63.4 (52.8–72.7) | −7.0 (−19.9, +4.7) | not established |
+| forest | D | 2 | 64.3 (50.4–78.0) | −6.3 (−22.1, +9.0) | not established |
+
+With 1–3 runs per arm, resampling runs gives a rough interval only.
+
+**B. The cautious learner's worst run is the one that climbed.**
+
+| Forest C run | Mean z (m) | Time at ≥ 45 m | All 4 up |
+|---|---|---|---|
+| Seed 1 | 40.8 | 11 % | 65.2 |
+| Seed 2 | 40.4 | 7 % | 72.9 |
+| Seed 3 | 46.2 | **59 %** | **52.1** |
+
+In seed 3 the correlation between altitude and robots up was −0.17. The
+learner's loss came from it moving up, not from probing. Arm D stayed near
+40 m (90 % of time at 35–45 m), so D's losses come from x-y moves, not altitude.
+
+**C. Distance does not explain forest C2.**
+- Forest robots are 12–24 m from the UAV horizontally (elevation 68–73°).
+- Across robot-runs, horizontal distance and C2 availability are uncorrelated:
+  r = 0.06 in forest, 0.03 in open field.
+- Losses concentrate on bravo and delta under the moving arms. Delta drops to
+  72–81 % under centroid, against 84–89 % under hover.
+- Failures therefore track where a robot is relative to the trees, which the
+  geometry features do not capture. This is consistent with claim C3.
+
+**D. Moving arms make the cap work harder in forest.**
+
+| Forest arm | Mean cap (kb/s) | Time at max | Cuts per hour | Video goodput (Mb/s) | Video latency p90 (s) |
+|---|---|---|---|---|---|
+| A hover | 1033 | 48 % | 266 | 1.03 | 1.5 |
+| B centroid | 954 | 42 % | 303 | 0.96 | 1.9 |
+| C cautious | 1018 | 47 % | 306 | 1.01 | 2.3 |
+| D planner | 850 | 34 % | 371 | 0.85 | 2.4 |
+
+In open field all arms are the same: cap about 1.29 Mb/s, about 62 % of time
+at max, about 125 cuts per hour, goodput 1.27 Mb/s, latency p90 0.4 s.
+
+**E. Outages.**
+- Forest outages last a median of 18–22 s on every arm.
+- Hover has the shortest 90th percentile (48 s, against 58–74 s for the moving arms).
+- The longest single outage was 312 s for hover and 496 s for the planner.
+- Open-field outages are short blips: median about 12 s, roughly one cycle,
+  at about 10 per hour per robot.
