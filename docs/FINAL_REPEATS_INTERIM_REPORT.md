@@ -1,5 +1,7 @@
 # Final repeats: interim report (2026-11-13)
 
+> Superseded by `FINAL_REPEATS_REPORT.md` (all 24 runs, 14 Nov). Kept as a record.
+
 The 3-seed campaign (`run_final_repeats.sh`) was stopped at 13:20 on 13 Nov
 when the host ran out of memory, after 14 of 20 runs. This report gives its
 13 usable runs plus the four forest seed-1 runs of 12 Nov (17 runs). Nothing in README or PROGRESS is changed by it.

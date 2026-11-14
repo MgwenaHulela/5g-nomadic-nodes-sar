@@ -74,7 +74,7 @@ large CPU:
    (`n_jobs=-1` uses every core) and PyTorch (uses the GPU when CUDA is
    available).
 
-## Planned realism upgrades (thesis, after the NOMS deadline)
+## Planned realism upgrades (before the paper; user decision 13 Nov 2026)
 
 In this order, each with one validation run against the current setup:
 

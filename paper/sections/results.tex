@@ -231,20 +231,21 @@ learner keeps 40\,m as its incumbent and leaves it only for short probes.}
 \end{figure*}
 
 \textit{Repeated missions: no learned arm beats hover.} We flew every arm
-with the cap, and the cautious learner for C and D, on three seeds in forest
-and two in open field; 17 missions are usable at the time of writing
-(Fig.~\ref{fig:seeds}).\todo{add forest seed 3 for B and D, flying now, and
-open-field seed 3} Because the runs fall on different nights and a seed does
+with the cap, and the cautious learner for C and D, on three seeds in each
+world, 24 missions in all (Fig.~\ref{fig:seeds}). Two start-ups that failed
+before any data, and one run stopped by a host memory fault, were flown again
+and the failed attempts excluded. Because the runs fall on different nights and a seed does
 not reproduce the robots' paths, arms are compared by a two-stage bootstrap
 (resample runs, then 10-min blocks within each run). The rule was fixed before
 these runs: a learned arm beats a baseline only if its interval excludes 0. No
-arm does. In open field every arm stays within 5 points of hover, which keeps
-all four robots up 84.8\,\% of the time: B$-$A $+0.8$ [$-1.4$, $+3.1$],
-C$-$A $-0.1$ [$-5.9$, $+4.4$], D$-$A $+1.8$ [$-1.6$, $+5.2$] (one run).
+arm does. In open field every arm is equivalent to hover, which keeps
+all four robots up 84.2\,\% of the time (90\,\% intervals within $\pm$5;
+95\,\% intervals given here): B$-$A $+1.2$ [$-0.9$, $+3.5$],
+C$-$A $+1.0$ [$-3.4$, $+4.5$], D$-$A $-0.7$ [$-5.6$, $+3.3$].
 Placement has nothing left to win there once the queue is bounded. In
 forest, hover is the steadiest arm (67.9--73.2\,\%, mean 70.6\,\%) and the
-arms that move the UAV trail it: B$-$A $-9.5$ [$-22.4$, $+3.7$], C$-$A $-7.0$
-[$-19.9$, $+4.6$], D$-$A $-6.3$ [$-22.1$, $+9.0$]. None of these gaps is
+arms that move the UAV trail it: B$-$A $-8.4$ [$-19.4$, $+2.1$], C$-$A $-7.0$
+[$-19.9$, $+4.7$], D$-$A $-8.0$ [$-18.6$, $+4.2$]. None of these gaps is
 established. Each moving arm had one run 16--18 points below hover's run on
 the same seed, and others close to it.
 % D8: scripts/ml/final_repeats_deep.py -> logs/ml/final_repeats_deep_a_arms.csv; fig_arms_seeds.py
@@ -255,12 +256,12 @@ lowest run (52.1\,\%) is the one that left its 40-m home for long: it spent
 runs, and in that run the number of robots connected fell as altitude rose
 (correlation $-0.17$). This fits the negative capped slope above but does not
 establish it. Moving the UAV also made the cap work harder. Averaged over
-forest runs, the cap cut a robot's rate 266 times per hour under hover and 371
-under the planner, video goodput fell from 1.03 to 0.85\,Mb/s, and
-90th-percentile video latency rose from 1.5 to 2.4\,s. Each move changes the
+forest runs, the cap cut a robot's rate 266 times per hour under hover and 364
+under the planner, video goodput fell from 1.03 to 0.87\,Mb/s, and
+90th-percentile video latency rose from 1.5 to 2.2\,s. Each move changes the
 robots' paths through the canopy, and the cap has to find their new rates.
 Horizontal UAV--robot distance does not explain a robot's C2 in forest
-(correlation 0.06 over robot-runs): what matters is where a robot stands
+(correlation 0.00 over 48 robot-runs): what matters is where a robot stands
 relative to the trees, which the geometry features cannot see (C3). In effect
 the cautious learner is hover with short probes: it gave no benefit over
 hover, and when it did leave 40\,m for long, it lost.
@@ -271,8 +272,8 @@ hover, and when it did leave 40\,m for long, it lost.
 \includegraphics[width=\columnwidth]{fig_arms_seeds.pdf}
 \caption{All four robots C2 up per arm with the cap, cautious learner for C
 and D: bar = mean over runs, dots = individual 90-min runs, dashed line =
-hover's mean. Open field is tight; forest varies from run to run.
-\todo{regenerate when forest seed 3 for B and D and open-field seed 3 are in}}
+hover's mean. Three runs per arm and world. Open field is tight; forest
+varies from run to run.}
 \label{fig:seeds}
 \end{figure}
 

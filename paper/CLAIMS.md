@@ -29,7 +29,7 @@ Claim 1 is the headline. Claims 2–4 state what learning can and cannot add on 
 - **E5 (forest patrol):** C2 66.8 → 91.8 %; none-up 17.4 → 0.9 %.
 - **E6 (four-arm fly-off):** none-up falls from 25–57 % to 0–0.3 % for every arm, and mean C2 rises from 29–67 % to 82–89 %.
 
-**Verdict: holds.** The mechanism result is strong. The before/after comparisons rest on single runs, but the effect is large and has the same sign in all 4 arms. Open-field capped arms are pending (D8). If those runs show a capped arm worse than its uncapped open-field counterpart (D2) beyond the CI, the "without starving strong links" half is weakened.
+**Verdict: holds.** The mechanism result is strong. The before/after comparisons rest on single runs, but the effect is large and has the same sign in all 4 arms. Open-field capped arms (D8, 3 seeds): A 84.2, B 85.4 all-4-up against uncapped A 50.2, B 57.0 (D2), so the "without starving strong links" half is not weakened.
 
 ## Claim 2: a terrain-blind forecaster has modest skill, and capacity hurts
 
@@ -72,18 +72,18 @@ Claim 1 is the headline. Claims 2–4 state what learning can and cannot add on 
 - **D6 (why):** one run cannot sign the forest altitude effect. Cross-run −6.6 [−14.9, +0.9]; within-run +4.6 and +5.9 with CIs about ±10.
 - **C2 (risk planner vs two_phase):** open +10.5\* and forest −15.3\*, both surviving the null control. Urban and hills are withdrawn.
 
-**Verdict: holds weakly, pending D8.** Everything above is one run per arm with within-run CIs. The final verdict will be taken from the 3-seed runs in forest and open field (D8, due about 13 Nov 23:30), using a rule fixed now:
+**Verdict: holds weakly (D8 final below).** Everything above is one run per arm with within-run CIs. The final verdict will be taken from the 3-seed runs in forest and open field (D8, due about 13 Nov 23:30), using a rule fixed now:
 
 - Pool seeds per arm.
 - Bootstrap over runs and blocks.
 - A learned arm "beats" a baseline only if its all-4-up CI excludes 0.
 - Exploring-learner arms are not in D8: those runs flew only the cautious learner. The exploring-learner loss stays a single-run result.
 
-**D8 interim (13 Nov, 17 usable runs; `scripts/ml/final_repeats_deep.py`):** no learned arm beats hover under the rule above.
-- Open field: B − A +0.8 [−1.4, +3.1], C − A −0.1 [−5.9, +4.4], D − A +1.8 [−1.6, +5.2] (one run). All within ±5 (equivalence margin set after seeds 1–2, stated as such).
-- Forest: B − A −9.5 [−22.4, +3.7], C − A −7.0 [−19.9, +4.6], D − A −6.3 [−22.1, +9.0]. None established.
+**D8 final (14 Nov, all 24 runs, 3 seeds × 4 arms × 2 worlds; `scripts/ml/final_repeats_deep.py`):** no learned arm beats hover under the rule above.
+- Open field (hover 84.2): B − A +1.2 [−0.9, +3.5], C − A +1.0 [−3.4, +4.5], D − A −0.7 [−5.6, +3.3] (95 % CIs). All equivalent within ±5 on the 90 % interval (margin set after seeds 1–2, stated as such).
+- Forest (hover 70.6): B − A −8.4 [−19.4, +2.1], C − A −7.0 [−19.9, +4.7], D − A −8.0 [−18.6, +4.2]. None established.
+- Re-flown: open D s1 and forest D s3 (start-up failures, 0 rows) and forest D s3 run killed by the 13 Nov memory crash; failed attempts excluded, not imputed.
 - Safety part not falsified: cautious C − A interval includes 0. Its worst run (52.1 %) spent 59 % of the mission at ≥ 45 m.
-- Pending: forest seed 3 for B and D (flying 13 Nov), open-field seed 3.
 
 ## Supporting results (not claims)
 

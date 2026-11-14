@@ -20,3 +20,4 @@
 - [Forest outages = UE queue congestion](forest-outages-are-ue-queue-congestion.md) — 1.5 Mb/s CBR video overflows weak NLoS uplinks; OAI UE queues minutes; recovery 14-18+ min; TUN cap removes outages; delay-adaptive AIMD cap keeps 85-94% of video too
 - [SATNAC 2026 published](satnac-2026-published.md) — exact citation; published setup differs from local satnac_final.tex (2-s 8 Mb/s bursts, C2 = ≥1/5 echoes)
 - [Slicing plan](slicing-plan.md) — approved eMBB/URLLC/IoT slice design on 10.47.x/ogstun3-5, all 4 robots; build only after campaign ends
+- [Realism before paper](realism-before-paper.md) — 13 Nov decision: realism upgrades on new PC come BEFORE the NOMS paper; never pool new-stack runs with lab-PC runs

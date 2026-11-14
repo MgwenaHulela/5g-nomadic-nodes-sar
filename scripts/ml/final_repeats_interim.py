@@ -46,7 +46,8 @@ def boot_all4(ts, dt, up, B=1000):
 
 
 runs = []
-for f in sorted(glob.glob(str(REPO / "logs/final_repeats_2*_runs.csv"))):
+for f in sorted(glob.glob(str(REPO / "logs/final_repeats_2*_runs.csv"))
+                + glob.glob(str(REPO / "logs/final_repeats_rerun_2*_runs.csv"))):
     r = pd.read_csv(f, header=None, names=["i", "arm", "world", "seed", "dir", "rc", "rows"])
     runs += [dict(i=x.i, arm=x.arm, world=x.world, seed=int(str(x.seed)[-1]), dir=x.dir) for x in r.itertuples()]
 runs += [dict(i=0, arm=a, world="sar_forest", seed=1, dir=d) for a, d in FOREST_S1.items()]

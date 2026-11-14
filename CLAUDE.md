@@ -12,33 +12,38 @@ places the UAV. Work happens on branch `ml-predictive-layer`.
 - `docs/claude_memory/`: the notes kept on the lab PC (stack behaviour,
   pitfalls, results). If they are not yet in this clone's memory folder, load
   them as `docs/claude_memory/README.md` says.
-- `docs/FINAL_REPEATS_INTERIM_REPORT.md`: latest results (3-seed capped runs).
+- `docs/FINAL_REPEATS_REPORT.md`: final results, all 24 3-seed capped runs
+  (the interim report of 13 Nov is kept as a record).
 - `paper/`: IEEE/IFIP NOMS 2027 paper. `paper/CLAIMS.md` holds the claims and
   the decision rules; build with `paper/pages.sh` (main text ≤ 8 pages).
 
-## State on 13 Nov 2026
+## State on 14 Nov 2026
 
 - Run data is not in git. It arrives as `sar_logs_main.tar.zst` (unpack in
   the repo root) from the backup folder, with `system/` (Open5GS settings,
   subscriber database, OAI patch and build info).
-- 17 usable capped runs. Main results: the adaptive uplink cap lifts all-4-up
-  by about 30 points in open field; no learned placement beats hover (open
-  field: all arms within ±5 points; forest: moving arms trail by 6–10, not
-  established).
-- Forest seed 3 for arms B and D was flying on the lab PC when it was
-  handed over; check the backup for `logs/final_repeats_rerun_*_runs.csv`.
+- All 24 planned capped runs are done (4 arms × 3 seeds × 2 worlds, finished
+  14 Nov). Main results: the adaptive uplink cap lifts all-4-up by about 30
+  points in open field; no learned placement beats hover (open field: all arms
+  equivalent within ±5 points; forest: moving arms trail by 7–8, not
+  established). These are the lab-PC baseline; never pool them with runs
+  from an upgraded stack.
 
 ## Next tasks, in order
 
 1. Restore the stack on this PC and pass `verify_stack.sh` plus one short
    smoke run.
-2. Retrain the forecasting models on the clean capped data
+2. **Realism upgrades, before the paper** (the user's decision, 13 Nov). Use
+   the order in `docs/NEW_PC_SETUP.md`: CU/DU split, real video, fading
+   channel, PX4, real terrain, Sionna RT. Make each one a separate, backed-up
+   change with its own validation run. Label runs from the upgraded stack as a
+   new setup and never pool them with the 24 lab-PC runs.
+3. Retrain the forecasting models on the clean capped data
    (`scripts/ml/retrain_clean.py`, `scripts/ml/clean_dataset.py`) and fill the
    paper's retraining TODO.
-3. Throughput and capacity tests (iperf, 1/2/4 robots), then the paper's
-   remaining TODOs. Paper draft due 22 Nov, submission by 29 Nov 2026.
-4. After submission, the realism upgrades listed in `docs/NEW_PC_SETUP.md`
-   (CU/DU split, real video, fading channel, PX4, real terrain, Sionna RT).
+4. Throughput and capacity tests (iperf, 1/2/4 robots), then the paper's
+   remaining TODOs. Paper draft due 22 Nov, submission by 29 Nov 2026. Tell
+   the user plainly if the upgrades put these dates at risk.
 
 ## Rules
 
